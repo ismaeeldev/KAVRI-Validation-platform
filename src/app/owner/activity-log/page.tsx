@@ -64,7 +64,7 @@ export default async function OwnerActivityLogPage() {
                 <div key={log.id} className="relative space-y-1">
                   {/* Circle Node */}
                   <span className="absolute -left-[29px] top-1.5 w-2.5 h-2.5 rounded-full bg-kavri-line-strong border border-kavri-surface" />
-                  
+
                   <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
                     <div className="space-y-1 font-sans text-xs">
                       <span className="font-bold text-kavri-ink block">
