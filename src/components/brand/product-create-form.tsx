@@ -32,8 +32,7 @@ export function ProductCreateForm({ suppliers }: CreateFormProps) {
     handleSubmit,
     formState: { errors },
   } = useForm<ProductFormData>({
-    // @ts-expect-error - Zod version mismatch
-    resolver: zodResolver(createProductSchema),
+    resolver: zodResolver(createProductSchema as any),
     defaultValues: {
       isPublic: false,
     },

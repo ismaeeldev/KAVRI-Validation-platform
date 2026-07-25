@@ -25,8 +25,7 @@ export function TesterCreateForm() {
     reset,
     formState: { errors },
   } = useForm<TesterFormData>({
-    // @ts-expect-error - Zod version mismatch
-    resolver: zodResolver(createTesterSchema),
+    resolver: zodResolver(createTesterSchema as any),
   });
 
   const onSubmit = async (data: TesterFormData) => {

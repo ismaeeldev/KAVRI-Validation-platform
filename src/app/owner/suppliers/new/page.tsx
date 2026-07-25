@@ -25,8 +25,7 @@ export default function NewSupplierPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<SupplierFormData>({
-    // @ts-expect-error - Zod version mismatch
-    resolver: zodResolver(createSupplierSchema),
+    resolver: zodResolver(createSupplierSchema as any),
   });
 
   const onSubmit = async (data: SupplierFormData) => {

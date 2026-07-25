@@ -43,8 +43,7 @@ export function PublicUpdateForm({ products, revisions, initialData }: PublicUpd
     setValue,
     formState: { errors },
   } = useForm<UpdateFormData>({
-    // @ts-expect-error - Zod version mismatch
-    resolver: zodResolver(createPublicUpdateSchema),
+    resolver: zodResolver(createPublicUpdateSchema as any),
     defaultValues: {
       title: initialData?.title || "",
       summary: initialData?.summary || "",

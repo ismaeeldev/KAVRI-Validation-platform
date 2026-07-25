@@ -35,8 +35,7 @@ export function SupplierEditForm({ supplier }: EditFormProps) {
     handleSubmit,
     formState: { errors },
   } = useForm<SupplierFormData>({
-    // @ts-expect-error - Zod version mismatch
-    resolver: zodResolver(createSupplierSchema),
+    resolver: zodResolver(createSupplierSchema as any),
     defaultValues: {
       name: supplier.name,
       code: supplier.code || "",

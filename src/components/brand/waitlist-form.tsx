@@ -22,8 +22,7 @@ export function WaitlistForm() {
     reset,
     formState: { errors },
   } = useForm<SignupFormData>({
-    // @ts-expect-error - Zod version mismatch
-    resolver: zodResolver(waitlistSignupSchema),
+    resolver: zodResolver(waitlistSignupSchema as any),
   });
 
   const onSubmit = async (data: SignupFormData) => {

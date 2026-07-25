@@ -33,8 +33,7 @@ export function SampleCreateForm({ products, revisions }: CreateFormProps) {
     setValue,
     formState: { errors },
   } = useForm<SampleFormData>({
-    // @ts-expect-error - Zod version mismatch
-    resolver: zodResolver(createSampleSchema),
+    resolver: zodResolver(createSampleSchema as any),
     defaultValues: {
       receivedAt: new Date().toISOString().split("T")[0],
     },

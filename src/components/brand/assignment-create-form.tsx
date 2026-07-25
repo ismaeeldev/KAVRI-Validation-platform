@@ -41,8 +41,7 @@ export function AssignmentCreateForm({ testers, samples }: CreateFormProps) {
     setValue,
     formState: { errors },
   } = useForm<AssignmentFormData>({
-    // @ts-expect-error - Zod version mismatch
-    resolver: zodResolver(createAssignmentSchema),
+    resolver: zodResolver(createAssignmentSchema as any),
     defaultValues: {
       requiredSessionCount: 1,
       dueAt: defaultDueAt,

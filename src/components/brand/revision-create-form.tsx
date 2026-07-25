@@ -29,8 +29,7 @@ export function RevisionCreateForm({ productId }: CreateFormProps) {
     handleSubmit,
     formState: { errors },
   } = useForm<RevisionFormData>({
-    // @ts-expect-error - Zod version mismatch
-    resolver: zodResolver(createRevisionSchema),
+    resolver: zodResolver(createRevisionSchema as any),
     defaultValues: {
       productId,
       isPublic: false,

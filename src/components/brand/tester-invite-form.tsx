@@ -31,8 +31,7 @@ export function TesterInviteForm({ token, initialName, email }: InviteFormProps)
     handleSubmit,
     formState: { errors },
   } = useForm<InviteFormData>({
-    // @ts-expect-error - Zod version mismatch
-    resolver: zodResolver(acceptInvitationSchema),
+    resolver: zodResolver(acceptInvitationSchema as any),
   });
 
   const onSubmit = async (data: InviteFormData) => {
