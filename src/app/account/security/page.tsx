@@ -35,8 +35,7 @@ export default function SecurityPage() {
     reset,
     formState: { errors },
   } = useForm<PasswordFormData>({
-    // @ts-expect-error - Zod v4 and react-hook-form resolver type mismatch
-    resolver: zodResolver(passwordSchema),
+    resolver: zodResolver(passwordSchema as any),
   });
 
   const onSubmit = async (data: PasswordFormData) => {
