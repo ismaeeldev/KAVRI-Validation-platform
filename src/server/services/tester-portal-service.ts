@@ -1,0 +1,138 @@
+import "server-only";
+import { eq, and } from "drizzle-orm";
+import { db } from "@/db";
+import * as schema from "@/db/schema";
+import { AppError } from "@/lib/errors";
+import { logActivity } from "./activity-service";
+
+async function getActiveTesterProfile(testerUserId: string) {
+  const profile = await db.query.testerProfiles.findFirst({
+    where: eq(schema.testerProfiles.userId, testerUserId),
+  });
+
+  if (!profile) {
+    throw AppError.notFound("Tester profile not found.");
+  }
+
+  if (profile.approvalStatus !== "approved") {
+    throw AppError.forbidden("Tester profile is deactivated or pending approval.");
+  }
+
+  return profile;
+}
+
+export async function getTesterAssignments(testerUserId: string) {
+  const profile = await getActiveTesterProfile(testerUserId);
+
+  const assignmentsList = await db.query.testingAssignments.findMany({
+    where: eq(schema.testingAssignments.testerProfileId, profile.id),
+    with: {
+      product: true,
+      revision: true,
+      sample: true,
+    },
+    orderBy: (asg, { desc }) => [desc(asg.createdAt)],
+  });
+
+  // Construct secure DTO to hide all confidential details
+  return assignmentsList.map((asg) => ({
+    id: asg.id,
+    status: asg.status,
+    dueAt: asg.dueAt,
+    requiredSessionCount: asg.requiredSessionCount,
+    instructions: asg.instructions,
+    product: {
+      publicAlias: asg.product.publicAlias || "Generic Product",
+    },
+    revision: {
+      revisionCode: asg.revision.revisionCode,
+    },
+    sample: {
+      sampleCode: asg.sample.sampleCode,
+    },
+  }));
+}
+
+export async function getTesterAssignmentById(assignmentId: string, testerUserId: string) {
+  const profile = await getActiveTesterProfile(testerUserId);
+
+  // Exact IDOR binding query
+  const assignment = await db.query.testingAssignments.findFirst({
+    where: and(
+      eq(schema.testingAssignments.id, assignmentId),
+      eq(schema.testingAssignments.testerProfileId, profile.id)
+    ),
+    with: {
+      product: true,
+      revision: true,
+      sample: true,
+    },
+  });
+
+  if (!assignment) {
+    // Return generic safe not-found error without metadata leakage
+    throw AppError.notFound("The requested assignment was not found.");
+  }
+
+  return {
+    id: assignment.id,
+    status: assignment.status,
+    dueAt: assignment.dueAt,
+    requiredSessionCount: assignment.requiredSessionCount,
+    instructions: assignment.instructions,
+    product: {
+      publicAlias: assignment.product.publicAlias || "Generic Product",
+    },
+    revision: {
+      revisionCode: assignment.revision.revisionCode,
+    },
+    sample: {
+      sampleCode: assignment.sample.sampleCode,
+    },
+  };
+}
+
+export async function acknowledgeAssignment(assignmentId: string, testerUserId: string) {
+  const profile = await getActiveTesterProfile(testerUserId);
+
+  // Transaction block for safe atomic mutation updates
+  return await db.transaction(async (tx) => {
+    const assignment = await tx.query.testingAssignments.findFirst({
+      where: and(
+        eq(schema.testingAssignments.id, assignmentId),
+        eq(schema.testingAssignments.testerProfileId, profile.id)
+      ),
+    });
+
+    if (!assignment) {
+      throw AppError.notFound("The requested assignment was not found.");
+    }
+
+    if (assignment.status === "acknowledged") {
+      return assignment; // Idempotent
+    }
+
+    if (assignment.status !== "active") {
+      throw AppError.invalidState(`Assignments in state '${assignment.status}' cannot be acknowledged.`);
+    }
+
+    // Check expiration
+    if (new Date() > assignment.dueAt) {
+      throw AppError.invalidState("Cannot acknowledge an expired assignment.");
+    }
+
+    const [updated] = await tx
+      .update(schema.testingAssignments)
+      .set({
+        status: "acknowledged",
+        acknowledgedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.testingAssignments.id, assignmentId))
+      .returning();
+
+    await logActivity(testerUserId, "assignment.acknowledged", "testing_assignment", assignmentId);
+
+    return updated;
+  });
+}
