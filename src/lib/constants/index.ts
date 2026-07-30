@@ -18,10 +18,77 @@ export type AccountStatus = typeof ACCOUNT_STATUS[keyof typeof ACCOUNT_STATUS];
 export const TESTER_APPROVAL = {
   PENDING: "pending",
   APPROVED: "approved",
-  DEACTIVATED: "deactivated",
+  DECLINED: "declined", // owner-only action, available only while approvalStatus='pending'
+  DEACTIVATED: "deactivated", // matches audit's "Inactive" - same meaning, no rename needed
 } as const;
 
 export type TesterApproval = typeof TESTER_APPROVAL[keyof typeof TESTER_APPROVAL];
+
+export const SKILL_LEVEL = {
+  L2_5: "2.5",
+  L3_0: "3.0",
+  L3_5: "3.5",
+  L4_0: "4.0",
+  L4_5: "4.5",
+  L5_0_PLUS: "5.0_plus",
+  NOT_SURE: "not_sure",
+} as const;
+
+export type SkillLevel = typeof SKILL_LEVEL[keyof typeof SKILL_LEVEL];
+
+export const PLAYING_FREQUENCY = {
+  DAILY: "daily",
+  FEW_TIMES_WEEK: "few_times_week",
+  WEEKLY: "weekly",
+  MONTHLY_OR_LESS: "monthly_or_less",
+} as const;
+
+export type PlayingFrequency = typeof PLAYING_FREQUENCY[keyof typeof PLAYING_FREQUENCY];
+
+// Audit lists "Control / power" as related but separately named preference axes; consolidated
+// here into one control-vs-power scale per sprint1_rev.md Step 5's explicit allowance -
+// documented in the Step 5 commit rather than silently dropping one dimension.
+export const PREFERENCE_CONTROL_POWER = {
+  CONTROL: "control",
+  NEUTRAL: "neutral",
+  POWER: "power",
+} as const;
+
+export type PreferenceControlPower = typeof PREFERENCE_CONTROL_POWER[keyof typeof PREFERENCE_CONTROL_POWER];
+
+export const PREFERENCE_POP = {
+  MORE_POP: "more_pop",
+  NEUTRAL: "neutral",
+  LESS_POP: "less_pop",
+} as const;
+
+export type PreferencePop = typeof PREFERENCE_POP[keyof typeof PREFERENCE_POP];
+
+export const PREFERENCE_FEEL = {
+  STIFFER: "stiffer",
+  NEUTRAL: "neutral",
+  SOFTER: "softer",
+} as const;
+
+export type PreferenceFeel = typeof PREFERENCE_FEEL[keyof typeof PREFERENCE_FEEL];
+
+export const DOMINANT_HAND = {
+  LEFT: "left",
+  RIGHT: "right",
+  AMBIDEXTROUS: "ambidextrous",
+  PREFER_NOT_TO_SAY: "prefer_not_to_say",
+} as const;
+
+export type DominantHand = typeof DOMINANT_HAND[keyof typeof DOMINANT_HAND];
+
+export const PLAY_STYLE_OPTIONS = [
+  "aggressive_baseline",
+  "dinker",
+  "net_rusher",
+  "all_court",
+  "power_hitter",
+  "defensive",
+] as const;
 
 export const SUPPLIER_TYPE = {
   PRODUCT: "product",

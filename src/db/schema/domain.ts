@@ -194,11 +194,27 @@ export const testerProfiles = pgTable("tester_profiles", {
   userId: text("user_id").unique().references(() => user.id, { onDelete: "set null" }),
   emailNormalized: text("email_normalized").notNull().unique(),
   displayName: text("display_name").notNull(),
-  approvalStatus: text("approval_status").notNull(), // 'pending' | 'approved' | 'deactivated'
+  approvalStatus: text("approval_status").notNull(), // 'pending' | 'approved' | 'declined' | 'deactivated'
   approvedAt: timestamp("approved_at", { withTimezone: true }),
   approvedBy: text("approved_by").references(() => user.id),
+  declinedAt: timestamp("declined_at", { withTimezone: true }),
+  declinedBy: text("declined_by").references(() => user.id),
+  declinedReason: text("declined_reason"),
   deactivatedAt: timestamp("deactivated_at", { withTimezone: true }),
   deactivatedBy: text("deactivated_by").references(() => user.id),
+  // Profile fields (audit Section 9) - all nullable, populated progressively.
+  skillLevel: text("skill_level"), // 2.5|3.0|3.5|4.0|4.5|5.0_plus|not_sure
+  playingFrequency: text("playing_frequency"), // daily|few_times_week|weekly|monthly_or_less
+  currentPaddle: text("current_paddle"),
+  playStyle: text("play_style"), // comma-separated controlled list (no multi-select precedent in this codebase)
+  preferenceControlPower: text("preference_control_power"), // 'control'|'neutral'|'power' - audit's "Control/power" collapsed to one axis, see DataModelConfirmation.md
+  preferencePop: text("preference_pop"), // 'more_pop'|'neutral'|'less_pop'
+  preferenceFeel: text("preference_feel"), // 'stiffer'|'neutral'|'softer'
+  preferenceHandle: text("preference_handle"),
+  dominantHand: text("dominant_hand"), // left|right|ambidextrous|prefer_not_to_say
+  singlesDoublesPreference: text("singles_doubles_preference"),
+  consentAt: timestamp("consent_at", { withTimezone: true }),
+  consentTextVersion: text("consent_text_version"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [

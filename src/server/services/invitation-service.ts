@@ -91,7 +91,12 @@ export async function verifyInvitation(rawToken: string) {
   return invitation;
 }
 
-export async function consumeInvitation(rawToken: string, password: string, displayName: string) {
+export async function consumeInvitation(
+  rawToken: string,
+  password: string,
+  displayName: string,
+  consentTextVersion: string
+) {
   return await db.transaction(async (tx) => {
     // 1. Verify invitation status inside the transaction boundary
     const tokenHash = hashToken(rawToken);
@@ -130,12 +135,15 @@ export async function consumeInvitation(rawToken: string, password: string, disp
 
     const userId = signUpResult.user.id;
 
-    // 3. Update tester profile to link user_id
+    // 3. Update tester profile to link user_id and record consent - required before testing
+    // per the audit; captured at acceptance time, not at owner-side creation.
     await tx
       .update(schema.testerProfiles)
       .set({
         userId,
         displayName,
+        consentAt: new Date(),
+        consentTextVersion,
         updatedAt: new Date(),
       })
       .where(eq(schema.testerProfiles.id, testerProfile.id));

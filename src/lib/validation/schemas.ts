@@ -11,6 +11,12 @@ import {
   FEEL_QUADRANT,
   CERTIFICATION_STATUS,
   GOVERNING_BODY,
+  SKILL_LEVEL,
+  PLAYING_FREQUENCY,
+  PREFERENCE_CONTROL_POWER,
+  PREFERENCE_POP,
+  PREFERENCE_FEEL,
+  DOMINANT_HAND,
 } from "../constants";
 
 // react-hook-form's `valueAsNumber` turns an empty optional number input into NaN, not
@@ -209,14 +215,36 @@ export const transitionStatusSchema = zod.object({
   readinessNote: zod.string().trim().min(1, "Readiness / transition note is required"),
 });
 
+const testerProfileFields = {
+  skillLevel: zod.enum(Object.values(SKILL_LEVEL) as [string, ...string[]]).optional().or(zod.literal("")),
+  playingFrequency: zod.enum(Object.values(PLAYING_FREQUENCY) as [string, ...string[]]).optional().or(zod.literal("")),
+  currentPaddle: zod.string().trim().optional().or(zod.literal("")),
+  playStyle: zod.array(zod.string()).optional().default([]),
+  preferenceControlPower: zod.enum(Object.values(PREFERENCE_CONTROL_POWER) as [string, ...string[]]).optional().or(zod.literal("")),
+  preferencePop: zod.enum(Object.values(PREFERENCE_POP) as [string, ...string[]]).optional().or(zod.literal("")),
+  preferenceFeel: zod.enum(Object.values(PREFERENCE_FEEL) as [string, ...string[]]).optional().or(zod.literal("")),
+  preferenceHandle: zod.string().trim().optional().or(zod.literal("")),
+  dominantHand: zod.enum(Object.values(DOMINANT_HAND) as [string, ...string[]]).optional().or(zod.literal("")),
+  singlesDoublesPreference: zod.string().trim().optional().or(zod.literal("")),
+};
+
 export const createTesterSchema = zod.object({
   name: zod.string().trim().min(1, "Tester name is required"),
   email: zod.string().trim().toLowerCase().email("Invalid email address"),
+  ...testerProfileFields,
+});
+
+export const updateTesterProfileSchema = zod.object(testerProfileFields);
+
+export const declineTesterSchema = zod.object({
+  reason: zod.string().trim().min(1, "A reason for declining is required"),
 });
 
 export const acceptInvitationSchema = zod.object({
   password: zod.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: zod.string().min(8, "Confirmation password must be at least 8 characters"),
+  consentGiven: zod.boolean().refine((v) => v === true, { message: "Consent is required before testing." }),
+  consentTextVersion: zod.string().trim().min(1, "Consent version is required"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],

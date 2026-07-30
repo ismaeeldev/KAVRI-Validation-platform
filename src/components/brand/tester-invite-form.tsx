@@ -15,6 +15,8 @@ import { useRouter } from "next/navigation";
 
 type InviteFormData = zod.infer<typeof acceptInvitationSchema>;
 
+const CONSENT_TEXT_VERSION = "v1.0";
+
 interface InviteFormProps {
   token: string;
   initialName: string;
@@ -32,6 +34,9 @@ export function TesterInviteForm({ token, initialName, email }: InviteFormProps)
     formState: { errors },
   } = useForm<InviteFormData>({
     resolver: zodResolver(acceptInvitationSchema) as unknown as Resolver<InviteFormData>,
+    defaultValues: {
+      consentTextVersion: CONSENT_TEXT_VERSION,
+    },
   });
 
   const onSubmit = async (data: InviteFormData) => {
@@ -112,6 +117,26 @@ export function TesterInviteForm({ token, initialName, email }: InviteFormProps)
               <p className="text-destructive font-mono text-[10px]">{errors.confirmPassword.message}</p>
             )}
           </div>
+
+          <input type="hidden" {...register("consentTextVersion")} />
+
+          <div className="flex items-start gap-2 py-2">
+            <input
+              id="consentGiven"
+              type="checkbox"
+              {...register("consentGiven")}
+              className="h-4 w-4 mt-0.5 rounded border-kavri-line text-kavri-signal focus:ring-kavri-signal focus:ring-2 focus:ring-offset-2 cursor-pointer"
+            />
+            <Label htmlFor="consentGiven" className="text-[11px] font-normal leading-relaxed cursor-pointer">
+              I understand that as a KAVRI tester I will be asked to evaluate physical paddle
+              samples and submit honest feedback, that my responses may be used (in aggregate
+              or with attribution removed) to inform product decisions, and that I can
+              withdraw from testing at any time. I consent to participate.
+            </Label>
+          </div>
+          {errors.consentGiven && (
+            <p className="text-destructive font-mono text-[10px]">{errors.consentGiven.message}</p>
+          )}
 
           <Button
             type="submit"
