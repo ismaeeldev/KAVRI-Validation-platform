@@ -14,8 +14,10 @@ test.describe("Owner Traceability Workflow E2E Test", () => {
     await page.fill("#password", password);
     await page.click("button:has-text('Log In')");
     
-    // Expect redirection to dashboard
-    await expect(page).toHaveURL(/\/owner/);
+    // Expect redirection to dashboard. Login chains two network round trips
+    // (signIn.email then a role-lookup server action) that can be slow on a
+    // cold Neon connection, so allow more than Playwright's 5s default here.
+    await expect(page).toHaveURL(/\/owner/, { timeout: 15000 });
     await expect(page.locator("h3")).toContainText("Owner Dashboard");
 
     // 2. Create Supplier

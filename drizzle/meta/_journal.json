@@ -8,6 +8,13 @@
       "when": 1784786938987,
       "tag": "0000_gray_wendell_rand",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1785391802731,
+      "tag": "0001_heavy_black_queen",
+      "breakpoints": true
     }
   ]
 }

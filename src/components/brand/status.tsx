@@ -72,6 +72,14 @@ export function StatusBadge({ status, className = "" }: StatusBadgeProps) {
       badgeStyles = "bg-gray-500/10 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-900";
       labelText = "ARCHIVED";
       break;
+    case "under_evaluation":
+      badgeStyles = "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900";
+      labelText = "UNDER EVALUATION";
+      break;
+    case "inactive":
+      badgeStyles = "bg-gray-500/10 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-900";
+      labelText = "INACTIVE";
+      break;
   }
 
   return (

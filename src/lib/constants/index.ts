@@ -23,6 +23,24 @@ export const TESTER_APPROVAL = {
 
 export type TesterApproval = typeof TESTER_APPROVAL[keyof typeof TESTER_APPROVAL];
 
+export const SUPPLIER_TYPE = {
+  PRODUCT: "product",
+  PACKAGING: "packaging",
+  COMPONENT: "component",
+  OTHER: "other",
+} as const;
+
+export type SupplierType = typeof SUPPLIER_TYPE[keyof typeof SUPPLIER_TYPE];
+
+export const SUPPLIER_RELATIONSHIP_STATUS = {
+  ACTIVE: "active",
+  UNDER_EVALUATION: "under_evaluation",
+  INACTIVE: "inactive",
+  REJECTED: "rejected",
+} as const;
+
+export type SupplierRelationshipStatus = typeof SUPPLIER_RELATIONSHIP_STATUS[keyof typeof SUPPLIER_RELATIONSHIP_STATUS];
+
 export const SAMPLE_STATUS = {
   RECEIVED: "received",
   UNDER_REVIEW: "under_review",

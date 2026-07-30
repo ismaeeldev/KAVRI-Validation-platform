@@ -7,10 +7,22 @@ import { archiveSupplierAction } from "@/server/actions/supplier-actions";
 import { toast } from "sonner";
 import { ShieldAlert, Trash2 } from "lucide-react";
 
-export function SupplierArchiveButton({ supplierId }: { supplierId: string }) {
+interface SupplierArchiveButtonProps {
+  supplierId: string;
+  linkedProductCount?: number;
+  linkedSampleCount?: number;
+}
+
+export function SupplierArchiveButton({
+  supplierId,
+  linkedProductCount = 0,
+  linkedSampleCount = 0,
+}: SupplierArchiveButtonProps) {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const hasLinkedRecords = linkedProductCount > 0 || linkedSampleCount > 0;
 
   const handleArchive = async () => {
     setIsPending(true);
@@ -30,9 +42,18 @@ export function SupplierArchiveButton({ supplierId }: { supplierId: string }) {
   if (confirmOpen) {
     return (
       <div className="flex items-center gap-3 p-2 border border-red-200 bg-red-50/50 rounded-lg font-sans text-xs">
-        <span className="font-semibold text-red-900 flex items-center gap-1">
-          <ShieldAlert className="h-4 w-4 text-red-600" />
-          <span>Confirm Archive?</span>
+        <span className="font-semibold text-red-900 flex flex-col items-start gap-0.5">
+          <span className="flex items-center gap-1">
+            <ShieldAlert className="h-4 w-4 text-red-600" />
+            <span>Confirm Archive?</span>
+          </span>
+          {hasLinkedRecords && (
+            <span className="text-[10px] font-medium text-red-700 normal-case">
+              This supplier has {linkedProductCount} linked product{linkedProductCount === 1 ? "" : "s"} and{" "}
+              {linkedSampleCount} linked sample{linkedSampleCount === 1 ? "" : "s"}. They will remain visible
+              in historical records after archiving.
+            </span>
+          )}
         </span>
         <div className="flex items-center gap-2">
           <Button

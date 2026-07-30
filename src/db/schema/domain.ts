@@ -19,11 +19,23 @@ export const userProfiles = pgTable("user_profiles", {
 export const suppliers = pgTable("suppliers", {
   id: text("id").primaryKey().$defaultFn(uuidDefault),
   name: text("name").notNull(),
-  code: text("code").unique(),
+  code: text("code").notNull().unique(),
   contactName: text("contact_name"),
   contactEmail: text("contact_email"),
   notes: text("notes").notNull(),
-  status: text("status").notNull(), // 'active' | 'archived'
+  status: text("status").notNull(), // 'active' | 'archived' — archive/soft-delete flag, unrelated to relationshipStatus below
+  supplierType: text("supplier_type"), // 'product' | 'packaging' | 'component' | 'other'
+  website: text("website"),
+  phone: text("phone"),
+  addressLine1: text("address_line1"),
+  addressLine2: text("address_line2"),
+  city: text("city"),
+  region: text("region"),
+  postalCode: text("postal_code"),
+  country: text("country"),
+  // Commercial relationship status (audit Section 8 "Status" field). Distinct from `status` above,
+  // which is the archive/active soft-delete flag — do not conflate the two.
+  relationshipStatus: text("relationship_status").notNull().default("under_evaluation"), // 'active' | 'under_evaluation' | 'inactive' | 'rejected'
   createdBy: text("created_by").notNull().references(() => user.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

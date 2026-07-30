@@ -1,12 +1,30 @@
 import * as zod from "zod";
-import { DEVELOPMENT_STAGE } from "../constants";
+import { DEVELOPMENT_STAGE, SUPPLIER_TYPE, SUPPLIER_RELATIONSHIP_STATUS } from "../constants";
 
 export const createSupplierSchema = zod.object({
   name: zod.string().trim().min(1, "Supplier name is required"),
-  code: zod.string().trim().toUpperCase().regex(/^[A-Z0-9_-]+$/, "Code must be alphanumeric uppercase, dash, or underscore").optional().or(zod.literal("")),
+  code: zod
+    .string()
+    .trim()
+    .toUpperCase()
+    .min(2, "Code must be at least 2 characters")
+    .max(10, "Code must be at most 10 characters")
+    .regex(/^[A-Z0-9_-]+$/, "Code must be alphanumeric uppercase, dash, or underscore"),
   contactName: zod.string().trim().optional(),
   contactEmail: zod.string().trim().toLowerCase().email("Invalid email address").optional().or(zod.literal("")),
   notes: zod.string().trim().min(1, "Internal notes are required"),
+  supplierType: zod.enum(Object.values(SUPPLIER_TYPE) as [string, ...string[]]).optional().or(zod.literal("")),
+  website: zod.string().trim().url("Enter a valid URL, e.g. https://example.com").optional().or(zod.literal("")),
+  phone: zod.string().trim().optional().or(zod.literal("")),
+  addressLine1: zod.string().trim().optional().or(zod.literal("")),
+  addressLine2: zod.string().trim().optional().or(zod.literal("")),
+  city: zod.string().trim().optional().or(zod.literal("")),
+  region: zod.string().trim().optional().or(zod.literal("")),
+  postalCode: zod.string().trim().optional().or(zod.literal("")),
+  country: zod.string().trim().optional().or(zod.literal("")),
+  relationshipStatus: zod
+    .enum(Object.values(SUPPLIER_RELATIONSHIP_STATUS) as [string, ...string[]])
+    .default(SUPPLIER_RELATIONSHIP_STATUS.UNDER_EVALUATION),
 });
 
 export const updateSupplierSchema = createSupplierSchema;
