@@ -47,9 +47,19 @@ export const SAMPLE_STATUS = {
   READY_FOR_TESTING: "ready_for_testing",
   BLOCKED: "blocked",
   REJECTED: "rejected",
+  ASSIGNED: "assigned", // system-triggered only (Step 10), never owner-clickable
+  RETURNED: "returned",
+  RETIRED: "retired",
 } as const;
 
 export type SampleStatus = typeof SAMPLE_STATUS[keyof typeof SAMPLE_STATUS];
+
+export const PHOTO_ENTITY_TYPE = {
+  SAMPLE: "sample",
+  ISSUE_REPORT: "issue_report", // used starting Step 8; table built polymorphic upfront
+} as const;
+
+export type PhotoEntityType = typeof PHOTO_ENTITY_TYPE[keyof typeof PHOTO_ENTITY_TYPE];
 
 export const ASSIGNMENT_STATUS = {
   DRAFT: "draft",

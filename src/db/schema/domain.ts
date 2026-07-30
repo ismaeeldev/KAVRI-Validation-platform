@@ -141,15 +141,52 @@ export const physicalSamples = pgTable("physical_samples", {
   receivingObservations: text("receiving_observations").notNull(),
   identifyingNotes: text("identifying_notes").notNull(),
   readinessNote: text("readiness_note").notNull(),
-  status: text("status").notNull(), // 'received' | 'under_review' | 'ready_for_testing' | 'blocked' | 'rejected'
+  status: text("status").notNull(), // received|under_review|ready_for_testing|blocked|rejected|assigned|returned|retired
   statusChangedAt: timestamp("status_changed_at", { withTimezone: true }).notNull().defaultNow(),
   statusChangedBy: text("status_changed_by").notNull().references(() => user.id),
+  // Actual measured values (distinct from productRevisions' target/configured values).
+  actualStaticWeightG: numeric("actual_static_weight_g"),
+  actualSwingWeight: numeric("actual_swing_weight"),
+  actualSwingWeightMethod: text("actual_swing_weight_method"),
+  actualSwingWeightDate: date("actual_swing_weight_date"),
+  actualTwistWeight: numeric("actual_twist_weight"),
+  actualTwistWeightMethod: text("actual_twist_weight_method"),
+  actualTwistWeightDate: date("actual_twist_weight_date"),
+  actualBalancePointMm: numeric("actual_balance_point_mm"),
+  actualLengthIn: numeric("actual_length_in"),
+  actualWidthIn: numeric("actual_width_in"),
+  actualHandleLengthIn: numeric("actual_handle_length_in"), // category derived in app code, not stored
+  // Intake inspection checklist.
+  inspectionPackagingOk: boolean("inspection_packaging_ok"),
+  inspectionPackagingNotes: text("inspection_packaging_notes"),
+  inspectionCosmeticOk: boolean("inspection_cosmetic_ok"),
+  inspectionCosmeticNotes: text("inspection_cosmetic_notes"),
+  inspectionConstructionOk: boolean("inspection_construction_ok"),
+  inspectionConstructionNotes: text("inspection_construction_notes"),
+  inspectionSoundOk: boolean("inspection_sound_ok"),
+  inspectionSoundNotes: text("inspection_sound_notes"),
+  // Identification for blind-test handling and mobile QR scan resolution.
+  qrValue: text("qr_value").unique(),
+  shortCode: text("short_code").unique(),
   createdBy: text("created_by").notNull().references(() => user.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   archivedAt: timestamp("archived_at", { withTimezone: true }),
 }, (table) => [
   index("physical_samples_code_idx").on(table.sampleCode),
+]);
+
+// Polymorphic photo storage, reused by Samples now and Issue Reports in Step 8.
+export const photoAttachments = pgTable("photo_attachments", {
+  id: text("id").primaryKey().$defaultFn(uuidDefault),
+  entityType: text("entity_type").notNull(), // 'sample' | 'issue_report'
+  entityId: text("entity_id").notNull(),
+  storageUrl: text("storage_url").notNull(),
+  uploadedBy: text("uploaded_by").notNull().references(() => user.id),
+  uploadedAt: timestamp("uploaded_at", { withTimezone: true }).notNull().defaultNow(),
+  caption: text("caption"),
+}, (table) => [
+  index("photo_attachments_entity_idx").on(table.entityType, table.entityId),
 ]);
 
 export const testerProfiles = pgTable("tester_profiles", {

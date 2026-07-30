@@ -1,13 +1,18 @@
 import React from "react";
 import Link from "next/link";
-import { getSampleById } from "@/server/services/sample-service";
+import QRCode from "qrcode";
+import { getSampleById, getCurrentHolder } from "@/server/services/sample-service";
+import { getAttachments } from "@/server/services/attachment-service";
 import { DashboardPageHeader } from "@/components/brand/dashboard-layout-components";
 import { StatusBadge } from "@/components/brand/status";
 import { SampleTriageControls } from "@/components/brand/sample-triage-controls";
+import { SampleMeasurementsForm } from "@/components/brand/sample-measurements-form";
+import { SampleInspectionForm } from "@/components/brand/sample-inspection-form";
+import { SampleQrLabel } from "@/components/brand/sample-qr-label";
 import { db } from "@/db";
 import { eq, and, desc } from "drizzle-orm";
 import * as schema from "@/db/schema";
-import { ShieldAlert, CheckCircle, FileText, Activity, Clock, Box } from "lucide-react";
+import { ShieldAlert, CheckCircle, FileText, Clock, Box, User } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -18,6 +23,9 @@ interface PageProps {
 export default async function SampleDetailPage({ params }: PageProps) {
   const { id } = await params;
   const sample = await getSampleById(id);
+  const currentHolder = await getCurrentHolder(id);
+  const attachments = await getAttachments("sample", id);
+  const qrDataUrl = sample.qrValue ? await QRCode.toDataURL(sample.qrValue, { width: 240 }) : null;
 
   // Fetch activity logs for this sample to display history lifecycle timeline
   const activityLogs = await db.query.activityLogs.findMany({
@@ -36,7 +44,14 @@ export default async function SampleDetailPage({ params }: PageProps) {
         description="Verify incoming batches, record material observations, and triage readiness."
         backHref="/owner/samples"
         backLabel="Back to samples"
-        actions={<StatusBadge status={sample.status as "received" | "under_review" | "ready_for_testing" | "blocked" | "rejected"} />}
+        actions={
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase border border-kavri-line bg-[#ecefea] text-kavri-muted">
+              <User className="h-3 w-3" /> Holder: {currentHolder}
+            </span>
+            <StatusBadge status={sample.status} />
+          </div>
+        }
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -107,6 +122,9 @@ export default async function SampleDetailPage({ params }: PageProps) {
             </h3>
             <SampleTriageControls sampleId={id} currentStatus={sample.status} />
           </div>
+
+          <SampleMeasurementsForm sampleId={id} measurements={sample} />
+          <SampleInspectionForm sampleId={id} inspection={sample} attachments={attachments} />
         </div>
 
         {/* Sidebar Context */}
@@ -156,8 +174,27 @@ export default async function SampleDetailPage({ params }: PageProps) {
                 <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Received Date</span>
                 <p className="text-kavri-muted font-medium">{new Date(sample.receivedAt).toLocaleDateString()}</p>
               </div>
+
+              <div className="space-y-1 pt-3 border-t border-kavri-line">
+                <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Assignment</span>
+                <p className="text-kavri-muted italic">No assignment yet.</p>
+              </div>
+              <div className="space-y-1">
+                <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Tester</span>
+                <p className="text-kavri-muted italic">Not assigned.</p>
+              </div>
+              <div className="space-y-1">
+                <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Evaluations</span>
+                <p className="text-kavri-muted italic">None recorded yet.</p>
+              </div>
+              <div className="space-y-1">
+                <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Issues</span>
+                <p className="text-kavri-muted italic">None reported.</p>
+              </div>
             </div>
           </div>
+
+          <SampleQrLabel sampleCode={sample.sampleCode} shortCode={sample.shortCode} qrDataUrl={qrDataUrl} />
 
           {/* Lifecycle history */}
           <div className="border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-4">

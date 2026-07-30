@@ -163,6 +163,35 @@ export const updateCertificationStatusSchema = zod.object({
   referenceOrListing: zod.string().trim().optional().or(zod.literal("")),
 });
 
+const sampleMeasurementFields = {
+  actualStaticWeightG: optionalNumber(),
+  actualSwingWeight: optionalNumber(),
+  actualSwingWeightMethod: zod.string().trim().optional().or(zod.literal("")),
+  actualSwingWeightDate: zod.string().trim().optional().or(zod.literal("")),
+  actualTwistWeight: optionalNumber(),
+  actualTwistWeightMethod: zod.string().trim().optional().or(zod.literal("")),
+  actualTwistWeightDate: zod.string().trim().optional().or(zod.literal("")),
+  actualBalancePointMm: optionalNumber(),
+  actualLengthIn: optionalNumber(),
+  actualWidthIn: optionalNumber(),
+  actualHandleLengthIn: optionalNumber(),
+};
+
+export const updateSampleMeasurementsSchema = zod.object(sampleMeasurementFields);
+
+const sampleInspectionFields = {
+  inspectionPackagingOk: zod.boolean().optional(),
+  inspectionPackagingNotes: zod.string().trim().optional().or(zod.literal("")),
+  inspectionCosmeticOk: zod.boolean().optional(),
+  inspectionCosmeticNotes: zod.string().trim().optional().or(zod.literal("")),
+  inspectionConstructionOk: zod.boolean().optional(),
+  inspectionConstructionNotes: zod.string().trim().optional().or(zod.literal("")),
+  inspectionSoundOk: zod.boolean().optional(),
+  inspectionSoundNotes: zod.string().trim().optional().or(zod.literal("")),
+};
+
+export const updateSampleInspectionSchema = zod.object(sampleInspectionFields);
+
 export const createSampleSchema = zod.object({
   sampleCode: zod.string().trim().toUpperCase().min(1, "Sample code is required").regex(/^[A-Z0-9_-]+$/, "Sample code must be alphanumeric uppercase, dash, or underscore"),
   supplierId: zod.string().min(1, "Supplier is required"),
@@ -171,6 +200,8 @@ export const createSampleSchema = zod.object({
   receivedAt: zod.string().min(1, "Received date is required"),
   receivingObservations: zod.string().trim().min(1, "Receiving observations are required"),
   identifyingNotes: zod.string().trim().optional().or(zod.literal("")),
+  ...sampleMeasurementFields,
+  ...sampleInspectionFields,
 });
 
 export const transitionStatusSchema = zod.object({
