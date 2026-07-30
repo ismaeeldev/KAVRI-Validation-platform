@@ -91,3 +91,8 @@ SERVICES_AND_COSTS.md
 KAVRI-landingPageAnimationGuideline.md
 KAVRI-themeGuideline.md
 
+# ──────────────────────────────────────────────────────────
+# Local DB backups (contain real data — never commit)
+# ──────────────────────────────────────────────────────────
+/backups/
+
