@@ -17,6 +17,7 @@ import {
   PREFERENCE_POP,
   PREFERENCE_FEEL,
   DOMINANT_HAND,
+  ROUND_STATUS,
 } from "../constants";
 
 // react-hook-form's `valueAsNumber` turns an empty optional number input into NaN, not
@@ -276,5 +277,31 @@ export const createPublicUpdateSchema = zod.object({
 export const waitlistSignupSchema = zod.object({
   email: zod.string().trim().toLowerCase().email("Invalid email address"),
   honeypot: zod.string().optional(),
+});
+
+export const createRoundSchema = zod.object({
+  roundName: zod.string().trim().min(1, "Round name is required"),
+  roundCode: zod
+    .string()
+    .trim()
+    .toUpperCase()
+    .min(2, "Code must be at least 2 characters")
+    .regex(/^[A-Z0-9_-]+$/, "Code must be alphanumeric uppercase, dash, or underscore"),
+  purpose: zod.string().trim().min(1, "Purpose is required — what decision this round should support"),
+  startAt: zod.string().trim().optional().or(zod.literal("")),
+  endAt: zod.string().trim().optional().or(zod.literal("")),
+  instructions: zod.string().trim().min(1, "Tester-facing instructions are required"),
+  requiredSessionCount: zod.number().int().min(1, "Required session count must be at least 1"),
+  requiredFormFirstImpression: zod.boolean().default(true),
+  requiredFormFollowUp: zod.boolean().default(true),
+  requiredFormIssueReport: zod.boolean().default(false),
+  publicSummary: zod.string().trim().optional().or(zod.literal("")),
+  revisionIds: zod.array(zod.string()).optional().default([]),
+});
+
+export const updateRoundSchema = createRoundSchema.omit({ roundCode: true, revisionIds: true });
+
+export const transitionRoundStatusSchema = zod.object({
+  status: zod.enum(Object.values(ROUND_STATUS) as [string, ...string[]]),
 });
 

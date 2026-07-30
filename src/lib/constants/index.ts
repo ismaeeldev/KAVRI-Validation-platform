@@ -234,6 +234,16 @@ export const GOVERNING_BODY = {
 
 export type GoverningBody = typeof GOVERNING_BODY[keyof typeof GOVERNING_BODY];
 
+export const ROUND_STATUS = {
+  DRAFT: "draft",
+  RECRUITING: "recruiting",
+  ACTIVE: "active",
+  REVIEW: "review",
+  CLOSED: "closed",
+} as const;
+
+export type RoundStatus = typeof ROUND_STATUS[keyof typeof ROUND_STATUS];
+
 // Handle length category boundaries (audit-exact): Short < 5.2in; Medium 5.2-5.4in; Long > 5.4in.
 export function deriveHandleLengthCategory(handleLengthIn: number | null | undefined): "Short" | "Medium" | "Long" | null {
   if (handleLengthIn === null || handleLengthIn === undefined) return null;

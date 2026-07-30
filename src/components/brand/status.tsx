@@ -80,6 +80,18 @@ export function StatusBadge({ status, className = "" }: StatusBadgeProps) {
       badgeStyles = "bg-gray-500/10 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-900";
       labelText = "INACTIVE";
       break;
+    case "recruiting":
+      badgeStyles = "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900";
+      labelText = "RECRUITING";
+      break;
+    case "review":
+      badgeStyles = "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900";
+      labelText = "REVIEW";
+      break;
+    case "closed":
+      badgeStyles = "bg-gray-500/10 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-900";
+      labelText = "CLOSED";
+      break;
   }
 
   return (

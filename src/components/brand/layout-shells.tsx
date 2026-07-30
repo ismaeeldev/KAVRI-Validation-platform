@@ -38,18 +38,19 @@ export function PublicFooter() {
 }
 
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  Building2, 
-  ShoppingBag, 
-  Box, 
-  UserCheck, 
-  FileSpreadsheet, 
-  Rss, 
-  List, 
+import {
+  LayoutDashboard,
+  Building2,
+  ShoppingBag,
+  Box,
+  UserCheck,
+  FileSpreadsheet,
+  Rss,
+  List,
   ShieldAlert,
   Menu,
-  X
+  X,
+  ClipboardList
 } from "lucide-react";
 
 const OWNER_NAV_LINKS = [
@@ -58,6 +59,7 @@ const OWNER_NAV_LINKS = [
   { name: "Products", href: "/owner/products", icon: ShoppingBag },
   { name: "Samples", href: "/owner/samples", icon: Box },
   { name: "Testers", href: "/owner/testers", icon: UserCheck },
+  { name: "Rounds", href: "/owner/rounds", icon: ClipboardList },
   { name: "Assignments", href: "/owner/assignments", icon: FileSpreadsheet },
   { name: "Public Updates", href: "/owner/updates", icon: Rss },
   { name: "Waitlist", href: "/owner/waitlist", icon: List },

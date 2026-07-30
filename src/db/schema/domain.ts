@@ -234,8 +234,43 @@ export const testerInvitations = pgTable("tester_invitations", {
   index("tester_invitations_hash_idx").on(table.tokenHash),
 ]);
 
+export const testRounds = pgTable("test_rounds", {
+  id: text("id").primaryKey().$defaultFn(uuidDefault),
+  roundName: text("round_name").notNull(),
+  roundCode: text("round_code").notNull().unique(),
+  purpose: text("purpose").notNull(),
+  startAt: timestamp("start_at", { withTimezone: true }),
+  endAt: timestamp("end_at", { withTimezone: true }),
+  instructions: text("instructions").notNull(),
+  requiredSessionCount: integer("required_session_count").notNull(),
+  // JSON-encoded { firstImpression: boolean, followUp: boolean, issueReport: boolean }
+  requiredForms: text("required_forms").notNull(),
+  status: text("status").notNull().default("draft"), // draft|recruiting|active|review|closed
+  publicSummary: text("public_summary"),
+  // Plain nullable text column, deliberately WITHOUT a `.references()` FK constraint: the
+  // closeoutDecisions table this will point to doesn't exist until Step 9. Step 9 adds the
+  // real FK via its own additive migration once that table exists.
+  closeoutDecisionId: text("closeout_decision_id"),
+  createdBy: text("created_by").notNull().references(() => user.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index("test_rounds_code_idx").on(table.roundCode),
+]);
+
+export const testRoundRevisions = pgTable("test_round_revisions", {
+  id: text("id").primaryKey().$defaultFn(uuidDefault),
+  roundId: text("round_id").notNull().references(() => testRounds.id, { onDelete: "cascade" }),
+  revisionId: text("revision_id").notNull().references(() => productRevisions.id),
+}, (table) => [
+  unique("round_id_revision_id_uq").on(table.roundId, table.revisionId),
+]);
+
 export const testingAssignments = pgTable("testing_assignments", {
   id: text("id").primaryKey().$defaultFn(uuidDefault),
+  // Nullable for backward compatibility with assignments created before Step 6; Step 10 makes
+  // this required in the create-assignment UI going forward.
+  roundId: text("round_id").references(() => testRounds.id),
   testerProfileId: text("tester_profile_id").notNull().references(() => testerProfiles.id),
   testerUserId: text("tester_user_id").references(() => user.id),
   productId: text("product_id").notNull().references(() => products.id),
@@ -354,6 +389,10 @@ export const physicalSamplesRelations = relations(physicalSamples, ({ one }) => 
 }));
 
 export const testingAssignmentsRelations = relations(testingAssignments, ({ one }) => ({
+  round: one(testRounds, {
+    fields: [testingAssignments.roundId],
+    references: [testRounds.id],
+  }),
   testerProfile: one(testerProfiles, {
     fields: [testingAssignments.testerProfileId],
     references: [testerProfiles.id],
@@ -369,6 +408,22 @@ export const testingAssignmentsRelations = relations(testingAssignments, ({ one 
   sample: one(physicalSamples, {
     fields: [testingAssignments.sampleId],
     references: [physicalSamples.id],
+  }),
+}));
+
+export const testRoundsRelations = relations(testRounds, ({ many }) => ({
+  roundRevisions: many(testRoundRevisions),
+  assignments: many(testingAssignments),
+}));
+
+export const testRoundRevisionsRelations = relations(testRoundRevisions, ({ one }) => ({
+  round: one(testRounds, {
+    fields: [testRoundRevisions.roundId],
+    references: [testRounds.id],
+  }),
+  revision: one(productRevisions, {
+    fields: [testRoundRevisions.revisionId],
+    references: [productRevisions.id],
   }),
 }));
 
