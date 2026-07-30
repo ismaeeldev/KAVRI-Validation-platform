@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from "zod";
 import { waitlistSignupSchema } from "@/lib/validation/schemas";
@@ -22,7 +22,7 @@ export function WaitlistForm() {
     reset,
     formState: { errors },
   } = useForm<SignupFormData>({
-    resolver: zodResolver(waitlistSignupSchema as any),
+    resolver: zodResolver(waitlistSignupSchema) as unknown as Resolver<SignupFormData>,
   });
 
   const onSubmit = async (data: SignupFormData) => {

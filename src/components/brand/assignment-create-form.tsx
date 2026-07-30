@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from "zod";
 import { useRouter } from "next/navigation";
@@ -41,7 +41,7 @@ export function AssignmentCreateForm({ testers, samples }: CreateFormProps) {
     setValue,
     formState: { errors },
   } = useForm<AssignmentFormData>({
-    resolver: zodResolver(createAssignmentSchema as any),
+    resolver: zodResolver(createAssignmentSchema) as unknown as Resolver<AssignmentFormData>,
     defaultValues: {
       requiredSessionCount: 1,
       dueAt: defaultDueAt,

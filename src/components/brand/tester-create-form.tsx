@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from "zod";
 import { createTesterSchema } from "@/lib/validation/schemas";
@@ -25,7 +25,7 @@ export function TesterCreateForm() {
     reset,
     formState: { errors },
   } = useForm<TesterFormData>({
-    resolver: zodResolver(createTesterSchema as any),
+    resolver: zodResolver(createTesterSchema) as unknown as Resolver<TesterFormData>,
   });
 
   const onSubmit = async (data: TesterFormData) => {

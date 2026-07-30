@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from "zod";
 import { useRouter } from "next/navigation";
@@ -35,7 +35,7 @@ export function SupplierEditForm({ supplier }: EditFormProps) {
     handleSubmit,
     formState: { errors },
   } = useForm<SupplierFormData>({
-    resolver: zodResolver(createSupplierSchema as any),
+    resolver: zodResolver(createSupplierSchema) as unknown as Resolver<SupplierFormData>,
     defaultValues: {
       name: supplier.name,
       code: supplier.code || "",

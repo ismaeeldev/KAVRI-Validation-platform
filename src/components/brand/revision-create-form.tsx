@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from "zod";
 import { useRouter } from "next/navigation";
@@ -29,7 +29,7 @@ export function RevisionCreateForm({ productId }: CreateFormProps) {
     handleSubmit,
     formState: { errors },
   } = useForm<RevisionFormData>({
-    resolver: zodResolver(createRevisionSchema as any),
+    resolver: zodResolver(createRevisionSchema) as unknown as Resolver<RevisionFormData>,
     defaultValues: {
       productId,
       isPublic: false,

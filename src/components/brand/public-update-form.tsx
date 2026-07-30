@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from "zod";
 import { createPublicUpdateSchema } from "@/lib/validation/schemas";
@@ -43,7 +43,7 @@ export function PublicUpdateForm({ products, revisions, initialData }: PublicUpd
     setValue,
     formState: { errors },
   } = useForm<UpdateFormData>({
-    resolver: zodResolver(createPublicUpdateSchema as any),
+    resolver: zodResolver(createPublicUpdateSchema) as unknown as Resolver<UpdateFormData>,
     defaultValues: {
       title: initialData?.title || "",
       summary: initialData?.summary || "",

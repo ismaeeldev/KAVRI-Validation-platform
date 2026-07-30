@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from "zod";
 import { useRouter } from "next/navigation";
@@ -25,7 +25,7 @@ export default function NewSupplierPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<SupplierFormData>({
-    resolver: zodResolver(createSupplierSchema as any),
+    resolver: zodResolver(createSupplierSchema) as unknown as Resolver<SupplierFormData>,
   });
 
   const onSubmit = async (data: SupplierFormData) => {

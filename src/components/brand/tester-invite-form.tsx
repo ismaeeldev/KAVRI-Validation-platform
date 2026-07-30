@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from "zod";
 import { acceptInvitationSchema } from "@/lib/validation/schemas";
@@ -31,7 +31,7 @@ export function TesterInviteForm({ token, initialName, email }: InviteFormProps)
     handleSubmit,
     formState: { errors },
   } = useForm<InviteFormData>({
-    resolver: zodResolver(acceptInvitationSchema as any),
+    resolver: zodResolver(acceptInvitationSchema) as unknown as Resolver<InviteFormData>,
   });
 
   const onSubmit = async (data: InviteFormData) => {
