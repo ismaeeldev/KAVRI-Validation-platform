@@ -15,6 +15,13 @@
       "when": 1785391802731,
       "tag": "0001_heavy_black_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785396073754,
+      "tag": "0002_stormy_expediter",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, boolean, unique, index } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, numeric, date, timestamp, boolean, unique, index } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 
 // Helper for generating UUIDs natively
@@ -53,6 +53,14 @@ export const products = pgTable("products", {
   publicSummary: text("public_summary"),
   status: text("status").notNull(), // 'active' | 'archived'
   isPublic: boolean("is_public").notNull().default(false),
+  // Product-level defaults for shape/performance/firepower; a revision may override any of
+  // these (see productRevisions) when the audit says "store on revision if shape can vary."
+  shape: text("shape"), // 'elongated' | 'widebody' | 'hybrid' | 'other'
+  performanceProfile: text("performance_profile"), // 'control' | 'all_court' | 'power' | 'undetermined'
+  firepowerBalance: text("firepower_balance"), // 'power_leaning' | 'balanced' | 'pop_leaning' | 'undetermined'
+  // Public exposure lifecycle (audit Section 8), distinct from `isPublic` and from
+  // productRevisions.developmentStage (which is a pipeline stage, not exposure state).
+  publicState: text("public_state").notNull().default("private"), // 'private' | 'candidate' | 'published' | 'archived'
   createdBy: text("created_by").notNull().references(() => user.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -70,11 +78,57 @@ export const productRevisions = pgTable("product_revisions", {
   publicSummary: text("public_summary"),
   developmentStage: text("development_stage").notNull(), // e.g. 'concept', 'design', 'prototype', etc.
   isPublic: boolean("is_public").notNull().default(false),
+  // Overrides of the product-level defaults above; null means "use the product default."
+  shape: text("shape"),
+  performanceProfile: text("performance_profile"),
+  firepowerBalance: text("firepower_balance"),
+  // Dimensions & construction (targets/configured values; actual measured values live on
+  // physicalSamples, added in Step 4).
+  coreThicknessMm: numeric("core_thickness_mm"),
+  overallLengthIn: numeric("overall_length_in"),
+  overallWidthIn: numeric("overall_width_in"),
+  handleLengthIn: numeric("handle_length_in"), // category (Short/Medium/Long) derived in app code, not stored
+  gripCircumferenceIn: numeric("grip_circumference_in"),
+  handleWidthIn: numeric("handle_width_in"),
+  handleDepthIn: numeric("handle_depth_in"),
+  targetStaticWeightMinG: numeric("target_static_weight_min_g"),
+  targetStaticWeightMaxG: numeric("target_static_weight_max_g"),
+  targetSwingWeight: numeric("target_swing_weight"),
+  targetSwingWeightMethod: text("target_swing_weight_method"),
+  targetTwistWeight: numeric("target_twist_weight"),
+  targetTwistWeightMethod: text("target_twist_weight_method"),
+  targetBalancePointMm: numeric("target_balance_point_mm"),
+  // Assessments - evolve over time, always freely editable regardless of the immutability guard.
+  spinRating: text("spin_rating").notNull().default("not_yet_rated"), // elite|good|fair|poor|not_yet_rated
+  spinRatingSource: text("spin_rating_source"),
+  spinRatingDate: date("spin_rating_date"),
+  spinRatingConfidence: text("spin_rating_confidence"),
+  feelQuadrant: text("feel_quadrant").notNull().default("not_yet_assessed"), // a_stiff_dense|b_stiff_hollow|c_soft_dense|d_soft_hollow|not_yet_assessed
+  // Public exposure lifecycle, distinct from developmentStage (pipeline) and isPublic (legacy flag).
+  publicState: text("public_state").notNull().default("private"), // 'private' | 'candidate' | 'published' | 'archived'
   createdBy: text("created_by").notNull().references(() => user.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   unique("product_id_revision_code_uq").on(table.productId, table.revisionCode),
+]);
+
+export const productCertifications = pgTable("product_certifications", {
+  id: text("id").primaryKey().$defaultFn(uuidDefault),
+  revisionId: text("revision_id").notNull().references(() => productRevisions.id),
+  governingBody: text("governing_body").notNull(), // 'usap' | 'upa_a'
+  status: text("status").notNull().default("not_submitted"), // not_submitted|preparing|submitted|approved|rejected|expired|withdrawn
+  submissionDate: date("submission_date"),
+  approvalDate: date("approval_date"),
+  expirationDate: date("expiration_date"),
+  approvedModelName: text("approved_model_name"),
+  referenceOrListing: text("reference_or_listing"),
+  attachmentUrl: text("attachment_url"), // wired up once Step 4's storage service exists
+  createdBy: text("created_by").notNull().references(() => user.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  unique("revision_id_governing_body_uq").on(table.revisionId, table.governingBody),
 ]);
 
 export const physicalSamples = pgTable("physical_samples", {
@@ -221,6 +275,14 @@ export const productRevisionsRelations = relations(productRevisions, ({ one, man
     references: [products.id],
   }),
   physicalSamples: many(physicalSamples),
+  certifications: many(productCertifications),
+}));
+
+export const productCertificationsRelations = relations(productCertifications, ({ one }) => ({
+  revision: one(productRevisions, {
+    fields: [productCertifications.revisionId],
+    references: [productRevisions.id],
+  }),
 }));
 
 export const physicalSamplesRelations = relations(physicalSamples, ({ one }) => ({

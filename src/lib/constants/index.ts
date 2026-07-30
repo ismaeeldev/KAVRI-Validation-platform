@@ -79,3 +79,88 @@ export const DEVELOPMENT_STAGE = {
 } as const;
 
 export type DevelopmentStage = typeof DEVELOPMENT_STAGE[keyof typeof DEVELOPMENT_STAGE];
+
+// Public exposure lifecycle for products/revisions (audit Section 8), distinct from
+// DEVELOPMENT_STAGE (an internal pipeline stage) and from the legacy `isPublic` boolean.
+export const PUBLIC_STATE = {
+  PRIVATE: "private",
+  CANDIDATE: "candidate",
+  PUBLISHED: "published",
+  ARCHIVED: "archived",
+} as const;
+
+export type PublicState = typeof PUBLIC_STATE[keyof typeof PUBLIC_STATE];
+
+export const SHAPE = {
+  ELONGATED: "elongated",
+  WIDEBODY: "widebody",
+  HYBRID: "hybrid",
+  OTHER: "other",
+} as const;
+
+export type Shape = typeof SHAPE[keyof typeof SHAPE];
+
+export const PERFORMANCE_PROFILE = {
+  CONTROL: "control",
+  ALL_COURT: "all_court",
+  POWER: "power",
+  UNDETERMINED: "undetermined",
+} as const;
+
+export type PerformanceProfile = typeof PERFORMANCE_PROFILE[keyof typeof PERFORMANCE_PROFILE];
+
+export const FIREPOWER_BALANCE = {
+  POWER_LEANING: "power_leaning",
+  BALANCED: "balanced",
+  POP_LEANING: "pop_leaning",
+  UNDETERMINED: "undetermined",
+} as const;
+
+export type FirepowerBalance = typeof FIREPOWER_BALANCE[keyof typeof FIREPOWER_BALANCE];
+
+export const SPIN_RATING = {
+  ELITE: "elite",
+  GOOD: "good",
+  FAIR: "fair",
+  POOR: "poor",
+  NOT_YET_RATED: "not_yet_rated",
+} as const;
+
+export type SpinRating = typeof SPIN_RATING[keyof typeof SPIN_RATING];
+
+export const FEEL_QUADRANT = {
+  A_STIFF_DENSE: "a_stiff_dense",
+  B_STIFF_HOLLOW: "b_stiff_hollow",
+  C_SOFT_DENSE: "c_soft_dense",
+  D_SOFT_HOLLOW: "d_soft_hollow",
+  NOT_YET_ASSESSED: "not_yet_assessed",
+} as const;
+
+export type FeelQuadrant = typeof FEEL_QUADRANT[keyof typeof FEEL_QUADRANT];
+
+export const CERTIFICATION_STATUS = {
+  NOT_SUBMITTED: "not_submitted",
+  PREPARING: "preparing",
+  SUBMITTED: "submitted",
+  APPROVED: "approved",
+  REJECTED: "rejected",
+  EXPIRED: "expired",
+  WITHDRAWN: "withdrawn",
+} as const;
+
+export type CertificationStatus = typeof CERTIFICATION_STATUS[keyof typeof CERTIFICATION_STATUS];
+
+export const GOVERNING_BODY = {
+  USAP: "usap",
+  UPA_A: "upa_a",
+} as const;
+
+export type GoverningBody = typeof GOVERNING_BODY[keyof typeof GOVERNING_BODY];
+
+// Handle length category boundaries (audit-exact): Short < 5.2in; Medium 5.2-5.4in; Long > 5.4in.
+export function deriveHandleLengthCategory(handleLengthIn: number | null | undefined): "Short" | "Medium" | "Long" | null {
+  if (handleLengthIn === null || handleLengthIn === undefined) return null;
+  if (handleLengthIn < 5.2) return "Short";
+  if (handleLengthIn <= 5.4) return "Medium";
+  return "Long";
+}

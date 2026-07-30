@@ -1,5 +1,26 @@
 import * as zod from "zod";
-import { DEVELOPMENT_STAGE, SUPPLIER_TYPE, SUPPLIER_RELATIONSHIP_STATUS } from "../constants";
+import {
+  DEVELOPMENT_STAGE,
+  SUPPLIER_TYPE,
+  SUPPLIER_RELATIONSHIP_STATUS,
+  PUBLIC_STATE,
+  SHAPE,
+  PERFORMANCE_PROFILE,
+  FIREPOWER_BALANCE,
+  SPIN_RATING,
+  FEEL_QUADRANT,
+  CERTIFICATION_STATUS,
+  GOVERNING_BODY,
+} from "../constants";
+
+// react-hook-form's `valueAsNumber` turns an empty optional number input into NaN, not
+// undefined; normalize that here so `.optional()` behaves as expected for every target/
+// measurement field below (used across products/revisions here and samples in Step 4).
+const optionalNumber = () =>
+  zod.preprocess(
+    (val) => (val === "" || val === undefined || (typeof val === "number" && Number.isNaN(val)) ? undefined : val),
+    zod.number().optional()
+  );
 
 export const createSupplierSchema = zod.object({
   name: zod.string().trim().min(1, "Supplier name is required"),
@@ -36,9 +57,60 @@ export const createProductSchema = zod.object({
   descriptionInternal: zod.string().trim().min(1, "Internal description is required"),
   publicSummary: zod.string().trim().optional().or(zod.literal("")),
   isPublic: zod.boolean().default(false),
+  shape: zod.enum(Object.values(SHAPE) as [string, ...string[]]).optional().or(zod.literal("")),
+  performanceProfile: zod.enum(Object.values(PERFORMANCE_PROFILE) as [string, ...string[]]).optional().or(zod.literal("")),
+  firepowerBalance: zod.enum(Object.values(FIREPOWER_BALANCE) as [string, ...string[]]).optional().or(zod.literal("")),
+  publicState: zod.enum(Object.values(PUBLIC_STATE) as [string, ...string[]]).default(PUBLIC_STATE.PRIVATE),
 });
 
 export const updateProductSchema = createProductSchema;
+
+// Spec-defining fields: locked once a physical sample references the revision, unless the
+// caller passes isControlledCorrection=true (see product-service.ts updateRevision).
+export const REVISION_SPEC_FIELDS = [
+  "shape",
+  "coreThicknessMm",
+  "overallLengthIn",
+  "overallWidthIn",
+  "handleLengthIn",
+  "gripCircumferenceIn",
+  "handleWidthIn",
+  "handleDepthIn",
+  "targetStaticWeightMinG",
+  "targetStaticWeightMaxG",
+  "targetSwingWeight",
+  "targetTwistWeight",
+  "targetBalancePointMm",
+] as const;
+
+const revisionSpecFields = {
+  shape: zod.enum(Object.values(SHAPE) as [string, ...string[]]).optional().or(zod.literal("")),
+  performanceProfile: zod.enum(Object.values(PERFORMANCE_PROFILE) as [string, ...string[]]).optional().or(zod.literal("")),
+  firepowerBalance: zod.enum(Object.values(FIREPOWER_BALANCE) as [string, ...string[]]).optional().or(zod.literal("")),
+  coreThicknessMm: optionalNumber(),
+  overallLengthIn: optionalNumber(),
+  overallWidthIn: optionalNumber(),
+  handleLengthIn: optionalNumber(),
+  gripCircumferenceIn: optionalNumber(),
+  handleWidthIn: optionalNumber(),
+  handleDepthIn: optionalNumber(),
+  targetStaticWeightMinG: optionalNumber(),
+  targetStaticWeightMaxG: optionalNumber(),
+  targetSwingWeight: optionalNumber(),
+  targetSwingWeightMethod: zod.string().trim().optional().or(zod.literal("")),
+  targetTwistWeight: optionalNumber(),
+  targetTwistWeightMethod: zod.string().trim().optional().or(zod.literal("")),
+  targetBalancePointMm: optionalNumber(),
+};
+
+const revisionAssessmentFields = {
+  spinRating: zod.enum(Object.values(SPIN_RATING) as [string, ...string[]]).default(SPIN_RATING.NOT_YET_RATED),
+  spinRatingSource: zod.string().trim().optional().or(zod.literal("")),
+  spinRatingDate: zod.string().trim().optional().or(zod.literal("")),
+  spinRatingConfidence: zod.string().trim().optional().or(zod.literal("")),
+  feelQuadrant: zod.enum(Object.values(FEEL_QUADRANT) as [string, ...string[]]).default(FEEL_QUADRANT.NOT_YET_ASSESSED),
+  publicState: zod.enum(Object.values(PUBLIC_STATE) as [string, ...string[]]).default(PUBLIC_STATE.PRIVATE),
+};
 
 export const createRevisionSchema = zod.object({
   productId: zod.string().min(1, "Product is required"),
@@ -51,6 +123,44 @@ export const createRevisionSchema = zod.object({
   publicSummary: zod.string().trim().optional().or(zod.literal("")),
   developmentStage: zod.nativeEnum(DEVELOPMENT_STAGE),
   isPublic: zod.boolean().default(false),
+  ...revisionSpecFields,
+  ...revisionAssessmentFields,
+});
+
+// Same shape as create, plus the controlled-correction escape hatch for spec fields once a
+// sample already references the revision (see product-service.ts updateRevision).
+export const updateRevisionSchema = zod.object({
+  revisionReason: zod.string().trim().min(1, "Revision reason is required"),
+  requestedChanges: zod.string().trim().min(1, "Requested changes is required"),
+  supplierReportedChanges: zod.string().trim().min(1, "Supplier-reported changes is required"),
+  internalNotes: zod.string().trim().optional().or(zod.literal("")),
+  publicTitle: zod.string().trim().optional().or(zod.literal("")),
+  publicSummary: zod.string().trim().optional().or(zod.literal("")),
+  developmentStage: zod.nativeEnum(DEVELOPMENT_STAGE),
+  isPublic: zod.boolean().default(false),
+  ...revisionSpecFields,
+  ...revisionAssessmentFields,
+  isControlledCorrection: zod.boolean().default(false),
+});
+
+export const createCertificationSchema = zod.object({
+  revisionId: zod.string().min(1, "Revision is required"),
+  governingBody: zod.enum(Object.values(GOVERNING_BODY) as [string, ...string[]]),
+  status: zod.enum(Object.values(CERTIFICATION_STATUS) as [string, ...string[]]).default(CERTIFICATION_STATUS.NOT_SUBMITTED),
+  submissionDate: zod.string().trim().optional().or(zod.literal("")),
+  approvalDate: zod.string().trim().optional().or(zod.literal("")),
+  expirationDate: zod.string().trim().optional().or(zod.literal("")),
+  approvedModelName: zod.string().trim().optional().or(zod.literal("")),
+  referenceOrListing: zod.string().trim().optional().or(zod.literal("")),
+});
+
+export const updateCertificationStatusSchema = zod.object({
+  status: zod.enum(Object.values(CERTIFICATION_STATUS) as [string, ...string[]]),
+  submissionDate: zod.string().trim().optional().or(zod.literal("")),
+  approvalDate: zod.string().trim().optional().or(zod.literal("")),
+  expirationDate: zod.string().trim().optional().or(zod.literal("")),
+  approvedModelName: zod.string().trim().optional().or(zod.literal("")),
+  referenceOrListing: zod.string().trim().optional().or(zod.literal("")),
 });
 
 export const createSampleSchema = zod.object({
