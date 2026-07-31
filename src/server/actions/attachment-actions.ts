@@ -37,9 +37,12 @@ export async function uploadPhotoAction(entityType: string, entityId: string, fo
     );
   }
 
+  // access: "private" so the blob is not reachable via a guessable public URL - it can only be
+  // read back through the authenticated proxy route at /api/attachments/[id], which re-runs the
+  // same authorizePhotoAttachment check performed here.
   const { put } = await import("@vercel/blob");
   const blob = await put(`${entityType}/${entityId}/${Date.now()}-${file.name}`, file, {
-    access: "public",
+    access: "private",
     addRandomSuffix: true,
   });
 
@@ -56,6 +59,18 @@ export async function uploadPhotoAction(entityType: string, entityId: string, fo
 }
 
 export async function getAttachmentsAction(entityType: string, entityId: string) {
-  await requireSession();
+  const session = await requireSession();
+
+  const profile = await db.query.userProfiles.findFirst({
+    where: eq(schema.userProfiles.userId, session.user.id),
+  });
+  if (!profile || profile.accountStatus !== "active") {
+    throw AppError.forbidden();
+  }
+
+  // Same ownership check as upload - a tester must not be able to list another tester's
+  // sample/issue attachments just by knowing or guessing the entityId.
+  await authorizePhotoAttachment(entityType, entityId, session.user.id, profile.role as "owner" | "tester");
+
   return await getAttachments(entityType, entityId);
 }

@@ -135,9 +135,9 @@ export function SampleInspectionForm({ sampleId, inspection, attachments }: Prop
           {attachments.length > 0 && (
             <div className="grid grid-cols-3 gap-2">
               {attachments.map((a) => (
-                <a key={a.id} href={a.storageUrl} target="_blank" rel="noopener noreferrer" className="block aspect-square rounded-lg overflow-hidden border border-kavri-line">
+                <a key={a.id} href={`/api/attachments/${a.id}`} target="_blank" rel="noopener noreferrer" className="block aspect-square rounded-lg overflow-hidden border border-kavri-line">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={a.storageUrl} alt={a.caption || "Sample inspection photo"} className="w-full h-full object-cover" />
+                  <img src={`/api/attachments/${a.id}`} alt={a.caption || "Sample inspection photo"} className="w-full h-full object-cover" />
                 </a>
               ))}
             </div>

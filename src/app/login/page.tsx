@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "@/lib/auth-client";
 import { KAVRIWordmark } from "@/components/brand/wordmark";
@@ -111,6 +112,15 @@ export default function LoginPage() {
               </div>
             </div>
 
+            <div className="text-right">
+              <a
+                href="/forgot-password"
+                className="font-mono text-[10px] uppercase tracking-wider text-kavri-muted hover:text-kavri-ink dark:hover:text-foreground transition-colors"
+              >
+                Forgot password?
+              </a>
+            </div>
+
             <Button
               type="submit"
               disabled={isLoading}
@@ -121,6 +131,13 @@ export default function LoginPage() {
           </form>
         </CardContent>
       </Card>
+
+      <Link
+        href="/"
+        className="mt-6 font-mono text-[10px] uppercase tracking-wider text-kavri-muted hover:text-kavri-ink dark:hover:text-foreground transition-colors"
+      >
+        ← Return to KAVRI
+      </Link>
     </div>
   );
 }

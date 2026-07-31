@@ -271,6 +271,18 @@ export const acceptInvitationSchema = zod.object({
   path: ["confirmPassword"],
 });
 
+export const forgotPasswordSchema = zod.object({
+  email: zod.string().trim().toLowerCase().email("Invalid email address"),
+});
+
+export const resetPasswordSchema = zod.object({
+  password: zod.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: zod.string().min(8, "Confirmation password must be at least 8 characters"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
 export const createAssignmentSchema = zod.object({
   roundId: zod.string().min(1, "Test round is required"),
   testerProfileId: zod.string().min(1, "Tester profile is required"),

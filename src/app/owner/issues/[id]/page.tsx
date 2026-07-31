@@ -88,9 +88,9 @@ export default async function IssueDetailPage({ params }: PageProps) {
                 <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block mb-2">Photos</span>
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                   {attachments.map((a) => (
-                    <a key={a.id} href={a.storageUrl} target="_blank" rel="noopener noreferrer" className="block aspect-square rounded-lg overflow-hidden border border-kavri-line">
+                    <a key={a.id} href={`/api/attachments/${a.id}`} target="_blank" rel="noopener noreferrer" className="block aspect-square rounded-lg overflow-hidden border border-kavri-line">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={a.storageUrl} alt={a.caption || "Issue photo"} className="w-full h-full object-cover" />
+                      <img src={`/api/attachments/${a.id}`} alt={a.caption || "Issue photo"} className="w-full h-full object-cover" />
                     </a>
                   ))}
                 </div>
