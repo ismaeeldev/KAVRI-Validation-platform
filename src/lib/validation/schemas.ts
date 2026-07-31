@@ -29,6 +29,8 @@ import {
   STILL_PLAYABLE,
   IMMEDIATE_ACTION,
   ISSUE_RESOLUTION_STATUS,
+  PUBLIC_UPDATE_STATE,
+  UPDATE_EVIDENCE_LEVEL,
   CLOSEOUT_SCOPE,
   CLOSEOUT_DECISION,
   EVIDENCE_STRENGTH,
@@ -281,6 +283,10 @@ export const revokeAssignmentSchema = zod.object({
   reason: zod.string().trim().min(1, "Revocation reason is required"),
 });
 
+// State is deliberately NOT part of this content schema - every transition (Send to Review,
+// Approve, Schedule, Publish, Archive, Send Back) is a dedicated action with its own validation
+// (see transitionPublicUpdateSchema below), matching the same pattern already used for
+// assignment/sample/round status controls elsewhere in this codebase.
 export const createPublicUpdateSchema = zod.object({
   title: zod.string().trim().min(1, "Title is required"),
   summary: zod.string().trim().min(1, "Summary is required"),
@@ -288,8 +294,17 @@ export const createPublicUpdateSchema = zod.object({
   developmentStage: zod.nativeEnum(DEVELOPMENT_STAGE).optional().or(zod.literal("")),
   productId: zod.string().optional().or(zod.literal("")),
   revisionId: zod.string().optional().or(zod.literal("")),
-  publishedState: zod.enum(["draft", "published", "archived"]),
   sortOrder: zod.number().int().default(0),
+  // Distinct from title/summary - the audit lists these as 4 separate content fields.
+  observation: zod.string().trim().optional().or(zod.literal("")),
+  evidenceLevel: zod.enum(Object.values(UPDATE_EVIDENCE_LEVEL) as [string, ...string[]]).optional().or(zod.literal("")),
+  limitation: zod.string().trim().optional().or(zod.literal("")),
+  nextAction: zod.string().trim().optional().or(zod.literal("")),
+});
+
+export const transitionPublicUpdateSchema = zod.object({
+  status: zod.enum(Object.values(PUBLIC_UPDATE_STATE) as [string, ...string[]]),
+  scheduledFor: zod.string().trim().optional().or(zod.literal("")),
 });
 
 export const createCloseoutDecisionSchema = zod

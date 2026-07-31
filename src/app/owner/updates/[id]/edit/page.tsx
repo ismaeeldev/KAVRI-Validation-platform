@@ -42,8 +42,11 @@ export default async function EditPublicUpdatePage({ params }: PageProps) {
           developmentStage: update.developmentStage,
           productId: update.productId,
           revisionId: update.revisionId,
-          publishedState: update.publishedState as "draft" | "published" | "archived",
           sortOrder: update.sortOrder,
+          observation: update.observation,
+          evidenceLevel: update.evidenceLevel,
+          limitation: update.limitation,
+          nextAction: update.nextAction,
         }}
       />
     </div>

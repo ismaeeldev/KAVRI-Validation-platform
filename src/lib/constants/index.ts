@@ -153,13 +153,28 @@ export const ASSIGNMENT_COMPUTED_STATUS = {
 
 export type AssignmentComputedStatus = typeof ASSIGNMENT_COMPUTED_STATUS[keyof typeof ASSIGNMENT_COMPUTED_STATUS];
 
+// Expanded from 3 to 6 states in Step 13 (sprint1_rev.md).
 export const PUBLIC_UPDATE_STATE = {
   DRAFT: "draft",
+  INTERNAL_REVIEW: "internal_review",
+  APPROVED: "approved",
+  SCHEDULED: "scheduled",
   PUBLISHED: "published",
   ARCHIVED: "archived",
 } as const;
 
 export type PublicUpdateState = typeof PUBLIC_UPDATE_STATE[keyof typeof PUBLIC_UPDATE_STATE];
+
+// Same 4-tier scale as Step 9's closeoutDecisions.evidenceStrength, named per the audit's
+// slightly different wording for this context.
+export const UPDATE_EVIDENCE_LEVEL = {
+  EARLY: "early",
+  DIRECTIONAL: "directional",
+  REPEATED: "repeated",
+  STRONG_INTERNAL: "strong_internal",
+} as const;
+
+export type UpdateEvidenceLevel = typeof UPDATE_EVIDENCE_LEVEL[keyof typeof UPDATE_EVIDENCE_LEVEL];
 
 export const DEVELOPMENT_STAGE = {
   CONCEPT: "concept",

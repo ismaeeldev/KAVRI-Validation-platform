@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { DEVELOPMENT_STAGE } from "@/lib/constants";
+import { DEVELOPMENT_STAGE, UPDATE_EVIDENCE_LEVEL } from "@/lib/constants";
 
 type UpdateFormData = zod.infer<typeof createPublicUpdateSchema>;
 
@@ -27,8 +27,11 @@ interface PublicUpdateFormProps {
     developmentStage?: string | null;
     productId?: string | null;
     revisionId?: string | null;
-    publishedState: "draft" | "published" | "archived";
     sortOrder: number;
+    observation?: string | null;
+    evidenceLevel?: string | null;
+    limitation?: string | null;
+    nextAction?: string | null;
   };
 }
 
@@ -51,8 +54,11 @@ export function PublicUpdateForm({ products, revisions, initialData }: PublicUpd
       developmentStage: (initialData?.developmentStage as "concept" | "design" | "prototype" | "field_testing" | "production" | "launch" | "") || "",
       productId: initialData?.productId || "",
       revisionId: initialData?.revisionId || "",
-      publishedState: initialData?.publishedState || "draft",
       sortOrder: initialData?.sortOrder ?? 0,
+      observation: initialData?.observation || "",
+      evidenceLevel: (initialData?.evidenceLevel as "early" | "directional" | "repeated" | "strong_internal" | "") || "",
+      limitation: initialData?.limitation || "",
+      nextAction: initialData?.nextAction || "",
     },
   });
 
@@ -121,42 +127,26 @@ export function PublicUpdateForm({ products, revisions, initialData }: PublicUpd
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="publishedState" className="text-xs font-semibold text-kavri-ink">
-              Publish State <span className="text-red-500">*</span>
-            </Label>
-            <select
-              id="publishedState"
-              {...register("publishedState")}
-              className="w-full rounded-lg border border-kavri-line bg-background px-3 h-10 text-xs font-sans focus-visible:outline-2 focus-visible:outline-kavri-signal"
-              disabled={isLoading}
-            >
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-              <option value="archived">Archived</option>
-            </select>
-            {errors.publishedState && (
-              <p className="text-destructive text-[11px] font-medium mt-0.5">{errors.publishedState.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="sortOrder" className="text-xs font-semibold text-kavri-ink">
-              Sort Order
-            </Label>
-            <Input
-              id="sortOrder"
-              type="number"
-              {...register("sortOrder", { valueAsNumber: true })}
-              className="text-xs focus-visible:ring-kavri-signal h-10 px-3 rounded-lg border-kavri-line"
-              placeholder="0"
-              disabled={isLoading}
-            />
-            {errors.sortOrder && (
-              <p className="text-destructive text-[11px] font-medium mt-0.5">{errors.sortOrder.message}</p>
-            )}
-          </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="sortOrder" className="text-xs font-semibold text-kavri-ink">
+            Sort Order
+          </Label>
+          <Input
+            id="sortOrder"
+            type="number"
+            {...register("sortOrder", { valueAsNumber: true })}
+            className="text-xs focus-visible:ring-kavri-signal h-10 px-3 rounded-lg border-kavri-line max-w-[160px]"
+            placeholder="0"
+            disabled={isLoading}
+          />
+          {errors.sortOrder && (
+            <p className="text-destructive text-[11px] font-medium mt-0.5">{errors.sortOrder.message}</p>
+          )}
+          {!initialData && (
+            <p className="text-[11px] text-kavri-muted">
+              New updates start as Draft. Move it through review, approval, and publish from the detail page once saved.
+            </p>
+          )}
         </div>
 
         <div className="space-y-1.5">
@@ -234,6 +224,73 @@ export function PublicUpdateForm({ products, revisions, initialData }: PublicUpd
           {errors.summary && (
             <p className="text-destructive text-[11px] font-medium mt-0.5">{errors.summary.message}</p>
           )}
+        </div>
+
+        <div className="border-t border-kavri-line pt-4 space-y-4">
+          <h4 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink">
+            Evidence &amp; Context
+          </h4>
+          <p className="text-[11px] text-kavri-muted -mt-2">
+            Distinct from the summary above - these fields are shown separately on the public timeline card.
+          </p>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="observation" className="text-xs font-semibold text-kavri-ink">
+              Observation
+            </Label>
+            <Textarea
+              id="observation"
+              {...register("observation")}
+              className="text-xs min-h-[70px] focus-visible:ring-kavri-signal p-3 rounded-lg border-kavri-line resize-y"
+              placeholder="What was seen..."
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="evidenceLevel" className="text-xs font-semibold text-kavri-ink">
+              Evidence Level
+            </Label>
+            <select
+              id="evidenceLevel"
+              {...register("evidenceLevel")}
+              className="w-full rounded-lg border border-kavri-line bg-background px-3 h-10 text-xs font-sans focus-visible:outline-2 focus-visible:outline-kavri-signal"
+              disabled={isLoading}
+            >
+              <option value="">Not specified</option>
+              {Object.entries(UPDATE_EVIDENCE_LEVEL).map(([key, val]) => (
+                <option key={val} value={val}>
+                  {key.split("_").map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ")}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="limitation" className="text-xs font-semibold text-kavri-ink">
+              Limitation
+            </Label>
+            <Textarea
+              id="limitation"
+              {...register("limitation")}
+              className="text-xs min-h-[70px] focus-visible:ring-kavri-signal p-3 rounded-lg border-kavri-line resize-y"
+              placeholder="What cannot yet be concluded..."
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="nextAction" className="text-xs font-semibold text-kavri-ink">
+              Next Action
+            </Label>
+            <Textarea
+              id="nextAction"
+              {...register("nextAction")}
+              className="text-xs min-h-[70px] focus-visible:ring-kavri-signal p-3 rounded-lg border-kavri-line resize-y"
+              placeholder="What happens next..."
+              disabled={isLoading}
+            />
+          </div>
         </div>
 
         <div className="flex justify-end gap-3 pt-4 border-t border-kavri-line mt-6">

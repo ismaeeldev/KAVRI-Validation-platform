@@ -4,10 +4,10 @@ import { requireOwner } from "@/lib/permissions";
 import {
   createPublicUpdate,
   updatePublicUpdate,
-  publishPublicUpdate,
-  archivePublicUpdate,
+  transitionPublicUpdate,
+  generatePreviewLink,
 } from "../services/public-update-service";
-import { createPublicUpdateSchema } from "@/lib/validation/schemas";
+import { createPublicUpdateSchema, transitionPublicUpdateSchema } from "@/lib/validation/schemas";
 import { revalidatePath } from "next/cache";
 
 export async function createPublicUpdateAction(formData: unknown) {
@@ -29,20 +29,19 @@ export async function updatePublicUpdateAction(id: string, formData: unknown) {
   return result;
 }
 
-export async function publishPublicUpdateAction(id: string) {
+export async function transitionPublicUpdateAction(id: string, status: string, scheduledFor?: string) {
   const { session } = await requireOwner();
-  const result = await publishPublicUpdate(id, session.user.id);
+  const parsed = transitionPublicUpdateSchema.parse({ status, scheduledFor });
+  const result = await transitionPublicUpdate(id, parsed.status, session.user.id, parsed.scheduledFor);
   revalidatePath("/");
   revalidatePath("/owner/updates");
   revalidatePath(`/owner/updates/${id}`);
   return result;
 }
 
-export async function archivePublicUpdateAction(id: string) {
+export async function generatePreviewLinkAction(id: string) {
   const { session } = await requireOwner();
-  const result = await archivePublicUpdate(id, session.user.id);
-  revalidatePath("/");
-  revalidatePath("/owner/updates");
+  const result = await generatePreviewLink(id, session.user.id);
   revalidatePath(`/owner/updates/${id}`);
   return result;
 }

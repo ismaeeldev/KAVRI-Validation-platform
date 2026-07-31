@@ -15,12 +15,11 @@ test.describe("Public Landing Page & Waitlist Lifecycle E2E Test", () => {
     await page.click("button:has-text('Log In')");
     await expect(page).toHaveURL(/\/owner/);
 
-    // 2. Create Public Update as DRAFT
+    // 2. Create Public Update - always starts as DRAFT (Step 13: state is no longer a form field)
     await page.goto("/owner/updates/new");
     const uniqueTitle = `Log Update - ${Date.now().toString().slice(-5)}`;
     await page.fill("#title", uniqueTitle);
     await page.fill("#statusLabel", "STABLE");
-    await page.selectOption("#publishedState", "draft");
     await page.fill("#summary", "This update description should remain hidden during draft state.");
     await page.click("button:has-text('Create Update')");
 
@@ -32,11 +31,16 @@ test.describe("Public Landing Page & Waitlist Lifecycle E2E Test", () => {
     await page.goto("/");
     await expect(page.locator("body")).not.toContainText(uniqueTitle);
 
-    // 4. Publish the Update
+    // 4. Move through the full 6-state workflow: draft -> internal_review -> approved -> published
     await page.goto("/owner/updates");
     await page.click(`tr:has-text('${uniqueTitle}') a:has-text('Manage')`);
-    await page.click("button:has-text('Publish Update')");
-    await expect(page.locator("text=State: published")).toBeVisible();
+    await page.click("button:has-text('Send to Internal Review')");
+    await expect(page.locator("text=INTERNAL REVIEW")).toBeVisible();
+    await page.click("button:has-text('Approve')");
+    await expect(page.locator("text=APPROVED")).toBeVisible();
+    await page.click("button:has-text('Publish Now')");
+    await page.click("button:has-text('Confirm')");
+    await expect(page.locator("text=PUBLISHED")).toBeVisible();
 
     // 5. Verify Landing page DOES show published update
     await page.goto("/");

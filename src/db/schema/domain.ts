@@ -418,9 +418,24 @@ export const publicUpdates = pgTable("public_updates", {
   summary: text("summary").notNull(),
   statusLabel: text("status_label").notNull(),
   developmentStage: text("development_stage"),
-  publishedState: text("published_state").notNull(), // 'draft' | 'published' | 'archived'
+  // 'draft'|'internal_review'|'approved'|'scheduled'|'published'|'archived' - expanded from the
+  // original 3-value model in Step 13. Column stays text (no type change), matching this
+  // project's established pattern of text columns + app-level enum validation.
+  publishedState: text("published_state").notNull(),
   publishedAt: timestamp("published_at", { withTimezone: true }),
   unpublishedAt: timestamp("unpublished_at", { withTimezone: true }),
+  // Scheduled publishing: set when transitioning to 'scheduled'; a Vercel Cron job auto-
+  // transitions to 'published' once this timestamp has passed.
+  scheduledFor: timestamp("scheduled_for", { withTimezone: true }),
+  approvedBy: text("approved_by").references(() => user.id),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  // 4 distinct content fields the audit specifies separately from title/summary.
+  observation: text("observation"), // "what was seen"
+  evidenceLevel: text("evidence_level"), // 'early'|'directional'|'repeated'|'strong_internal'
+  limitation: text("limitation"), // "what cannot yet be concluded"
+  nextAction: text("next_action"), // "what happens next"
+  // Signed preview access - never publicly guessable, generated on demand.
+  previewToken: text("preview_token").unique(),
   sortOrder: integer("sort_order").notNull().default(0),
   createdBy: text("created_by").notNull().references(() => user.id),
   updatedBy: text("updated_by").notNull().references(() => user.id),

@@ -131,6 +131,18 @@ export function StatusBadge({ status, className = "" }: StatusBadgeProps) {
       badgeStyles = "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900";
       labelText = "RESOLVED";
       break;
+    case "internal_review":
+      badgeStyles = "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900";
+      labelText = "INTERNAL REVIEW";
+      break;
+    case "approved":
+      badgeStyles = "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900";
+      labelText = "APPROVED";
+      break;
+    case "scheduled":
+      badgeStyles = "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900";
+      labelText = "SCHEDULED";
+      break;
   }
 
   return (
