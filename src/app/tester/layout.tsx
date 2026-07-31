@@ -1,9 +1,12 @@
 import React from "react";
+import type { Metadata } from "next";
 import { requireActiveTester } from "@/lib/permissions";
 import { KAVRIWordmark } from "@/components/brand/wordmark";
 import Link from "next/link";
 
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function TesterLayout({ children }: { children: React.ReactNode }) {
   // Enforce active tester authorization checks at the layout level

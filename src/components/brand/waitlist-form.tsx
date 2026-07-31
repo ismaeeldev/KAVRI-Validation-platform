@@ -10,19 +10,17 @@ import { WAITLIST_CONSENT_TEXT_VERSION } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useUtmAttribution } from "@/components/brand/landing-utm-context";
 
 type SignupFormData = zod.infer<typeof waitlistSignupSchema>;
 
 interface WaitlistFormProps {
   /** Which CTA instance rendered this form (hero/navigation/footer/update). */
   ctaSource?: string;
-  utmSource?: string;
-  utmMedium?: string;
-  utmCampaign?: string;
-  refCode?: string;
 }
 
-export function WaitlistForm({ ctaSource, utmSource, utmMedium, utmCampaign, refCode }: WaitlistFormProps) {
+export function WaitlistForm({ ctaSource }: WaitlistFormProps) {
+  const { utmSource, utmMedium, utmCampaign, refCode } = useUtmAttribution();
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 

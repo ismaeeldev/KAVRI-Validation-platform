@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useUtmAttribution } from "@/components/brand/landing-utm-context";
 
 type ApplicationFormData = zod.infer<typeof testerApplicationSchema>;
 
@@ -26,14 +27,11 @@ const SKILL_LEVEL_LABELS: Record<string, string> = {
 };
 
 interface TesterApplicationFormProps {
-  utmSource?: string;
-  utmMedium?: string;
-  utmCampaign?: string;
-  refCode?: string;
   onSuccess?: () => void;
 }
 
-export function TesterApplicationForm({ utmSource, utmMedium, utmCampaign, refCode, onSuccess }: TesterApplicationFormProps) {
+export function TesterApplicationForm({ onSuccess }: TesterApplicationFormProps) {
+  const { utmSource, utmMedium, utmCampaign, refCode } = useUtmAttribution();
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 

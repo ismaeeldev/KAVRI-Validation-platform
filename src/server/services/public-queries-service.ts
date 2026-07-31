@@ -140,39 +140,40 @@ export interface PublicWhatChangedDTO {
 // is polymorphic (scope + scopeId, no FK), so each scope type needs its own join; scope='round'
 // is excluded because test_rounds has no publicState gate to check against.
 export async function getPublicWhatChangedAndWhy(): Promise<PublicWhatChangedDTO[]> {
-  const revisionScoped = await db
-    .select({
-      id: schema.closeoutDecisions.id,
-      publicVersion: schema.closeoutDecisions.publicVersion,
-      evidenceStrength: schema.closeoutDecisions.evidenceStrength,
-      decisionDate: schema.closeoutDecisions.decisionDate,
-    })
-    .from(schema.closeoutDecisions)
-    .innerJoin(schema.productRevisions, eq(schema.productRevisions.id, schema.closeoutDecisions.scopeId))
-    .where(
-      and(
-        eq(schema.closeoutDecisions.scope, "revision"),
-        isNotNull(schema.closeoutDecisions.publicVersion),
-        or(eq(schema.productRevisions.publicState, "candidate"), eq(schema.productRevisions.publicState, "published"))
-      )
-    );
-
-  const productScoped = await db
-    .select({
-      id: schema.closeoutDecisions.id,
-      publicVersion: schema.closeoutDecisions.publicVersion,
-      evidenceStrength: schema.closeoutDecisions.evidenceStrength,
-      decisionDate: schema.closeoutDecisions.decisionDate,
-    })
-    .from(schema.closeoutDecisions)
-    .innerJoin(schema.products, eq(schema.products.id, schema.closeoutDecisions.scopeId))
-    .where(
-      and(
-        eq(schema.closeoutDecisions.scope, "product"),
-        isNotNull(schema.closeoutDecisions.publicVersion),
-        or(eq(schema.products.publicState, "candidate"), eq(schema.products.publicState, "published"))
-      )
-    );
+  const [revisionScoped, productScoped] = await Promise.all([
+    db
+      .select({
+        id: schema.closeoutDecisions.id,
+        publicVersion: schema.closeoutDecisions.publicVersion,
+        evidenceStrength: schema.closeoutDecisions.evidenceStrength,
+        decisionDate: schema.closeoutDecisions.decisionDate,
+      })
+      .from(schema.closeoutDecisions)
+      .innerJoin(schema.productRevisions, eq(schema.productRevisions.id, schema.closeoutDecisions.scopeId))
+      .where(
+        and(
+          eq(schema.closeoutDecisions.scope, "revision"),
+          isNotNull(schema.closeoutDecisions.publicVersion),
+          or(eq(schema.productRevisions.publicState, "candidate"), eq(schema.productRevisions.publicState, "published"))
+        )
+      ),
+    db
+      .select({
+        id: schema.closeoutDecisions.id,
+        publicVersion: schema.closeoutDecisions.publicVersion,
+        evidenceStrength: schema.closeoutDecisions.evidenceStrength,
+        decisionDate: schema.closeoutDecisions.decisionDate,
+      })
+      .from(schema.closeoutDecisions)
+      .innerJoin(schema.products, eq(schema.products.id, schema.closeoutDecisions.scopeId))
+      .where(
+        and(
+          eq(schema.closeoutDecisions.scope, "product"),
+          isNotNull(schema.closeoutDecisions.publicVersion),
+          or(eq(schema.products.publicState, "candidate"), eq(schema.products.publicState, "published"))
+        )
+      ),
+  ]);
 
   return [...revisionScoped, ...productScoped]
     .filter((row): row is typeof row & { publicVersion: string } => Boolean(row.publicVersion))

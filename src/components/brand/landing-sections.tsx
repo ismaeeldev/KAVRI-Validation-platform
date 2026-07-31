@@ -113,14 +113,7 @@ export function LandingValues() {
   );
 }
 
-interface LandingNewsletterCTAProps {
-  utmSource?: string;
-  utmMedium?: string;
-  utmCampaign?: string;
-  refCode?: string;
-}
-
-export function LandingNewsletterCTA({ utmSource, utmMedium, utmCampaign, refCode }: LandingNewsletterCTAProps = {}) {
+export function LandingNewsletterCTA() {
   return (
     <section
       id="join-the-build"
@@ -159,7 +152,7 @@ export function LandingNewsletterCTA({ utmSource, utmMedium, utmCampaign, refCod
 
         {/* Right: form */}
         <div className="space-y-5">
-          <WaitlistForm ctaSource="update" utmSource={utmSource} utmMedium={utmMedium} utmCampaign={utmCampaign} refCode={refCode} />
+          <WaitlistForm ctaSource="update" />
           <div className="inline-block pt-1">
             <span className="relative inline-block text-kavri-ink font-mono text-[10px] uppercase tracking-wider font-black whitespace-nowrap select-none">
               <span
@@ -176,7 +169,7 @@ export function LandingNewsletterCTA({ utmSource, utmMedium, utmCampaign, refCod
             <p className="font-mono text-[10px] uppercase tracking-wider text-[#7a8078] mb-3 pt-4">
               Want hands-on access instead?
             </p>
-            <TesterApplicationDialog utmSource={utmSource} utmMedium={utmMedium} utmCampaign={utmCampaign} refCode={refCode} />
+            <TesterApplicationDialog />
           </div>
         </div>
       </div>

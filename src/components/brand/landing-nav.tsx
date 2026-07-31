@@ -12,14 +12,7 @@ const ANCHOR_LINKS = [
   { href: "#about-kavri", label: "About" },
 ];
 
-interface LandingNavProps {
-  utmSource?: string;
-  utmMedium?: string;
-  utmCampaign?: string;
-  refCode?: string;
-}
-
-export function LandingNav({ utmSource, utmMedium, utmCampaign, refCode }: LandingNavProps = {}) {
+export function LandingNav() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -51,7 +44,7 @@ export function LandingNav({ utmSource, utmMedium, utmCampaign, refCode }: Landi
         <div className="flex items-center gap-3">
           {/* Secondary CTA */}
           <div className="hidden md:block">
-            <TesterApplicationDialog utmSource={utmSource} utmMedium={utmMedium} utmCampaign={utmCampaign} refCode={refCode} />
+            <TesterApplicationDialog />
           </div>
 
           {/* Primary CTA */}
@@ -101,7 +94,7 @@ export function LandingNav({ utmSource, utmMedium, utmCampaign, refCode }: Landi
             </a>
           ))}
           <div className="pt-2">
-            <TesterApplicationDialog utmSource={utmSource} utmMedium={utmMedium} utmCampaign={utmCampaign} refCode={refCode} />
+            <TesterApplicationDialog />
           </div>
           <a
             href="#join-the-build"

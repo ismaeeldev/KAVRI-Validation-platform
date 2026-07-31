@@ -5,14 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { TesterApplicationForm } from "@/components/brand/tester-application-form";
 import { Button } from "@/components/ui/button";
 
-interface TesterApplicationDialogProps {
-  utmSource?: string;
-  utmMedium?: string;
-  utmCampaign?: string;
-  refCode?: string;
-}
-
-export function TesterApplicationDialog({ utmSource, utmMedium, utmCampaign, refCode }: TesterApplicationDialogProps) {
+export function TesterApplicationDialog() {
   const [open, setOpen] = useState(false);
 
   return (
@@ -34,13 +27,7 @@ export function TesterApplicationDialog({ utmSource, utmMedium, utmCampaign, ref
             Tell us a bit about yourself and we will reach out about upcoming test rounds.
           </DialogDescription>
         </DialogHeader>
-        <TesterApplicationForm
-          utmSource={utmSource}
-          utmMedium={utmMedium}
-          utmCampaign={utmCampaign}
-          refCode={refCode}
-          onSuccess={() => setOpen(false)}
-        />
+        <TesterApplicationForm onSuccess={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   );
