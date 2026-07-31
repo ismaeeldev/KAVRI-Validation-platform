@@ -29,6 +29,11 @@ import {
   STILL_PLAYABLE,
   IMMEDIATE_ACTION,
   ISSUE_RESOLUTION_STATUS,
+  CLOSEOUT_SCOPE,
+  CLOSEOUT_DECISION,
+  EVIDENCE_STRENGTH,
+  EVIDENCE_TYPE,
+  LIMITATIONS_REQUIRED_EVIDENCE_STRENGTHS,
 } from "../constants";
 
 // react-hook-form's `valueAsNumber` turns an empty optional number input into NaN, not
@@ -284,6 +289,39 @@ export const createPublicUpdateSchema = zod.object({
   publishedState: zod.enum(["draft", "published", "archived"]),
   sortOrder: zod.number().int().default(0),
 });
+
+export const createCloseoutDecisionSchema = zod
+  .object({
+    scope: zod.enum(Object.values(CLOSEOUT_SCOPE) as [string, ...string[]]),
+    scopeId: zod.string().min(1, "Scope id is required"),
+    decision: zod.enum(Object.values(CLOSEOUT_DECISION) as [string, ...string[]]),
+    evidenceStrength: zod.enum(Object.values(EVIDENCE_STRENGTH) as [string, ...string[]]).optional().or(zod.literal("")),
+    decisionSummary: zod.string().trim().min(1, "Decision summary is required"),
+    limitations: zod.string().trim().optional().or(zod.literal("")),
+    openQuestions: zod.string().trim().optional().or(zod.literal("")),
+    nextAction: zod.string().trim().min(1, "Next action is required"),
+    publicVersion: zod.string().trim().optional().or(zod.literal("")),
+    evidenceLinks: zod
+      .array(
+        zod.object({
+          evidenceType: zod.enum(Object.values(EVIDENCE_TYPE) as [string, ...string[]]),
+          evidenceId: zod.string().min(1),
+        })
+      )
+      .optional()
+      .default([]),
+  })
+  .refine(
+    (data) =>
+      !(
+        data.decision === "gather_more_evidence" ||
+        (data.evidenceStrength && LIMITATIONS_REQUIRED_EVIDENCE_STRENGTHS.has(data.evidenceStrength))
+      ) || !!data.limitations,
+    {
+      message: "Limitations are required when evidence is directional/incomplete or the decision is 'gather more evidence'",
+      path: ["limitations"],
+    }
+  );
 
 export const waitlistSignupSchema = zod.object({
   email: zod.string().trim().toLowerCase().email("Invalid email address"),

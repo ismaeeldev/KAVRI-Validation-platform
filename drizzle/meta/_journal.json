@@ -57,6 +57,13 @@
       "when": 1785472132478,
       "tag": "0007_shiny_dust",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1785474098719,
+      "tag": "0008_parallel_kronos",
+      "breakpoints": true
     }
   ]
 }

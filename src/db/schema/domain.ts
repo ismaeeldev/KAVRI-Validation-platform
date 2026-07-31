@@ -234,6 +234,39 @@ export const testerInvitations = pgTable("tester_invitations", {
   index("tester_invitations_hash_idx").on(table.tokenHash),
 ]);
 
+export const closeoutDecisions = pgTable("closeout_decisions", {
+  id: text("id").primaryKey().$defaultFn(uuidDefault),
+  scope: text("scope").notNull(), // 'round' | 'revision' | 'product'
+  scopeId: text("scope_id").notNull(), // id of the round/revision/product this decision closes
+  decision: text("decision").notNull(), // 'advance'|'modify'|'reject'|'gather_more_evidence'
+  // A real field (not deferred) - Step 15's public "What Changed and Why" section and evidence-
+  // strength indicator read directly from this column.
+  evidenceStrength: text("evidence_strength"), // early_signal|directional_evidence|repeated_observation|strong_internal_confidence
+  decisionSummary: text("decision_summary").notNull(),
+  // Required when evidence is directional or incomplete - enforced via zod .refine() in the
+  // validation schema, not a DB constraint (matches the codebase's established pattern).
+  limitations: text("limitations"),
+  openQuestions: text("open_questions"),
+  nextAction: text("next_action").notNull(),
+  // Separately controlled - only shown publicly once the linked round/revision's publicState
+  // allows it.
+  publicVersion: text("public_version"),
+  decisionOwner: text("decision_owner").notNull().references(() => user.id),
+  decisionDate: timestamp("decision_date", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index("closeout_decisions_scope_idx").on(table.scope, table.scopeId),
+]);
+
+export const closeoutEvidenceLinks = pgTable("closeout_evidence_links", {
+  id: text("id").primaryKey().$defaultFn(uuidDefault),
+  closeoutDecisionId: text("closeout_decision_id").notNull().references(() => closeoutDecisions.id, { onDelete: "cascade" }),
+  evidenceType: text("evidence_type").notNull(), // 'evaluation'|'issue_report'|'measurement'|'inspection'
+  evidenceId: text("evidence_id").notNull(),
+}, (table) => [
+  index("closeout_evidence_links_decision_idx").on(table.closeoutDecisionId),
+]);
+
 export const testRounds = pgTable("test_rounds", {
   id: text("id").primaryKey().$defaultFn(uuidDefault),
   roundName: text("round_name").notNull(),
@@ -247,10 +280,9 @@ export const testRounds = pgTable("test_rounds", {
   requiredForms: text("required_forms").notNull(),
   status: text("status").notNull().default("draft"), // draft|recruiting|active|review|closed
   publicSummary: text("public_summary"),
-  // Plain nullable text column, deliberately WITHOUT a `.references()` FK constraint: the
-  // closeoutDecisions table this will point to doesn't exist until Step 9. Step 9 adds the
-  // real FK via its own additive migration once that table exists.
-  closeoutDecisionId: text("closeout_decision_id"),
+  // Step 9 adds the real FK now that closeoutDecisions exists (was a plain nullable column in
+  // Step 6, deliberately without a `.references()` constraint at the time).
+  closeoutDecisionId: text("closeout_decision_id").references(() => closeoutDecisions.id),
   createdBy: text("created_by").notNull().references(() => user.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -521,9 +553,24 @@ export const evaluationsRelations = relations(evaluations, ({ one }) => ({
   }),
 }));
 
-export const testRoundsRelations = relations(testRounds, ({ many }) => ({
+export const testRoundsRelations = relations(testRounds, ({ many, one }) => ({
   roundRevisions: many(testRoundRevisions),
   assignments: many(testingAssignments),
+  closeoutDecision: one(closeoutDecisions, {
+    fields: [testRounds.closeoutDecisionId],
+    references: [closeoutDecisions.id],
+  }),
+}));
+
+export const closeoutDecisionsRelations = relations(closeoutDecisions, ({ many }) => ({
+  evidenceLinks: many(closeoutEvidenceLinks),
+}));
+
+export const closeoutEvidenceLinksRelations = relations(closeoutEvidenceLinks, ({ one }) => ({
+  closeoutDecision: one(closeoutDecisions, {
+    fields: [closeoutEvidenceLinks.closeoutDecisionId],
+    references: [closeoutDecisions.id],
+  }),
 }));
 
 export const testRoundRevisionsRelations = relations(testRoundRevisions, ({ one }) => ({

@@ -1,10 +1,11 @@
 import React from "react";
 import Link from "next/link";
 import { getRoundById, decodeRequiredForms } from "@/server/services/test-round-service";
+import { getCloseoutDecisionByScope } from "@/server/services/closeout-service";
 import { DashboardPageHeader } from "@/components/brand/dashboard-layout-components";
 import { StatusBadge } from "@/components/brand/status";
 import { RoundStatusControls } from "@/components/brand/round-status-controls";
-import { ClipboardList, Layers, Users, FileText } from "lucide-react";
+import { ClipboardList, Layers, Users, FileText, Gavel } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -16,6 +17,7 @@ export default async function RoundDetailPage({ params }: PageProps) {
   const { id } = await params;
   const round = await getRoundById(id);
   const requiredForms = decodeRequiredForms(round.requiredForms);
+  const closeoutDecision = round.closeoutDecisionId ? await getCloseoutDecisionByScope("round", id) : null;
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 select-none">
@@ -134,16 +136,55 @@ export default async function RoundDetailPage({ params }: PageProps) {
           </div>
         </div>
 
-        <div className="lg:col-span-4 border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-4">
-          <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink border-b border-kavri-line pb-3 flex items-center gap-1.5">
-            <FileText className="h-4 w-4 text-kavri-muted" />
-            <span>Status Transition</span>
-          </h3>
-          <RoundStatusControls
-            roundId={round.id}
-            currentStatus={round.status}
-            hasCloseoutDecision={!!round.closeoutDecisionId}
-          />
+        <div className="lg:col-span-4 space-y-6">
+          <div className="border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-4">
+            <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink border-b border-kavri-line pb-3 flex items-center gap-1.5">
+              <FileText className="h-4 w-4 text-kavri-muted" />
+              <span>Status Transition</span>
+            </h3>
+            <RoundStatusControls
+              roundId={round.id}
+              currentStatus={round.status}
+              hasCloseoutDecision={!!round.closeoutDecisionId}
+            />
+          </div>
+
+          {closeoutDecision && (
+            <div className="border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-3 font-sans text-xs">
+              <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink border-b border-kavri-line pb-3 flex items-center gap-1.5">
+                <Gavel className="h-4 w-4 text-kavri-muted" />
+                <span>Closeout Decision</span>
+              </h3>
+              <div>
+                <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Decision</span>
+                <p className="font-heading text-sm font-black text-kavri-ink uppercase">{closeoutDecision.decision.replace("_", " ")}</p>
+              </div>
+              {closeoutDecision.evidenceStrength && (
+                <div>
+                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Evidence Strength</span>
+                  <p className="font-semibold text-kavri-ink capitalize">{closeoutDecision.evidenceStrength.replace(/_/g, " ")}</p>
+                </div>
+              )}
+              <div>
+                <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Summary</span>
+                <p className="text-kavri-ink whitespace-pre-wrap">{closeoutDecision.decisionSummary}</p>
+              </div>
+              {closeoutDecision.limitations && (
+                <div>
+                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Limitations</span>
+                  <p className="text-kavri-ink whitespace-pre-wrap">{closeoutDecision.limitations}</p>
+                </div>
+              )}
+              <div>
+                <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Next Action</span>
+                <p className="text-kavri-ink whitespace-pre-wrap">{closeoutDecision.nextAction}</p>
+              </div>
+              <div>
+                <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Decided</span>
+                <p className="text-kavri-muted">{new Date(closeoutDecision.decisionDate).toLocaleDateString()}</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

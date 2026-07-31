@@ -362,6 +362,48 @@ export type IssueResolutionStatus = typeof ISSUE_RESOLUTION_STATUS[keyof typeof 
 // alone - UX-08/P2-06). Consumed by the IssueSeverityBadge component.
 export const CRITICAL_ISSUE_SEVERITIES = new Set<string>([ISSUE_SEVERITY.HIGH, ISSUE_SEVERITY.STOP_USE]);
 
+export const CLOSEOUT_SCOPE = {
+  ROUND: "round",
+  REVISION: "revision",
+  PRODUCT: "product",
+} as const;
+
+export type CloseoutScope = typeof CLOSEOUT_SCOPE[keyof typeof CLOSEOUT_SCOPE];
+
+export const CLOSEOUT_DECISION = {
+  ADVANCE: "advance",
+  MODIFY: "modify",
+  REJECT: "reject",
+  GATHER_MORE_EVIDENCE: "gather_more_evidence",
+} as const;
+
+export type CloseoutDecisionType = typeof CLOSEOUT_DECISION[keyof typeof CLOSEOUT_DECISION];
+
+export const EVIDENCE_STRENGTH = {
+  EARLY_SIGNAL: "early_signal",
+  DIRECTIONAL_EVIDENCE: "directional_evidence",
+  REPEATED_OBSERVATION: "repeated_observation",
+  STRONG_INTERNAL_CONFIDENCE: "strong_internal_confidence",
+} as const;
+
+export type EvidenceStrength = typeof EVIDENCE_STRENGTH[keyof typeof EVIDENCE_STRENGTH];
+
+// evidenceStrength values that make `limitations` mandatory on the closeout decision (audit:
+// "Required when evidence is directional or incomplete").
+export const LIMITATIONS_REQUIRED_EVIDENCE_STRENGTHS = new Set<string>([
+  EVIDENCE_STRENGTH.EARLY_SIGNAL,
+  EVIDENCE_STRENGTH.DIRECTIONAL_EVIDENCE,
+]);
+
+export const EVIDENCE_TYPE = {
+  EVALUATION: "evaluation",
+  ISSUE_REPORT: "issue_report",
+  MEASUREMENT: "measurement",
+  INSPECTION: "inspection",
+} as const;
+
+export type EvidenceType = typeof EVIDENCE_TYPE[keyof typeof EVIDENCE_TYPE];
+
 // Handle length category boundaries (audit-exact): Short < 5.2in; Medium 5.2-5.4in; Long > 5.4in.
 export function deriveHandleLengthCategory(handleLengthIn: number | null | undefined): "Short" | "Medium" | "Long" | null {
   if (handleLengthIn === null || handleLengthIn === undefined) return null;
