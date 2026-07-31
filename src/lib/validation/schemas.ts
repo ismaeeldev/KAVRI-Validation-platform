@@ -36,6 +36,8 @@ import {
   EVIDENCE_STRENGTH,
   EVIDENCE_TYPE,
   LIMITATIONS_REQUIRED_EVIDENCE_STRENGTHS,
+  CTA_SOURCE,
+  INTEREST_TYPE,
 } from "../constants";
 
 // react-hook-form's `valueAsNumber` turns an empty optional number input into NaN, not
@@ -343,6 +345,29 @@ export const createCloseoutDecisionSchema = zod
 export const waitlistSignupSchema = zod.object({
   email: zod.string().trim().toLowerCase().email("Invalid email address"),
   honeypot: zod.string().optional(),
+  ctaSource: zod.enum(Object.values(CTA_SOURCE) as [string, ...string[]]).optional().or(zod.literal("")),
+  interestType: zod.enum(Object.values(INTEREST_TYPE) as [string, ...string[]]).optional().or(zod.literal("")),
+  utmSource: zod.string().trim().optional().or(zod.literal("")),
+  utmMedium: zod.string().trim().optional().or(zod.literal("")),
+  utmCampaign: zod.string().trim().optional().or(zod.literal("")),
+  ref: zod.string().trim().optional().or(zod.literal("")),
+  consentTextVersion: zod.string().trim().optional().or(zod.literal("")),
+});
+
+// Genuinely separate from the general waitlist form (audit D-06: a deliberately separate
+// conversion path, never a checkbox bolted onto the general signup).
+export const testerApplicationSchema = zod.object({
+  name: zod.string().trim().min(1, "Name is required"),
+  email: zod.string().trim().toLowerCase().email("Invalid email address"),
+  skillLevel: zod.enum(Object.values(SKILL_LEVEL) as [string, ...string[]]).optional().or(zod.literal("")),
+  applicationNotes: zod.string().trim().max(2000).optional().or(zod.literal("")),
+  consentGiven: zod.boolean().refine((v) => v === true, { message: "Consent is required to apply." }),
+  consentTextVersion: zod.string().trim().min(1, "Consent version is required"),
+  honeypot: zod.string().optional(),
+  utmSource: zod.string().trim().optional().or(zod.literal("")),
+  utmMedium: zod.string().trim().optional().or(zod.literal("")),
+  utmCampaign: zod.string().trim().optional().or(zod.literal("")),
+  ref: zod.string().trim().optional().or(zod.literal("")),
 });
 
 export const createRoundSchema = zod.object({

@@ -23,7 +23,21 @@ import {
 
 export const revalidate = 0;
 
-export default async function PublicLandingPage() {
+interface PublicLandingPageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+function firstParam(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function PublicLandingPage({ searchParams }: PublicLandingPageProps) {
+  const params = await searchParams;
+  const utmSource = firstParam(params.utm_source);
+  const utmMedium = firstParam(params.utm_medium);
+  const utmCampaign = firstParam(params.utm_campaign);
+  const ref = firstParam(params.ref);
+
   // ── Data fetching with offline fallback ──────────────────────────────────
   let updates: PublicUpdateDTO[] = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -88,7 +102,7 @@ export default async function PublicLandingPage() {
         <LandingValues />
 
         {/* 9. Newsletter / Follow-the-Build CTA */}
-        <LandingNewsletterCTA />
+        <LandingNewsletterCTA utmSource={utmSource} utmMedium={utmMedium} utmCampaign={utmCampaign} refCode={ref} />
       </main>
 
       {/* 10. Footer */}

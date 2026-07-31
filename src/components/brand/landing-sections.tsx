@@ -1,5 +1,6 @@
 import React from "react";
 import { WaitlistForm } from "@/components/brand/waitlist-form";
+import { TesterApplicationDialog } from "@/components/brand/tester-application-dialog";
 import { KAVRIWordmark } from "@/components/brand/wordmark";
 import Link from "next/link";
 
@@ -112,7 +113,14 @@ export function LandingValues() {
   );
 }
 
-export function LandingNewsletterCTA() {
+interface LandingNewsletterCTAProps {
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  refCode?: string;
+}
+
+export function LandingNewsletterCTA({ utmSource, utmMedium, utmCampaign, refCode }: LandingNewsletterCTAProps = {}) {
   return (
     <section
       id="signup"
@@ -151,18 +159,24 @@ export function LandingNewsletterCTA() {
 
         {/* Right: form */}
         <div className="space-y-5">
-          <WaitlistForm />
+          <WaitlistForm ctaSource="update" utmSource={utmSource} utmMedium={utmMedium} utmCampaign={utmCampaign} refCode={refCode} />
           <div className="inline-block pt-1">
             <span className="relative inline-block text-kavri-ink font-mono text-[10px] uppercase tracking-wider font-black whitespace-nowrap select-none">
-              <span 
+              <span
                 className="absolute -inset-x-4 -inset-y-1.5 bg-no-repeat pointer-events-none"
-                style={{ 
+                style={{
                   backgroundImage: "url('/paint-stroke.png')",
                   backgroundSize: "100% 100%"
                 }}
               />
               <span className="relative z-10">No spam. Unsubscribe anytime.</span>
             </span>
+          </div>
+          <div className="pt-2 border-t border-[#1a1d1c] mt-1">
+            <p className="font-mono text-[10px] uppercase tracking-wider text-[#7a8078] mb-3 pt-4">
+              Want hands-on access instead?
+            </p>
+            <TesterApplicationDialog utmSource={utmSource} utmMedium={utmMedium} utmCampaign={utmCampaign} refCode={refCode} />
           </div>
         </div>
       </div>

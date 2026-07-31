@@ -434,6 +434,38 @@ export const EVIDENCE_TYPE = {
 
 export type EvidenceType = typeof EVIDENCE_TYPE[keyof typeof EVIDENCE_TYPE];
 
+// Application-level enum for waitlistSubscribers.signupSource (column stays text). 'other' is
+// reserved for future non-web signup paths and is never triggered by either public form in
+// Step 14 (documented here, not a bug if it never appears in real data yet).
+export const SIGNUP_SOURCE = {
+  LANDING_PAGE: "landing_page",
+  TESTER_FORM: "tester_form",
+  REFERRAL: "referral",
+  OTHER: "other",
+} as const;
+
+export type SignupSource = typeof SIGNUP_SOURCE[keyof typeof SIGNUP_SOURCE];
+
+export const CTA_SOURCE = {
+  HERO: "hero",
+  NAVIGATION: "navigation",
+  FOOTER: "footer",
+  UPDATE: "update",
+} as const;
+
+export type CtaSource = typeof CTA_SOURCE[keyof typeof CTA_SOURCE];
+
+export const INTEREST_TYPE = {
+  DEVELOPMENT_UPDATES: "development_updates",
+  TESTER_OPPORTUNITIES: "tester_opportunities",
+  EARLY_ACCESS: "early_access",
+  ALL: "all",
+} as const;
+
+export type InterestType = typeof INTEREST_TYPE[keyof typeof INTEREST_TYPE];
+
+export const WAITLIST_CONSENT_TEXT_VERSION = "v1.0";
+
 // Handle length category boundaries (audit-exact): Short < 5.2in; Medium 5.2-5.4in; Long > 5.4in.
 export function deriveHandleLengthCategory(handleLengthIn: number | null | undefined): "Short" | "Medium" | "Long" | null {
   if (handleLengthIn === null || handleLengthIn === undefined) return null;

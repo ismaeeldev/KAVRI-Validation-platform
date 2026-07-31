@@ -1,0 +1,1 @@
+ALTER TABLE "waitlist_subscribers" ADD COLUMN "name" text;

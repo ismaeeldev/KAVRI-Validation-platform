@@ -1,6 +1,7 @@
 import React from "react";
 import { getWaitlistSubscribers } from "@/server/services/waitlist-service";
 import { DashboardPageHeader } from "@/components/brand/dashboard-layout-components";
+import { WaitlistTable } from "@/components/brand/waitlist-table";
 import { requireOwner } from "@/lib/permissions";
 import { List } from "lucide-react";
 
@@ -15,7 +16,7 @@ export default async function WaitlistPage() {
       <DashboardPageHeader
         title="Waitlist Subscribers"
         eyebrow="Waitlist"
-        description="Monitor landing page registrations and consent logs. No marketing campaigns are active in Sprint 1."
+        description="Monitor landing page registrations, tester applications, and consent logs."
         count={subscribers.length}
       />
 
@@ -25,43 +26,7 @@ export default async function WaitlistPage() {
           <p className="text-xs font-sans font-semibold text-kavri-muted">No waitlist subscribers registered yet.</p>
         </div>
       ) : (
-        <div className="overflow-hidden border border-kavri-line rounded-xl bg-kavri-surface shadow-xs">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse font-sans text-xs">
-              <thead>
-                <tr className="border-b border-kavri-line text-[10px] font-bold uppercase tracking-wider text-kavri-muted bg-[#fafaf8] select-none">
-                  <th className="px-6 py-4">Email</th>
-                  <th className="px-6 py-4">Source</th>
-                  <th className="px-6 py-4">Consent Timestamp</th>
-                  <th className="px-6 py-4">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-kavri-line/60">
-                {subscribers.map((sub) => (
-                  <tr
-                    key={sub.id}
-                    className="hover:bg-[#f9f9f7]/50 transition-colors"
-                  >
-                    <td className="px-6 py-4 font-semibold text-kavri-ink text-[13px]">
-                      {sub.email}
-                    </td>
-                    <td className="px-6 py-4 uppercase tracking-wider text-[10px] text-kavri-muted font-mono">
-                      {sub.signupSource}
-                    </td>
-                    <td className="px-6 py-4 text-kavri-muted font-mono text-[11px]">
-                      {new Date(sub.consentAt).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-kavri-signal-soft text-kavri-signal-ink border border-kavri-line px-2 py-0.5 rounded-md uppercase">
-                        {sub.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <WaitlistTable subscribers={subscribers} />
       )}
     </div>
   );

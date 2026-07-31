@@ -6,13 +6,23 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from "zod";
 import { waitlistSignupSchema } from "@/lib/validation/schemas";
 import { waitlistSignupAction } from "@/server/actions/waitlist-actions";
+import { WAITLIST_CONSENT_TEXT_VERSION } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 type SignupFormData = zod.infer<typeof waitlistSignupSchema>;
 
-export function WaitlistForm() {
+interface WaitlistFormProps {
+  /** Which CTA instance rendered this form (hero/navigation/footer/update). */
+  ctaSource?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  refCode?: string;
+}
+
+export function WaitlistForm({ ctaSource, utmSource, utmMedium, utmCampaign, refCode }: WaitlistFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -28,7 +38,15 @@ export function WaitlistForm() {
   const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true);
     try {
-      await waitlistSignupAction(data);
+      await waitlistSignupAction({
+        ...data,
+        ctaSource,
+        utmSource,
+        utmMedium,
+        utmCampaign,
+        ref: refCode,
+        consentTextVersion: WAITLIST_CONSENT_TEXT_VERSION,
+      });
       setIsSuccess(true);
       toast.success("Subscription processed successfully.");
       reset();

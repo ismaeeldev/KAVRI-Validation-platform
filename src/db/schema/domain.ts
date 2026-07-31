@@ -447,7 +447,24 @@ export const waitlistSubscribers = pgTable("waitlist_subscribers", {
   id: text("id").primaryKey().$defaultFn(uuidDefault),
   email: text("email").notNull(),
   emailNormalized: text("email_normalized").notNull().unique(),
+  // 'landing_page'|'tester_form'|'referral'|'other' - app-level enum (column stays text, matching
+  // this project's established pattern). 'referral' overrides regardless of which form was used
+  // whenever a `?ref=` param is present at signup; 'other' is reserved for future non-web paths
+  // (e.g. a manual owner-added entry) and is not triggered by either public form in Step 14.
   signupSource: text("signup_source").notNull(),
+  utmSource: text("utm_source"),
+  utmMedium: text("utm_medium"),
+  utmCampaign: text("utm_campaign"),
+  ctaSource: text("cta_source"), // 'hero'|'navigation'|'footer'|'update'
+  interestType: text("interest_type"), // 'development_updates'|'tester_opportunities'|'early_access'|'all'
+  // Separate from approved tester status - this does NOT create a testerProfiles row, it is only
+  // a signal on the waitlist record.
+  testerInterest: boolean("tester_interest").notNull().default(false),
+  consentTextVersion: text("consent_text_version"),
+  // Populated only via the Apply to Test form (Step 14 item 3).
+  name: text("name"),
+  applicationSkillLevel: text("application_skill_level"),
+  applicationNotes: text("application_notes"),
   consentAt: timestamp("consent_at", { withTimezone: true }).notNull().defaultNow(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   status: text("status").notNull(), // 'active' | 'unsubscribed'

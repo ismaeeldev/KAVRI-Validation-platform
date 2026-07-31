@@ -69,4 +69,52 @@ test.describe("Public Landing Page & Waitlist Lifecycle E2E Test", () => {
     await page.goto("/owner/waitlist");
     await expect(page.locator("table")).toContainText(uniqueEmail);
   });
+
+  test("captures UTM/referral attribution and distinguishes general signups from tester applications (Sprint 1 revision, Step 14)", async ({ page }) => {
+    const ownerEmail = process.env.BOOTSTRAP_OWNER_EMAIL || "admin@kavri.co";
+    const ownerPassword = process.env.BOOTSTRAP_OWNER_TEMP_PASSWORD || "Kavri-SecureAdmin-2026!#";
+
+    // 1. Visit the landing page with UTM params and submit the general waitlist form
+    const generalEmail = `utm-subscriber-${Date.now().toString().slice(-5)}@kavri.co`;
+    await page.goto("/?utm_source=twitter&utm_medium=social&utm_campaign=launch");
+    await page.fill("input[placeholder='Enter your email address']", generalEmail);
+    await page.click("button:has-text('Follow the build')");
+    await expect(page.locator("text=Thank you. You have been added to the build follow feed.")).toBeVisible();
+
+    // 2. Submit the genuinely separate Apply to Test entry point
+    const applicantName = "Playwright Applicant";
+    const applicantEmail = `applicant-${Date.now().toString().slice(-5)}@kavri.co`;
+    await page.goto("/?ref=affiliate-9");
+    await page.click("button:has-text('Apply to Test')");
+    await page.fill("#applicant-name", applicantName);
+    await page.fill("#applicant-email", applicantEmail);
+    await page.getByRole("checkbox").click();
+    await page.click("button:has-text('Submit Application')");
+    await expect(page.locator("text=We will reach out if you are a fit")).toBeVisible();
+
+    // 3. Owner login and verify both records appear distinctly on the waitlist page
+    await page.goto("/login");
+    await page.fill("#email", ownerEmail);
+    await page.fill("#password", ownerPassword);
+    await page.click("button:has-text('Log In')");
+
+    await page.goto("/owner/waitlist");
+    await expect(page.locator("table")).toContainText(generalEmail);
+    await expect(page.locator("table")).toContainText(applicantEmail);
+
+    // 4. Expand the tester-application row and verify captured detail fields
+    await page.click(`tr:has-text('${applicantEmail}')`);
+    await expect(page.locator("body")).toContainText(applicantName);
+    await expect(page.locator("body")).toContainText("referral");
+
+    // 5. Expand the general-signup row and verify UTM attribution was captured
+    await page.click(`tr:has-text('${generalEmail}')`);
+    await expect(page.locator("body")).toContainText("twitter");
+
+    // 6. Trigger CSV export and confirm a download fires
+    const downloadPromise = page.waitForEvent("download");
+    await page.click("button:has-text('Export CSV')");
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toContain("waitlist-export");
+  });
 });
