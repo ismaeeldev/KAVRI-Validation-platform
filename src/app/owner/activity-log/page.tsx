@@ -55,8 +55,9 @@ export default async function OwnerActivityLogPage() {
 
         <div className="p-6">
           {logs.length === 0 ? (
-            <div className="text-center py-10 font-sans text-xs text-kavri-muted">
-              No activity logs found in the database.
+            <div className="flex flex-col items-center justify-center p-12 border border-dashed border-kavri-line rounded-xl bg-kavri-surface text-center space-y-3">
+              <Clock className="h-8 w-8 text-kavri-muted" />
+              <p className="text-xs font-sans font-semibold text-kavri-muted">No activity logs found in the database.</p>
             </div>
           ) : (
             <div className="relative pl-6 border-l border-kavri-line space-y-6">

@@ -25,6 +25,7 @@ export function AssignmentActions({ assignmentId, currentStatus, lastReminderAt 
   const [isPending, setIsPending] = useState(false);
   const [revocationReason, setRevocationReason] = useState("");
   const [confirmRevoke, setConfirmRevoke] = useState(false);
+  const [confirmExpire, setConfirmExpire] = useState(false);
 
   const handleActivate = async () => {
     setIsPending(true);
@@ -65,6 +66,7 @@ export function AssignmentActions({ assignmentId, currentStatus, lastReminderAt 
     try {
       await expireAssignmentAction(assignmentId);
       toast.success("Assignment marked expired.");
+      setConfirmExpire(false);
       router.refresh();
     } catch (error: unknown) {
       const err = error as Error;
@@ -90,6 +92,41 @@ export function AssignmentActions({ assignmentId, currentStatus, lastReminderAt 
 
   const canExpire = currentStatus === "draft" || currentStatus === "invited";
   const canRemind = currentStatus === "invited" || currentStatus === "acknowledged";
+
+  const expireButton = canExpire && (
+    confirmExpire ? (
+      <div className="flex items-center gap-2 p-2 border border-red-200 bg-red-50/50 rounded-lg font-sans text-xs">
+        <span className="font-semibold text-red-900 flex items-center gap-1">
+          <ShieldAlert className="h-3.5 w-3.5 text-red-600" />
+          <span>Mark expired?</span>
+        </span>
+        <Button
+          onClick={handleExpire}
+          disabled={isPending}
+          className="bg-red-600 hover:bg-red-700 text-white font-sans font-bold text-[10px] h-7 px-2.5 rounded-md transition-all"
+        >
+          Yes, Mark Expired
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => setConfirmExpire(false)}
+          className="font-sans font-semibold text-[10px] h-7 px-2.5 border-red-200 bg-white hover:bg-red-50 text-red-800 rounded-md transition-all"
+        >
+          Cancel
+        </Button>
+      </div>
+    ) : (
+      <Button
+        onClick={() => setConfirmExpire(true)}
+        disabled={isPending}
+        variant="outline"
+        className="font-sans font-semibold text-xs h-10 px-4 rounded-lg flex items-center gap-1.5"
+      >
+        <Clock className="h-3.5 w-3.5" />
+        <span>Mark Expired</span>
+      </Button>
+    )
+  );
 
   const reminderButton = canRemind && (
     <Button
@@ -155,17 +192,7 @@ export function AssignmentActions({ assignmentId, currentStatus, lastReminderAt 
           <Play className="h-3.5 w-3.5" />
           <span>Invite Tester</span>
         </Button>
-        {canExpire && (
-          <Button
-            onClick={handleExpire}
-            disabled={isPending}
-            variant="outline"
-            className="font-sans font-semibold text-xs h-10 px-4 rounded-lg flex items-center gap-1.5"
-          >
-            <Clock className="h-3.5 w-3.5" />
-            <span>Mark Expired</span>
-          </Button>
-        )}
+        {expireButton}
       </div>
     );
   }
@@ -174,17 +201,7 @@ export function AssignmentActions({ assignmentId, currentStatus, lastReminderAt 
     return (
       <div className="flex flex-wrap gap-2">
         {reminderButton}
-        {canExpire && (
-          <Button
-            onClick={handleExpire}
-            disabled={isPending}
-            variant="outline"
-            className="font-sans font-semibold text-xs h-10 px-4 rounded-lg flex items-center gap-1.5"
-          >
-            <Clock className="h-3.5 w-3.5" />
-            <span>Mark Expired</span>
-          </Button>
-        )}
+        {expireButton}
         <Button
           onClick={() => setConfirmRevoke(true)}
           disabled={isPending}

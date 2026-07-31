@@ -22,8 +22,9 @@ export function IssueResolutionForm({ issueId, immediateAction, resolutionStatus
   const [status, setStatus] = useState(resolutionStatus);
   const [notes, setNotes] = useState(resolutionNotes || "");
   const [isLoading, setIsLoading] = useState(false);
+  const [confirmClose, setConfirmClose] = useState(false);
 
-  const handleSave = async () => {
+  const save = async () => {
     setIsLoading(true);
     try {
       await updateIssueResolutionAction(issueId, {
@@ -32,6 +33,7 @@ export function IssueResolutionForm({ issueId, immediateAction, resolutionStatus
         resolutionNotes: notes,
       });
       toast.success("Resolution saved.");
+      setConfirmClose(false);
       router.refresh();
     } catch (error: unknown) {
       const err = error as Error;
@@ -39,6 +41,15 @@ export function IssueResolutionForm({ issueId, immediateAction, resolutionStatus
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Closing is more final than the other resolution statuses - confirm before saving.
+  const handleSave = async () => {
+    if (status === "closed" && resolutionStatus !== "closed") {
+      setConfirmClose(true);
+      return;
+    }
+    await save();
   };
 
   return (
@@ -95,9 +106,31 @@ export function IssueResolutionForm({ issueId, immediateAction, resolutionStatus
         />
       </div>
 
+      {confirmClose && (
+        <div className="border border-red-200 bg-red-50/50 rounded-lg p-3 space-y-2.5 text-xs">
+          <p className="text-red-900 font-semibold">Close this issue? This is a final resolution status.</p>
+          <div className="flex gap-2">
+            <Button
+              onClick={save}
+              disabled={isLoading}
+              className="bg-red-600 hover:bg-red-700 text-white font-sans font-bold text-[11px] h-8 px-3 rounded-md"
+            >
+              Yes, Close Issue
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setConfirmClose(false)}
+              className="font-sans font-semibold text-[11px] h-8 px-3 border-red-200 bg-white hover:bg-red-50 text-red-800 rounded-md"
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+
       <Button
         onClick={handleSave}
-        disabled={isLoading}
+        disabled={isLoading || confirmClose}
         className="w-full bg-kavri-ink text-white hover:bg-neutral-800 font-sans text-xs font-bold h-10 px-4 rounded-lg"
       >
         {isLoading ? "Saving..." : "Save Resolution"}
