@@ -50,6 +50,13 @@
       "when": 1785436235266,
       "tag": "0006_clammy_mordo",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1785472132478,
+      "tag": "0007_shiny_dust",
+      "breakpoints": true
     }
   ]
 }

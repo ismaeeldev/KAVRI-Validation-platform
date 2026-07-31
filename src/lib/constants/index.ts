@@ -301,6 +301,67 @@ export const EVALUATION_SCORE_FIELDS = [
   { key: "scoreBuildQuality", label: "Build Quality" },
 ] as const;
 
+export const ISSUE_CATEGORY = {
+  SURFACE_WEAR: "surface_wear",
+  CORE_CRUSH: "core_crush",
+  DELAMINATION: "delamination",
+  EDGE_GUARD: "edge_guard",
+  HANDLE: "handle",
+  SOUND: "sound",
+  COSMETIC: "cosmetic",
+  PACKAGING: "packaging",
+  OTHER: "other",
+} as const;
+
+export type IssueCategory = typeof ISSUE_CATEGORY[keyof typeof ISSUE_CATEGORY];
+
+export const ISSUE_TYPE = {
+  COSMETIC: "cosmetic",
+  FUNCTIONAL: "functional",
+} as const;
+
+export type IssueType = typeof ISSUE_TYPE[keyof typeof ISSUE_TYPE];
+
+export const ISSUE_SEVERITY = {
+  LOW: "low",
+  MODERATE: "moderate",
+  HIGH: "high",
+  STOP_USE: "stop_use",
+} as const;
+
+export type IssueSeverity = typeof ISSUE_SEVERITY[keyof typeof ISSUE_SEVERITY];
+
+export const STILL_PLAYABLE = {
+  YES: "yes",
+  NO: "no",
+  UNSURE: "unsure",
+} as const;
+
+export type StillPlayable = typeof STILL_PLAYABLE[keyof typeof STILL_PLAYABLE];
+
+export const IMMEDIATE_ACTION = {
+  CONTINUE: "continue",
+  MONITOR: "monitor",
+  BLOCK: "block",
+  RETURN: "return",
+  STOP_USE: "stop_use",
+} as const;
+
+export type ImmediateAction = typeof IMMEDIATE_ACTION[keyof typeof IMMEDIATE_ACTION];
+
+export const ISSUE_RESOLUTION_STATUS = {
+  OPEN: "open",
+  MONITORING: "monitoring",
+  RESOLVED: "resolved",
+  CLOSED: "closed",
+} as const;
+
+export type IssueResolutionStatus = typeof ISSUE_RESOLUTION_STATUS[keyof typeof ISSUE_RESOLUTION_STATUS];
+
+// Severity levels the audit flags as needing to visibly stand out (color + text, never color
+// alone - UX-08/P2-06). Consumed by the IssueSeverityBadge component.
+export const CRITICAL_ISSUE_SEVERITIES = new Set<string>([ISSUE_SEVERITY.HIGH, ISSUE_SEVERITY.STOP_USE]);
+
 // Handle length category boundaries (audit-exact): Short < 5.2in; Medium 5.2-5.4in; Long > 5.4in.
 export function deriveHandleLengthCategory(handleLengthIn: number | null | undefined): "Short" | "Medium" | "Long" | null {
   if (handleLengthIn === null || handleLengthIn === undefined) return null;

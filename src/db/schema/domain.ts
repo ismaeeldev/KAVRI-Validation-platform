@@ -347,6 +347,32 @@ export const evaluations = pgTable("evaluations", {
   index("evaluations_assignment_idx").on(table.assignmentId),
 ]);
 
+export const issueReports = pgTable("issue_reports", {
+  id: text("id").primaryKey().$defaultFn(uuidDefault),
+  sampleId: text("sample_id").notNull().references(() => physicalSamples.id),
+  revisionId: text("revision_id").notNull().references(() => productRevisions.id),
+  // Nullable - an owner can also log an issue found during intake inspection, not only
+  // tester-reported issues.
+  assignmentId: text("assignment_id").references(() => testingAssignments.id),
+  category: text("category").notNull(), // surface_wear|core_crush|delamination|edge_guard|handle|sound|cosmetic|packaging|other
+  issueType: text("issue_type").notNull(), // 'cosmetic' | 'functional'
+  severity: text("severity").notNull(), // 'low' | 'moderate' | 'high' | 'stop_use'
+  firstObservedAt: date("first_observed_at").notNull(),
+  description: text("description").notNull(),
+  // Required only when issueType='functional' - enforced in the zod schema, not the DB.
+  stillPlayable: text("still_playable"), // 'yes' | 'no' | 'unsure'
+  immediateAction: text("immediate_action"), // 'continue'|'monitor'|'block'|'return'|'stop_use' - owner-set
+  resolutionStatus: text("resolution_status").notNull().default("open"), // open|monitoring|resolved|closed
+  resolutionNotes: text("resolution_notes"),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  reportedBy: text("reported_by").notNull().references(() => user.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index("issue_reports_sample_idx").on(table.sampleId),
+  index("issue_reports_revision_idx").on(table.revisionId),
+]);
+
 export const publicUpdates = pgTable("public_updates", {
   id: text("id").primaryKey().$defaultFn(uuidDefault),
   productId: text("product_id").references(() => products.id),
@@ -508,6 +534,21 @@ export const testRoundRevisionsRelations = relations(testRoundRevisions, ({ one 
   revision: one(productRevisions, {
     fields: [testRoundRevisions.revisionId],
     references: [productRevisions.id],
+  }),
+}));
+
+export const issueReportsRelations = relations(issueReports, ({ one }) => ({
+  sample: one(physicalSamples, {
+    fields: [issueReports.sampleId],
+    references: [physicalSamples.id],
+  }),
+  revision: one(productRevisions, {
+    fields: [issueReports.revisionId],
+    references: [productRevisions.id],
+  }),
+  assignment: one(testingAssignments, {
+    fields: [issueReports.assignmentId],
+    references: [testingAssignments.id],
   }),
 }));
 

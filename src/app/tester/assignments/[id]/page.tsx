@@ -123,6 +123,14 @@ export default async function TesterAssignmentDetailPage({ params }: PageProps) 
           roundClosed={progress.roundClosed}
         />
       )}
+
+      {/* Standalone issue-report entry point - not tied to submitting an evaluation */}
+      <Link
+        href={`/tester/assignments/${id}/issues/new`}
+        className="w-full border border-kavri-line hover:bg-kavri-surface-subtle text-kavri-ink font-mono text-xs uppercase tracking-wider h-11 min-h-[44px] rounded-sm flex items-center justify-center transition-colors"
+      >
+        Report an Issue
+      </Link>
     </div>
   );
 }

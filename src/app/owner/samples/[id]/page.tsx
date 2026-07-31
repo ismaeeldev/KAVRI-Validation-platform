@@ -3,8 +3,9 @@ import Link from "next/link";
 import QRCode from "qrcode";
 import { getSampleById, getCurrentHolder } from "@/server/services/sample-service";
 import { getAttachments } from "@/server/services/attachment-service";
+import { getIssuesBySample } from "@/server/services/issue-service";
 import { DashboardPageHeader } from "@/components/brand/dashboard-layout-components";
-import { StatusBadge } from "@/components/brand/status";
+import { StatusBadge, IssueSeverityBadge } from "@/components/brand/status";
 import { SampleTriageControls } from "@/components/brand/sample-triage-controls";
 import { SampleMeasurementsForm } from "@/components/brand/sample-measurements-form";
 import { SampleInspectionForm } from "@/components/brand/sample-inspection-form";
@@ -25,6 +26,7 @@ export default async function SampleDetailPage({ params }: PageProps) {
   const sample = await getSampleById(id);
   const currentHolder = await getCurrentHolder(id);
   const attachments = await getAttachments("sample", id);
+  const issues = await getIssuesBySample(id);
   const qrDataUrl = sample.qrValue ? await QRCode.toDataURL(sample.qrValue, { width: 240 }) : null;
 
   // Fetch activity logs for this sample to display history lifecycle timeline
@@ -189,7 +191,28 @@ export default async function SampleDetailPage({ params }: PageProps) {
               </div>
               <div className="space-y-1">
                 <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Issues</span>
-                <p className="text-kavri-muted italic">None reported.</p>
+                {issues.length === 0 ? (
+                  <p className="text-kavri-muted italic">None reported.</p>
+                ) : (
+                  <div className="space-y-1.5 pt-1">
+                    {issues.map((issue) => (
+                      <Link
+                        key={issue.id}
+                        href={`/owner/issues/${issue.id}`}
+                        className="flex items-center justify-between gap-2 hover:bg-kavri-surface-subtle rounded-md px-1.5 py-1 -mx-1.5"
+                      >
+                        <span className="text-kavri-ink font-semibold capitalize truncate">{issue.category.replace("_", " ")}</span>
+                        <IssueSeverityBadge severity={issue.severity} />
+                      </Link>
+                    ))}
+                  </div>
+                )}
+                <Link
+                  href={`/owner/samples/${id}/issues/new`}
+                  className="inline-block text-[10px] font-mono uppercase text-kavri-signal-ink hover:underline pt-1"
+                >
+                  + Log an issue
+                </Link>
               </div>
             </div>
           </div>

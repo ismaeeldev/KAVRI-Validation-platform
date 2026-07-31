@@ -50,7 +50,8 @@ import {
   ShieldAlert,
   Menu,
   X,
-  ClipboardList
+  ClipboardList,
+  AlertTriangle
 } from "lucide-react";
 
 const OWNER_NAV_LINKS = [
@@ -61,6 +62,7 @@ const OWNER_NAV_LINKS = [
   { name: "Testers", href: "/owner/testers", icon: UserCheck },
   { name: "Rounds", href: "/owner/rounds", icon: ClipboardList },
   { name: "Assignments", href: "/owner/assignments", icon: FileSpreadsheet },
+  { name: "Issues", href: "/owner/issues", icon: AlertTriangle },
   { name: "Public Updates", href: "/owner/updates", icon: Rss },
   { name: "Waitlist", href: "/owner/waitlist", icon: List },
 ];

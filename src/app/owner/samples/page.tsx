@@ -1,14 +1,22 @@
 import React from "react";
 import Link from "next/link";
 import { getSamples } from "@/server/services/sample-service";
+import { getAllIssues } from "@/server/services/issue-service";
+import { CRITICAL_ISSUE_SEVERITIES } from "@/lib/constants";
 import { DashboardPageHeader } from "@/components/brand/dashboard-layout-components";
 import { StatusBadge } from "@/components/brand/status";
-import { Box, Plus } from "lucide-react";
+import { Box, Plus, ShieldAlert } from "lucide-react";
 
 export const revalidate = 0;
 
 export default async function SamplesListPage() {
   const samples = await getSamples();
+  const allIssues = await getAllIssues();
+  const criticalOpenSampleIds = new Set(
+    allIssues
+      .filter((i) => CRITICAL_ISSUE_SEVERITIES.has(i.severity) && i.resolutionStatus !== "closed" && i.resolutionStatus !== "resolved")
+      .map((i) => i.sampleId)
+  );
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 select-none">
@@ -60,8 +68,15 @@ export default async function SamplesListPage() {
                     className="hover:bg-[#f9f9f7]/50 transition-colors"
                   >
                     <td className="px-6 py-4 font-bold text-kavri-ink">
-                      <span className="font-mono text-[11px] font-bold bg-[#fafaf8] border border-kavri-line px-2.5 py-1 rounded-md text-kavri-ink">
-                        {sample.sampleCode}
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="font-mono text-[11px] font-bold bg-[#fafaf8] border border-kavri-line px-2.5 py-1 rounded-md text-kavri-ink">
+                          {sample.sampleCode}
+                        </span>
+                        {criticalOpenSampleIds.has(sample.id) && (
+                          <span title="Open high/stop-use severity issue" className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-md">
+                            <ShieldAlert className="h-3 w-3" /> Issue
+                          </span>
+                        )}
                       </span>
                     </td>
                     <td className="px-6 py-4">

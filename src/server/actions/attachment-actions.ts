@@ -48,6 +48,9 @@ export async function uploadPhotoAction(entityType: string, entityId: string, fo
   if (entityType === "sample") {
     revalidatePath(`/owner/samples/${entityId}`);
   }
+  if (entityType === "issue_report") {
+    revalidatePath(`/owner/issues/${entityId}`);
+  }
 
   return attachment;
 }

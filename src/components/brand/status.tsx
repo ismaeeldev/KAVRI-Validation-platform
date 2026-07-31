@@ -100,6 +100,18 @@ export function StatusBadge({ status, className = "" }: StatusBadgeProps) {
       badgeStyles = "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900";
       labelText = "UPDATED (CORRECTED)";
       break;
+    case "open":
+      badgeStyles = "bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900";
+      labelText = "OPEN";
+      break;
+    case "monitoring":
+      badgeStyles = "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900";
+      labelText = "MONITORING";
+      break;
+    case "resolved":
+      badgeStyles = "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900";
+      labelText = "RESOLVED";
+      break;
   }
 
   return (
@@ -107,6 +119,50 @@ export function StatusBadge({ status, className = "" }: StatusBadgeProps) {
       className={`inline-flex items-center px-2 py-0.5 rounded-sm border text-[10px] font-mono font-bold tracking-wider uppercase select-none ${badgeStyles} ${className}`}
     >
       {labelText}
+    </span>
+  );
+}
+
+interface IssueSeverityBadgeProps {
+  severity: string;
+  className?: string;
+}
+
+// Audit UX-08/P2-06: "Stop Use" severity must visibly stand out via color AND text, never
+// color alone - every variant below pairs a distinct background/border with an explicit label
+// and icon glyph so the distinction survives color-blindness or grayscale printing.
+export function IssueSeverityBadge({ severity, className = "" }: IssueSeverityBadgeProps) {
+  let badgeStyles = "bg-kavri-surface-subtle text-kavri-muted border-kavri-line";
+  let label = severity.toUpperCase();
+  let glyph = "";
+
+  switch (severity) {
+    case "low":
+      badgeStyles = "bg-kavri-surface-subtle text-kavri-muted border-kavri-line";
+      label = "LOW";
+      break;
+    case "moderate":
+      badgeStyles = "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900";
+      label = "MODERATE";
+      break;
+    case "high":
+      badgeStyles = "bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-300 dark:border-orange-900";
+      label = "HIGH";
+      glyph = "⚠ ";
+      break;
+    case "stop_use":
+      badgeStyles = "bg-red-600 text-white border-red-700 font-black";
+      label = "STOP USE";
+      glyph = "⛔ ";
+      break;
+  }
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-sm border text-[10px] font-mono font-bold tracking-wider uppercase select-none ${badgeStyles} ${className}`}
+    >
+      {glyph}
+      {label}
     </span>
   );
 }

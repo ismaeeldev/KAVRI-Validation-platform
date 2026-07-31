@@ -23,6 +23,12 @@ import {
   EVALUATION_PREFERENCE,
   EVALUATION_CONFIDENCE,
   EVALUATION_SCORE_FIELDS,
+  ISSUE_CATEGORY,
+  ISSUE_TYPE,
+  ISSUE_SEVERITY,
+  STILL_PLAYABLE,
+  IMMEDIATE_ACTION,
+  ISSUE_RESOLUTION_STATUS,
 } from "../constants";
 
 // react-hook-form's `valueAsNumber` turns an empty optional number input into NaN, not
@@ -330,6 +336,29 @@ export const createPlaySessionSchema = zod.object({
   conditions: zod.string().trim().optional().or(zod.literal("")),
   referencePaddle: zod.string().trim().optional().or(zod.literal("")),
   notes: zod.string().trim().optional().or(zod.literal("")),
+});
+
+export const createIssueReportSchema = zod
+  .object({
+    sampleId: zod.string().min(1, "Sample is required"),
+    assignmentId: zod.string().optional().or(zod.literal("")),
+    evaluationId: zod.string().optional().or(zod.literal("")),
+    category: zod.enum(Object.values(ISSUE_CATEGORY) as [string, ...string[]]),
+    issueType: zod.enum(Object.values(ISSUE_TYPE) as [string, ...string[]]),
+    severity: zod.enum(Object.values(ISSUE_SEVERITY) as [string, ...string[]]),
+    firstObservedAt: zod.string().min(1, "First observed date is required"),
+    description: zod.string().trim().min(1, "Description is required"),
+    stillPlayable: zod.enum(Object.values(STILL_PLAYABLE) as [string, ...string[]]).optional().or(zod.literal("")),
+  })
+  .refine((data) => data.issueType !== "functional" || !!data.stillPlayable, {
+    message: "Still-playable is required for functional issues",
+    path: ["stillPlayable"],
+  });
+
+export const updateIssueResolutionSchema = zod.object({
+  immediateAction: zod.enum(Object.values(IMMEDIATE_ACTION) as [string, ...string[]]).optional().or(zod.literal("")),
+  resolutionStatus: zod.enum(Object.values(ISSUE_RESOLUTION_STATUS) as [string, ...string[]]),
+  resolutionNotes: zod.string().trim().optional().or(zod.literal("")),
 });
 
 export const evaluationDraftSchema = zod.object({

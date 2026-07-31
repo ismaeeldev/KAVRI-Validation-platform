@@ -34,7 +34,23 @@ export async function authorizePhotoAttachment(
     return;
   }
 
-  // Unknown entity type for a tester (e.g. future issue_report support) - deny by default.
+  if (entityType === PHOTO_ENTITY_TYPE.ISSUE_REPORT) {
+    const issue = await db.query.issueReports.findFirst({
+      where: eq(schema.issueReports.id, entityId),
+    });
+    if (!issue) {
+      throw AppError.notFound("Issue report not found.");
+    }
+    const assignment = await db.query.testingAssignments.findFirst({
+      where: and(eq(schema.testingAssignments.sampleId, issue.sampleId), eq(schema.testingAssignments.testerUserId, userId)),
+    });
+    if (!assignment) {
+      throw AppError.forbidden("You do not have an active assignment for this issue's sample.");
+    }
+    return;
+  }
+
+  // Unknown entity type for a tester - deny by default.
   throw AppError.forbidden("You are not authorized to attach photos to this record.");
 }
 
