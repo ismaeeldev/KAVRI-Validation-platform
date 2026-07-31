@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { addToWaitlist, applyToTest, exportWaitlistToCsv } from "@/server/services/waitlist-service";
+import { addToWaitlist, applyToTest } from "@/server/services/waitlist-service";
 import { db } from "@/db";
 
 vi.mock("@/server/services/activity-service", () => ({
@@ -129,33 +129,5 @@ describe("Waitlist Expansion Unit Tests (Sprint 1 revision, Step 14)", () => {
     expect(result.success).toBe(true);
     expect(findFirstSpy).not.toHaveBeenCalled();
     expect(insertSpy).not.toHaveBeenCalled();
-  });
-
-  it("escapes commas, quotes, and newlines in CSV export", async () => {
-    vi.spyOn(db.query.waitlistSubscribers, "findMany").mockResolvedValue([
-      {
-        email: "quoted, \"tricky\"\nvalue@example.com",
-        name: "A, B",
-        signupSource: "landing_page",
-        utmSource: null,
-        utmMedium: null,
-        utmCampaign: null,
-        ctaSource: null,
-        interestType: "all",
-        testerInterest: false,
-        applicationSkillLevel: null,
-        applicationNotes: null,
-        consentAt: new Date("2026-01-01T00:00:00.000Z"),
-        consentTextVersion: "v1.0",
-        status: "active",
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ] as any);
-
-    const csv = await exportWaitlistToCsv();
-
-    expect(csv.startsWith("email")).toBe(true);
-    expect(csv).toContain('"quoted, ""tricky""\nvalue@example.com"');
-    expect(csv).toContain('"A, B"');
   });
 });

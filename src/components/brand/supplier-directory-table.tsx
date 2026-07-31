@@ -5,17 +5,51 @@ import Link from "next/link";
 import { StatusBadge } from "@/components/brand/status";
 import { SUPPLIER_RELATIONSHIP_STATUS } from "@/lib/constants";
 import { Search } from "lucide-react";
+import { ExportCsvButton } from "@/components/brand/export-csv-button";
+import type { CsvColumn } from "@/lib/csv-export";
 
 interface SupplierRow {
   id: string;
   name: string;
   code: string | null;
   status: string;
+  supplierType?: string | null;
+  website?: string | null;
+  phone?: string | null;
+  addressLine1?: string | null;
+  addressLine2?: string | null;
+  city?: string | null;
+  region?: string | null;
+  postalCode?: string | null;
+  country?: string | null;
   relationshipStatus: string;
   productCount: number;
   sampleCount: number;
   createdAt: Date | string;
+  updatedAt?: Date | string;
 }
+
+function toDate(value: Date | string | undefined): Date | undefined {
+  if (!value) return undefined;
+  return value instanceof Date ? value : new Date(value);
+}
+
+const SUPPLIER_CSV_COLUMNS: CsvColumn<SupplierRow>[] = [
+  { header: "name", value: (s) => s.name },
+  { header: "code", value: (s) => s.code },
+  { header: "supplierType", value: (s) => s.supplierType },
+  { header: "status", value: (s) => s.status },
+  { header: "relationshipStatus", value: (s) => s.relationshipStatus },
+  { header: "website", value: (s) => s.website },
+  { header: "phone", value: (s) => s.phone },
+  {
+    header: "address",
+    value: (s) =>
+      [s.addressLine1, s.addressLine2, s.city, s.region, s.postalCode, s.country].filter(Boolean).join(", "),
+  },
+  { header: "createdAt", value: (s) => toDate(s.createdAt) },
+  { header: "updatedAt", value: (s) => toDate(s.updatedAt) },
+];
 
 type SortKey = "name" | "status" | "createdAt";
 
@@ -92,6 +126,12 @@ export function SupplierDirectoryTable({ suppliers }: { suppliers: SupplierRow[]
             </option>
           ))}
         </select>
+        <ExportCsvButton
+          rows={filtered}
+          columns={SUPPLIER_CSV_COLUMNS}
+          filenamePrefix="suppliers"
+          className="sm:ml-auto bg-kavri-ink text-white hover:bg-neutral-800 font-sans text-xs font-bold h-10 px-4 rounded-lg flex items-center gap-1.5"
+        />
       </div>
 
       {filtered.length === 0 ? (

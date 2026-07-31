@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { exportWaitlistCsvAction } from "@/server/actions/waitlist-actions";
-import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronRight, Download } from "lucide-react";
-import { toast } from "sonner";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { ExportCsvButton } from "@/components/brand/export-csv-button";
+import type { CsvColumn } from "@/lib/csv-export";
 
 interface WaitlistSubscriberRow {
   id: string;
@@ -30,13 +29,29 @@ interface WaitlistTableProps {
 
 const ALL = "all";
 
+const WAITLIST_CSV_COLUMNS: CsvColumn<WaitlistSubscriberRow>[] = [
+  { header: "email", value: (s) => s.email },
+  { header: "name", value: (s) => s.name },
+  { header: "signupSource", value: (s) => s.signupSource },
+  { header: "utmSource", value: (s) => s.utmSource },
+  { header: "utmMedium", value: (s) => s.utmMedium },
+  { header: "utmCampaign", value: (s) => s.utmCampaign },
+  { header: "ctaSource", value: (s) => s.ctaSource },
+  { header: "interestType", value: (s) => s.interestType },
+  { header: "testerInterest", value: (s) => s.testerInterest },
+  { header: "applicationSkillLevel", value: (s) => s.applicationSkillLevel },
+  { header: "applicationNotes", value: (s) => s.applicationNotes },
+  { header: "consentAt", value: (s) => s.consentAt },
+  { header: "consentTextVersion", value: (s) => s.consentTextVersion },
+  { header: "status", value: (s) => s.status },
+];
+
 export function WaitlistTable({ subscribers }: WaitlistTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState(ALL);
   const [sourceFilter, setSourceFilter] = useState(ALL);
   const [interestFilter, setInterestFilter] = useState(ALL);
   const [testerOnly, setTesterOnly] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
 
   const statuses = useMemo(() => Array.from(new Set(subscribers.map((s) => s.status))), [subscribers]);
   const sources = useMemo(() => Array.from(new Set(subscribers.map((s) => s.signupSource))), [subscribers]);
@@ -52,26 +67,6 @@ export function WaitlistTable({ subscribers }: WaitlistTableProps) {
     if (testerOnly && !sub.testerInterest) return false;
     return true;
   });
-
-  const handleExport = async () => {
-    setIsExporting(true);
-    try {
-      const csv = await exportWaitlistCsvAction();
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `waitlist-export-${new Date().toISOString().slice(0, 10)}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch {
-      toast.error("Failed to export CSV.");
-    } finally {
-      setIsExporting(false);
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -111,15 +106,12 @@ export function WaitlistTable({ subscribers }: WaitlistTableProps) {
           Tester Interest Only
         </label>
 
-        <Button
-          type="button"
-          onClick={handleExport}
-          disabled={isExporting}
+        <ExportCsvButton
+          rows={filtered}
+          columns={WAITLIST_CSV_COLUMNS}
+          filenamePrefix="waitlist"
           className="ml-auto bg-kavri-ink text-white hover:bg-neutral-800 font-sans text-xs font-bold h-9 px-4 rounded-lg flex items-center gap-1.5"
-        >
-          <Download className="h-3.5 w-3.5" />
-          {isExporting ? "Exporting..." : "Export CSV"}
-        </Button>
+        />
       </div>
 
       <div className="overflow-hidden border border-kavri-line rounded-xl bg-kavri-surface shadow-xs">

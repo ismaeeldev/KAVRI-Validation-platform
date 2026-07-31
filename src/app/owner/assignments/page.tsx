@@ -4,12 +4,31 @@ import { getAssignments, summarizeAssignmentProgress } from "@/server/services/a
 import { DashboardPageHeader } from "@/components/brand/dashboard-layout-components";
 import { StatusBadge } from "@/components/brand/status";
 import { FileSpreadsheet, Plus } from "lucide-react";
+import { DownloadCsvButton } from "@/components/brand/download-csv-button";
+import { rowsToCsv, type CsvColumn } from "@/lib/csv-export";
 
 export const revalidate = 0;
 
 interface PageProps {
   searchParams: Promise<{ status?: string; roundId?: string; overdue?: string }>;
 }
+
+type AssignmentExportRow = Awaited<ReturnType<typeof getAssignments>>[number] & {
+  progress: ReturnType<typeof summarizeAssignmentProgress>;
+};
+
+const ASSIGNMENT_CSV_COLUMNS: CsvColumn<AssignmentExportRow>[] = [
+  { header: "tester", value: (a) => a.testerProfile.displayName },
+  { header: "sample", value: (a) => a.sample.sampleCode },
+  { header: "round", value: (a) => a.round?.roundCode },
+  { header: "status", value: (a) => a.progress.label },
+  { header: "dueAt", value: (a) => a.dueAt },
+  { header: "sessionCount", value: (a) => a.progress.sessionCount },
+  { header: "requiredSessionCount", value: (a) => a.requiredSessionCount },
+  { header: "firstImpressionSubmitted", value: (a) => a.progress.firstImpressionSubmitted },
+  { header: "followUpSubmitted", value: (a) => a.progress.followUpSubmitted },
+  { header: "overdue", value: (a) => a.progress.overdue },
+];
 
 export default async function AssignmentsListPage({ searchParams }: PageProps) {
   const { status, roundId, overdue } = await searchParams;
@@ -55,13 +74,16 @@ export default async function AssignmentsListPage({ searchParams }: PageProps) {
         description="Dispatch active testing cycles, manage instruction briefs, and track tester feedback logs."
         count={filtered.length}
         actions={
-          <Link
-            href="/owner/assignments/new"
-            className="bg-kavri-ink text-white hover:bg-neutral-800 text-xs font-sans font-bold px-4 py-2.5 rounded-lg flex items-center gap-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-kavri-signal focus-visible:outline-offset-1"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Create Assignment</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <DownloadCsvButton csv={rowsToCsv(filtered, ASSIGNMENT_CSV_COLUMNS)} filenamePrefix="assignments" />
+            <Link
+              href="/owner/assignments/new"
+              className="bg-kavri-ink text-white hover:bg-neutral-800 text-xs font-sans font-bold px-4 py-2.5 rounded-lg flex items-center gap-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-kavri-signal focus-visible:outline-offset-1"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Create Assignment</span>
+            </Link>
+          </div>
         }
       />
 

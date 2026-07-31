@@ -7,8 +7,34 @@ import { db } from "@/db";
 import { eq } from "drizzle-orm";
 import * as schema from "@/db/schema";
 import { ShoppingBag, Plus } from "lucide-react";
+import { DownloadCsvButton } from "@/components/brand/download-csv-button";
+import { rowsToCsv, type CsvColumn } from "@/lib/csv-export";
 
 export const revalidate = 0;
+
+interface ProductExportRow {
+  internalName: string;
+  publicAlias: string | null;
+  shape: string | null;
+  performanceProfile: string | null;
+  firepowerBalance: string | null;
+  status: string;
+  publicState: string;
+  isPublic: boolean;
+  supplier: { name: string };
+}
+
+const PRODUCT_CSV_COLUMNS: CsvColumn<ProductExportRow>[] = [
+  { header: "internalName", value: (p) => p.internalName },
+  { header: "publicAlias", value: (p) => p.publicAlias },
+  { header: "supplier", value: (p) => p.supplier.name },
+  { header: "shape", value: (p) => p.shape },
+  { header: "performanceProfile", value: (p) => p.performanceProfile },
+  { header: "firepowerBalance", value: (p) => p.firepowerBalance },
+  { header: "status", value: (p) => p.status },
+  { header: "isPublic", value: (p) => p.isPublic },
+  { header: "publicState", value: (p) => p.publicState },
+];
 
 export default async function ProductsListPage() {
   const productsList = await getProducts();
@@ -36,13 +62,16 @@ export default async function ProductsListPage() {
         description="Manage internal definitions, public aliases, and product revision timelines."
         count={productsWithRevisions.length}
         actions={
-          <Link
-            href="/owner/products/new"
-            className="bg-kavri-ink text-white hover:bg-neutral-800 text-xs font-sans font-bold px-4 py-2.5 rounded-lg flex items-center gap-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-kavri-signal focus-visible:outline-offset-1"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Add Product</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <DownloadCsvButton csv={rowsToCsv(productsWithRevisions, PRODUCT_CSV_COLUMNS)} filenamePrefix="products" />
+            <Link
+              href="/owner/products/new"
+              className="bg-kavri-ink text-white hover:bg-neutral-800 text-xs font-sans font-bold px-4 py-2.5 rounded-lg flex items-center gap-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-kavri-signal focus-visible:outline-offset-1"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add Product</span>
+            </Link>
+          </div>
         }
       />
 

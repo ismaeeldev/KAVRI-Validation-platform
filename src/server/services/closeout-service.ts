@@ -153,3 +153,12 @@ export async function getCloseoutDecisionByScope(scope: string, scopeId: string)
     with: { evidenceLinks: true },
   });
 }
+
+// No dedicated closeout-decisions list page exists yet (decisions are viewed per-round via
+// getCloseoutDecisionByScope) - this powers the CSV export surfaced on the Rounds list page
+// (Step 18), since that's the closest existing list context for round-level closeout data.
+export async function getAllCloseoutDecisions() {
+  return await db.query.closeoutDecisions.findMany({
+    orderBy: (d, { desc }) => [desc(d.decisionDate)],
+  });
+}

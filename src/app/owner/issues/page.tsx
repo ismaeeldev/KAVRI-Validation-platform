@@ -5,12 +5,32 @@ import { DashboardPageHeader } from "@/components/brand/dashboard-layout-compone
 import { StatusBadge, IssueSeverityBadge } from "@/components/brand/status";
 import { ISSUE_SEVERITY, ISSUE_RESOLUTION_STATUS, ISSUE_CATEGORY } from "@/lib/constants";
 import { ShieldAlert } from "lucide-react";
+import { DownloadCsvButton } from "@/components/brand/download-csv-button";
+import { rowsToCsv, type CsvColumn } from "@/lib/csv-export";
 
 export const revalidate = 0;
 
 interface PageProps {
   searchParams: Promise<{ severity?: string; status?: string; category?: string }>;
 }
+
+type IssueExportRow = Awaited<ReturnType<typeof getAllIssues>>[number];
+
+const ISSUE_CSV_COLUMNS: CsvColumn<IssueExportRow>[] = [
+  { header: "sample", value: (i) => i.sample.sampleCode },
+  { header: "product", value: (i) => i.revision.product.internalName },
+  { header: "revision", value: (i) => i.revision.revisionCode },
+  { header: "category", value: (i) => i.category },
+  { header: "issueType", value: (i) => i.issueType },
+  { header: "severity", value: (i) => i.severity },
+  { header: "resolutionStatus", value: (i) => i.resolutionStatus },
+  { header: "description", value: (i) => i.description },
+  { header: "stillPlayable", value: (i) => i.stillPlayable },
+  { header: "immediateAction", value: (i) => i.immediateAction },
+  { header: "resolutionNotes", value: (i) => i.resolutionNotes },
+  { header: "firstObservedAt", value: (i) => i.firstObservedAt },
+  { header: "createdAt", value: (i) => i.createdAt },
+];
 
 export default async function IssuesListPage({ searchParams }: PageProps) {
   const { severity, status, category } = await searchParams;
@@ -39,6 +59,7 @@ export default async function IssuesListPage({ searchParams }: PageProps) {
         eyebrow="Quality & Defect Tracking"
         description="Tester-reported and owner-logged defects across samples and revisions."
         count={issues.length}
+        actions={<DownloadCsvButton csv={rowsToCsv(issues, ISSUE_CSV_COLUMNS)} filenamePrefix="issues" />}
       />
 
       <div className="flex flex-wrap gap-4">

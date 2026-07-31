@@ -4,6 +4,8 @@ import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { SKILL_LEVEL, PLAYING_FREQUENCY } from "@/lib/constants";
 import { Search } from "lucide-react";
+import { ExportCsvButton } from "@/components/brand/export-csv-button";
+import type { CsvColumn } from "@/lib/csv-export";
 
 interface TesterRow {
   id: string;
@@ -19,6 +21,18 @@ interface TesterRow {
   lastActivityAt: Date | string | null;
   invitationCount?: number;
 }
+
+const TESTER_CSV_COLUMNS: CsvColumn<TesterRow>[] = [
+  { header: "displayName", value: (t) => t.displayName },
+  { header: "email", value: (t) => t.emailNormalized },
+  { header: "skillLevel", value: (t) => t.skillLevel },
+  { header: "playingFrequency", value: (t) => t.playingFrequency },
+  { header: "currentPaddle", value: (t) => t.currentPaddle },
+  { header: "approvalStatus", value: (t) => t.approvalStatus },
+  { header: "accessStatus", value: (t) => (t.userId ? "active" : "invited") },
+  { header: "activeAssignmentCount", value: (t) => t.activeAssignmentCount },
+  { header: "lastActivityAt", value: (t) => t.lastActivityAt },
+];
 
 function relativeTime(date: Date | string | null): string {
   if (!date) return "—";
@@ -116,6 +130,12 @@ export function TesterDirectoryTable({ testers, initialNeedsInvitation = false }
           />
           <span>Needs invitation</span>
         </label>
+        <ExportCsvButton
+          rows={filtered}
+          columns={TESTER_CSV_COLUMNS}
+          filenamePrefix="testers"
+          className="ml-auto bg-kavri-ink text-white hover:bg-neutral-800 font-sans text-xs font-bold h-9 px-4 rounded-lg flex items-center gap-1.5"
+        />
       </div>
 
       {filtered.length === 0 ? (

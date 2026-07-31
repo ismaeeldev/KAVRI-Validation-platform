@@ -1,9 +1,12 @@
 import React from "react";
 import Link from "next/link";
 import { getRounds } from "@/server/services/test-round-service";
+import { getAllCloseoutDecisions } from "@/server/services/closeout-service";
 import { DashboardPageHeader } from "@/components/brand/dashboard-layout-components";
 import { StatusBadge } from "@/components/brand/status";
 import { ClipboardList, Plus } from "lucide-react";
+import { DownloadCsvButton } from "@/components/brand/download-csv-button";
+import { rowsToCsv, type CsvColumn } from "@/lib/csv-export";
 
 export const revalidate = 0;
 
@@ -11,10 +14,26 @@ interface PageProps {
   searchParams: Promise<{ status?: string }>;
 }
 
+type CloseoutExportRow = Awaited<ReturnType<typeof getAllCloseoutDecisions>>[number];
+
+const CLOSEOUT_CSV_COLUMNS: CsvColumn<CloseoutExportRow>[] = [
+  { header: "scope", value: (d) => d.scope },
+  { header: "scopeId", value: (d) => d.scopeId },
+  { header: "decision", value: (d) => d.decision },
+  { header: "evidenceStrength", value: (d) => d.evidenceStrength },
+  { header: "decisionSummary", value: (d) => d.decisionSummary },
+  { header: "limitations", value: (d) => d.limitations },
+  { header: "openQuestions", value: (d) => d.openQuestions },
+  { header: "nextAction", value: (d) => d.nextAction },
+  { header: "publicVersion", value: (d) => d.publicVersion },
+  { header: "decisionDate", value: (d) => d.decisionDate },
+];
+
 export default async function RoundsListPage({ searchParams }: PageProps) {
   const { status } = await searchParams;
   const allRounds = await getRounds();
   const rounds = status ? allRounds.filter((r) => r.status === status) : allRounds;
+  const closeoutDecisions = await getAllCloseoutDecisions();
 
   const statuses = ["draft", "recruiting", "active", "review", "closed"];
 
@@ -26,13 +45,20 @@ export default async function RoundsListPage({ searchParams }: PageProps) {
         description="Group testers, samples, and evaluations into a validation cycle with a shared goal and closeout gate."
         count={rounds.length}
         actions={
-          <Link
-            href="/owner/rounds/new"
-            className="bg-kavri-ink text-white hover:bg-neutral-800 text-xs font-sans font-bold px-4 py-2.5 rounded-lg flex items-center gap-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-kavri-signal focus-visible:outline-offset-1"
-          >
-            <Plus className="h-4 w-4" />
-            <span>New Round</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <DownloadCsvButton
+              csv={rowsToCsv(closeoutDecisions, CLOSEOUT_CSV_COLUMNS)}
+              filenamePrefix="closeout-decisions"
+              label="Export Decisions CSV"
+            />
+            <Link
+              href="/owner/rounds/new"
+              className="bg-kavri-ink text-white hover:bg-neutral-800 text-xs font-sans font-bold px-4 py-2.5 rounded-lg flex items-center gap-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-kavri-signal focus-visible:outline-offset-1"
+            >
+              <Plus className="h-4 w-4" />
+              <span>New Round</span>
+            </Link>
+          </div>
         }
       />
 

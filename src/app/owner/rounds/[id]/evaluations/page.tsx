@@ -5,6 +5,8 @@ import { getEvaluationsByRound } from "@/server/services/evaluation-service";
 import { DashboardPageHeader } from "@/components/brand/dashboard-layout-components";
 import { StatusBadge } from "@/components/brand/status";
 import { ClipboardCheck } from "lucide-react";
+import { DownloadCsvButton } from "@/components/brand/download-csv-button";
+import { rowsToCsv, type CsvColumn } from "@/lib/csv-export";
 
 export const revalidate = 0;
 
@@ -12,6 +14,37 @@ interface PageProps {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ type?: string; sampleId?: string }>;
 }
+
+type EvaluationExportRow = Awaited<ReturnType<typeof getEvaluationsByRound>>[number];
+
+const EVALUATION_CSV_COLUMNS: CsvColumn<EvaluationExportRow>[] = [
+  { header: "tester", value: (e) => e.assignment.testerProfile.displayName },
+  { header: "sample", value: (e) => e.sample.sampleCode },
+  { header: "evaluationType", value: (e) => e.evaluationType },
+  { header: "status", value: (e) => e.status },
+  { header: "preference", value: (e) => e.preference },
+  { header: "confidence", value: (e) => e.confidence },
+  { header: "scoreControl", value: (e) => e.scoreControl },
+  { header: "scoreStability", value: (e) => e.scoreStability },
+  { header: "scoreFeel", value: (e) => e.scoreFeel },
+  { header: "scoreComfort", value: (e) => e.scoreComfort },
+  { header: "scoreConsistency", value: (e) => e.scoreConsistency },
+  { header: "scoreOverallPreference", value: (e) => e.scoreOverallPreference },
+  { header: "scorePower", value: (e) => e.scorePower },
+  { header: "scoreSpin", value: (e) => e.scoreSpin },
+  { header: "scoreForgiveness", value: (e) => e.scoreForgiveness },
+  { header: "scoreManeuverability", value: (e) => e.scoreManeuverability },
+  { header: "scoreSound", value: (e) => e.scoreSound },
+  { header: "scoreFatigue", value: (e) => e.scoreFatigue },
+  { header: "scoreBuildQuality", value: (e) => e.scoreBuildQuality },
+  { header: "strengths", value: (e) => e.strengths },
+  { header: "weaknesses", value: (e) => e.weaknesses },
+  { header: "issueTriggered", value: (e) => e.issueTriggered },
+  { header: "playTimeMinutes", value: (e) => e.playTimeMinutes },
+  { header: "conditions", value: (e) => e.conditions },
+  { header: "comparisonReference", value: (e) => e.comparisonReference },
+  { header: "submittedAt", value: (e) => e.submittedAt },
+];
 
 export default async function RoundEvaluationsPage({ params, searchParams }: PageProps) {
   const { id } = await params;
@@ -36,6 +69,7 @@ export default async function RoundEvaluationsPage({ params, searchParams }: Pag
         backHref={`/owner/rounds/${id}`}
         backLabel="Back to round"
         count={evaluations.length}
+        actions={<DownloadCsvButton csv={rowsToCsv(evaluations, EVALUATION_CSV_COLUMNS)} filenamePrefix={`evaluations-${round.roundCode}`} />}
       />
 
       <div className="flex flex-wrap gap-2">
