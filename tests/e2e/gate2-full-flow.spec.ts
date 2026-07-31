@@ -36,7 +36,7 @@ test.describe("Gate 2 — Full Round-to-Closeout E2E Test (Sprint 1 revision, St
     await page.click("button:has-text('Log Sample')");
 
     await page.goto("/owner/samples");
-    await page.click(`tr:has-text('${sampleCode}') a:has-text('View Triage')`);
+    await page.click(`tr:has-text('${sampleCode}') a:has-text('Review Sample')`);
     await page.fill("#readinessNote", "Scans completed.");
     await page.click("button:has-text('Begin Review')");
     await page.fill("#readinessNote", "Ready to dispatch.");
@@ -145,7 +145,7 @@ test.describe("Gate 2 — Full Round-to-Closeout E2E Test (Sprint 1 revision, St
     await expect(page).toHaveURL(/\/owner/, { timeout: 15000 });
 
     await page.goto("/owner/samples");
-    await page.click(`tr:has-text('${sampleCode}') a:has-text('View Triage')`);
+    await page.click(`tr:has-text('${sampleCode}') a:has-text('Review Sample')`);
     await page.fill("#readinessNote", "Tester finished all sessions; batch returned.");
     await page.click("button:has-text('Mark Returned')");
     await expect(page.locator("text=RETURNED")).toBeVisible();

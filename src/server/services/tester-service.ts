@@ -40,10 +40,24 @@ export async function getTesters() {
     .groupBy(schema.activityLogs.targetId);
   const lastActivityByTester = new Map(recentActivity.map((r) => [r.targetId, r.createdAt]));
 
+  // Invitation counts, so the owner dashboard's "approved but no invitation sent" Needs
+  // Attention card can be answered without a separate query, and so this directory can filter
+  // on the same signal.
+  const invitationCounts = await db
+    .select({
+      testerProfileId: schema.testerInvitations.testerProfileId,
+      count: sql<number>`cast(count(*) as integer)`,
+    })
+    .from(schema.testerInvitations)
+    .where(inArray(schema.testerInvitations.testerProfileId, testerProfileIds))
+    .groupBy(schema.testerInvitations.testerProfileId);
+  const invitationCountByTester = new Map(invitationCounts.map((r) => [r.testerProfileId, r.count]));
+
   return testers.map((t) => ({
     ...t,
     activeAssignmentCount: countsByTester.get(t.id) ?? 0,
     lastActivityAt: lastActivityByTester.get(t.id) ?? null,
+    invitationCount: invitationCountByTester.get(t.id) ?? 0,
   }));
 }
 

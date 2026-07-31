@@ -17,6 +17,7 @@ interface TesterRow {
   playStyle: string | null;
   activeAssignmentCount: number;
   lastActivityAt: Date | string | null;
+  invitationCount?: number;
 }
 
 function relativeTime(date: Date | string | null): string {
@@ -33,13 +34,19 @@ function relativeTime(date: Date | string | null): string {
   return d.toLocaleDateString();
 }
 
-export function TesterDirectoryTable({ testers }: { testers: TesterRow[] }) {
+interface TesterDirectoryTableProps {
+  testers: TesterRow[];
+  initialNeedsInvitation?: boolean;
+}
+
+export function TesterDirectoryTable({ testers, initialNeedsInvitation = false }: TesterDirectoryTableProps) {
   const [search, setSearch] = useState("");
   const [approvalFilter, setApprovalFilter] = useState("all");
   const [accessFilter, setAccessFilter] = useState("all");
   const [skillFilter, setSkillFilter] = useState("all");
   const [frequencyFilter, setFrequencyFilter] = useState("all");
   const [assignmentFilter, setAssignmentFilter] = useState("all");
+  const [needsInvitationFilter, setNeedsInvitationFilter] = useState(initialNeedsInvitation);
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -52,9 +59,11 @@ export function TesterDirectoryTable({ testers }: { testers: TesterRow[] }) {
       const matchesFrequency = frequencyFilter === "all" || t.playingFrequency === frequencyFilter;
       const matchesAssignment =
         assignmentFilter === "all" || (assignmentFilter === "has" ? t.activeAssignmentCount > 0 : t.activeAssignmentCount === 0);
-      return matchesSearch && matchesApproval && matchesAccess && matchesSkill && matchesFrequency && matchesAssignment;
+      const matchesNeedsInvitation =
+        !needsInvitationFilter || (t.approvalStatus === "approved" && (t.invitationCount ?? 0) === 0);
+      return matchesSearch && matchesApproval && matchesAccess && matchesSkill && matchesFrequency && matchesAssignment && matchesNeedsInvitation;
     });
-  }, [testers, search, approvalFilter, accessFilter, skillFilter, frequencyFilter, assignmentFilter]);
+  }, [testers, search, approvalFilter, accessFilter, skillFilter, frequencyFilter, assignmentFilter, needsInvitationFilter]);
 
   return (
     <div className="space-y-4">
@@ -98,6 +107,15 @@ export function TesterDirectoryTable({ testers }: { testers: TesterRow[] }) {
           <option value="has">Has active assignment</option>
           <option value="none">No active assignment</option>
         </select>
+        <label className="flex items-center gap-1.5 h-9 px-2.5 rounded-lg border border-kavri-line bg-background text-xs font-sans cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={needsInvitationFilter}
+            onChange={(e) => setNeedsInvitationFilter(e.target.checked)}
+            className="h-3.5 w-3.5 rounded border-kavri-line"
+          />
+          <span>Needs invitation</span>
+        </label>
       </div>
 
       {filtered.length === 0 ? (

@@ -29,7 +29,7 @@ test.describe("Mobile-First Tester Portal E2E Test", () => {
 
     // Mark ready for testing
     await page.goto("/owner/samples");
-    await page.click(`tr:has-text('${sampleCode}') a:has-text('View Triage')`);
+    await page.click(`tr:has-text('${sampleCode}') a:has-text('Review Sample')`);
     await page.fill("#readinessNote", "Scans completed.");
     await page.click("button:has-text('Begin Review')");
     await page.fill("#readinessNote", "Ready to dispatch.");

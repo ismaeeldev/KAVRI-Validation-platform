@@ -27,7 +27,7 @@ test.describe("Tester Onboarding & Assignments Workflow E2E Test", () => {
 
     // Go to triage detail page and mark ready
     await page.goto("/owner/samples");
-    await page.click(`tr:has-text('${uniqueSampleCode}') a:has-text('View Triage')`);
+    await page.click(`tr:has-text('${uniqueSampleCode}') a:has-text('Review Sample')`);
     await page.fill("#readinessNote", "Surface scans completed, approved for assignments.");
     await page.click("button:has-text('Begin Review')");
     await page.fill("#readinessNote", "Microscope stress test passed, marked ready.");

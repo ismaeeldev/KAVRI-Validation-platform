@@ -51,7 +51,7 @@ export default async function AssignmentsListPage({ searchParams }: PageProps) {
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 select-none">
       <DashboardPageHeader
         title="Testing Assignments"
-        eyebrow="Verification Dispatches"
+        eyebrow="Assignments"
         description="Dispatch active testing cycles, manage instruction briefs, and track tester feedback logs."
         count={filtered.length}
         actions={

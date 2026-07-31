@@ -42,8 +42,8 @@ export default async function SampleDetailPage({ params }: PageProps) {
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 select-none">
       <DashboardPageHeader
         title={`Sample ${sample.sampleCode}`}
-        eyebrow="Physical Prototype Triage"
-        description="Verify incoming batches, record material observations, and triage readiness."
+        eyebrow="Sample Review"
+        description="Verify incoming batches, record material observations, and review readiness."
         backHref="/owner/samples"
         backLabel="Back to samples"
         actions={
@@ -117,10 +117,10 @@ export default async function SampleDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Triage Controls Card */}
+          {/* Sample Review Controls Card (component name unchanged: sample-triage-controls.tsx) */}
           <div className="border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-4">
             <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink border-b border-kavri-line pb-3">
-              Centralized Triage Workflow
+              Sample Review Workflow
             </h3>
             <SampleTriageControls sampleId={id} currentStatus={sample.status} />
           </div>

@@ -37,7 +37,7 @@ test.describe("Physical Sample Identity & Triage E2E Test", () => {
 
     // 3. Status transitions and history
     // Go to triage detail page
-    await page.click(`tr:has-text('${uniqueSampleCode}') a:has-text('View Triage')`);
+    await page.click(`tr:has-text('${uniqueSampleCode}') a:has-text('Review Sample')`);
     await expect(page.locator("h3")).toContainText(`Sample ${uniqueSampleCode}`);
 
     // Initial state is "received"

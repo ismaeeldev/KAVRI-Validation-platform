@@ -32,7 +32,7 @@ export default async function ProductsListPage() {
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 select-none">
       <DashboardPageHeader
         title="Products Catalog"
-        eyebrow="Validation Targets"
+        eyebrow="Products"
         description="Manage internal definitions, public aliases, and product revision timelines."
         count={productsWithRevisions.length}
         actions={

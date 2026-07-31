@@ -9,8 +9,15 @@ import { Box, Plus, ShieldAlert } from "lucide-react";
 
 export const revalidate = 0;
 
-export default async function SamplesListPage() {
-  const samples = await getSamples();
+interface PageProps {
+  searchParams: Promise<{ status?: string }>;
+}
+
+export default async function SamplesListPage({ searchParams }: PageProps) {
+  const { status } = await searchParams;
+  const allSamples = await getSamples();
+  const statuses = status ? status.split(",") : [];
+  const samples = statuses.length > 0 ? allSamples.filter((s) => statuses.includes(s.status)) : allSamples;
   const allIssues = await getAllIssues();
   const criticalOpenSampleIds = new Set(
     allIssues
@@ -21,9 +28,9 @@ export default async function SamplesListPage() {
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 select-none">
       <DashboardPageHeader
-        title="Physical Samples Triage"
-        eyebrow="Triage Station"
-        description="Log physical samples, assign triage statuses, and verify testing readiness."
+        title="Sample Review"
+        eyebrow="Samples"
+        description="Log physical samples, assign review statuses, and verify testing readiness."
         count={samples.length}
         actions={
           <Link
@@ -36,10 +43,23 @@ export default async function SamplesListPage() {
         }
       />
 
+      {status && (
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-mono uppercase tracking-wider px-3 py-1.5 rounded-md border bg-kavri-ink text-white border-kavri-ink">
+            Filtered: {statuses.join(", ").replace(/_/g, " ")}
+          </span>
+          <Link href="/owner/samples" className="text-[10px] font-mono uppercase text-kavri-muted hover:text-kavri-ink hover:underline">
+            Clear filter
+          </Link>
+        </div>
+      )}
+
       {samples.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-12 border border-dashed border-kavri-line rounded-xl bg-kavri-surface text-center space-y-3">
           <Box className="h-8 w-8 text-kavri-muted" />
-          <p className="text-xs font-sans font-semibold text-kavri-muted">No physical samples logged in directory.</p>
+          <p className="text-xs font-sans font-semibold text-kavri-muted">
+            {status ? "No samples match this filter." : "No physical samples logged in directory."}
+          </p>
           <Link
             href="/owner/samples/new"
             className="text-xs font-mono uppercase text-kavri-signal hover:underline"
@@ -97,7 +117,7 @@ export default async function SamplesListPage() {
                         href={`/owner/samples/${sample.id}`}
                         className="text-kavri-ink hover:underline font-semibold"
                       >
-                        View Triage
+                        Review Sample
                       </Link>
                     </td>
                   </tr>

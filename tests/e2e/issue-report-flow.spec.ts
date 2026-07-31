@@ -28,7 +28,7 @@ test.describe("Issue Reports Module E2E Test (Sprint 1 revision, Step 8)", () =>
     await page.click("button:has-text('Log Sample')");
 
     await page.goto("/owner/samples");
-    await page.click(`tr:has-text('${sampleCode}') a:has-text('View Triage')`);
+    await page.click(`tr:has-text('${sampleCode}') a:has-text('Review Sample')`);
     await page.fill("#readinessNote", "Scans completed.");
     await page.click("button:has-text('Begin Review')");
     await page.fill("#readinessNote", "Ready to dispatch.");
@@ -109,7 +109,7 @@ test.describe("Issue Reports Module E2E Test (Sprint 1 revision, Step 8)", () =>
 
     // 5. Owner: confirm the issue appears on the sample detail page and the owner issue list
     await page.goto("/owner/samples");
-    await page.click(`tr:has-text('${sampleCode}') a:has-text('View Triage')`);
+    await page.click(`tr:has-text('${sampleCode}') a:has-text('Review Sample')`);
     await expect(page.locator("text=core crush")).toBeVisible();
     await expect(page.locator("text=HIGH")).toBeVisible();
 

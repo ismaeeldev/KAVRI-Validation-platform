@@ -28,7 +28,7 @@ test.describe("Play Sessions & Evaluations Mobile E2E Test (Sprint 1 revision, S
     await page.click("button:has-text('Log Sample')");
 
     await page.goto("/owner/samples");
-    await page.click(`tr:has-text('${sampleCode}') a:has-text('View Triage')`);
+    await page.click(`tr:has-text('${sampleCode}') a:has-text('Review Sample')`);
     await page.fill("#readinessNote", "Scans completed.");
     await page.click("button:has-text('Begin Review')");
     await page.fill("#readinessNote", "Ready to dispatch.");

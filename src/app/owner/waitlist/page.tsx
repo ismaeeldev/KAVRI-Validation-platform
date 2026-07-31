@@ -14,7 +14,7 @@ export default async function WaitlistPage() {
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 select-none">
       <DashboardPageHeader
         title="Waitlist Subscribers"
-        eyebrow="Market Operations"
+        eyebrow="Waitlist"
         description="Monitor landing page registrations and consent logs. No marketing campaigns are active in Sprint 1."
         count={subscribers.length}
       />

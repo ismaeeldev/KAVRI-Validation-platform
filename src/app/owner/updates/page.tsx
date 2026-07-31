@@ -13,7 +13,7 @@ export default async function PublicUpdatesListPage() {
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 select-none">
       <DashboardPageHeader
         title="Public Development Log Updates"
-        eyebrow="Newsroom & Feedback"
+        eyebrow="Public Updates"
         description="Manage public updates published on the landing page build log feed."
         count={updates.length}
         actions={

@@ -33,7 +33,7 @@ export default async function OwnerActivityLogPage() {
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-6 select-none">
       <DashboardPageHeader
-        title="Telemetry Timeline"
+        title="Recent Activity"
         eyebrow="Audit Trail"
         description="Comprehensive chronological log of status updates, prototype triage transitions, and assignment states."
         backHref="/owner"
@@ -70,12 +70,9 @@ export default async function OwnerActivityLogPage() {
                       <span className="font-bold text-kavri-ink block">
                         {formatAction(log.action)}
                       </span>
-                      <div className="flex items-center gap-2 font-mono text-[10px] text-kavri-muted">
-                        <span>Target: {log.targetType}</span>
-                        <span className="bg-kavri-surface-subtle px-1.5 py-0.5 border border-kavri-line rounded-sm">
-                          {log.targetId}
-                        </span>
-                      </div>
+                      <span className="font-mono text-[10px] text-kavri-muted capitalize">
+                        {log.targetType.replace(/_/g, " ")}
+                      </span>
                     </div>
                     <time className="font-mono text-[10px] text-kavri-muted whitespace-nowrap">
                       {new Date(log.createdAt).toLocaleString("en-US", {
@@ -88,17 +85,27 @@ export default async function OwnerActivityLogPage() {
                     </time>
                   </div>
 
-                  {log.metadataJson && (
-                    <details className="mt-2 group">
-                      <summary className="font-mono text-[9px] uppercase tracking-wider text-kavri-muted hover:text-kavri-ink cursor-pointer list-none flex items-center gap-1 select-none">
-                        <span className="group-open:rotate-90 transition-transform duration-100">&gt;</span>
-                        <span>View JSON Payload</span>
-                      </summary>
-                      <pre className="font-mono text-[10px] text-kavri-muted bg-[#1e201f] text-[#a5b4fc] p-3 rounded-lg border border-neutral-800 mt-1 overflow-x-auto max-w-full">
-                        {JSON.stringify(JSON.parse(log.metadataJson), null, 2)}
-                      </pre>
-                    </details>
-                  )}
+                  {/* Raw UUIDs and JSON payload are developer-only detail, kept out of the
+                      default owner view behind one disclosure toggle. */}
+                  <details className="mt-2 group">
+                    <summary className="font-mono text-[9px] uppercase tracking-wider text-kavri-muted hover:text-kavri-ink cursor-pointer list-none flex items-center gap-1 select-none">
+                      <span className="group-open:rotate-90 transition-transform duration-100">&gt;</span>
+                      <span>Developer details</span>
+                    </summary>
+                    <div className="mt-1.5 space-y-1.5">
+                      <div className="font-mono text-[10px] text-kavri-muted">
+                        Target ID:{" "}
+                        <span className="bg-kavri-surface-subtle px-1.5 py-0.5 border border-kavri-line rounded-sm">
+                          {log.targetId}
+                        </span>
+                      </div>
+                      {log.metadataJson && (
+                        <pre className="font-mono text-[10px] text-kavri-muted bg-[#1e201f] text-[#a5b4fc] p-3 rounded-lg border border-neutral-800 overflow-x-auto max-w-full">
+                          {JSON.stringify(JSON.parse(log.metadataJson), null, 2)}
+                        </pre>
+                      )}
+                    </div>
+                  </details>
                 </div>
               ))}
             </div>

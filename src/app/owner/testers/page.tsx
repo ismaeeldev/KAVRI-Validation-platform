@@ -7,7 +7,12 @@ import { Users } from "lucide-react";
 
 export const revalidate = 0;
 
-export default async function TestersListPage() {
+interface PageProps {
+  searchParams: Promise<{ filter?: string }>;
+}
+
+export default async function TestersListPage({ searchParams }: PageProps) {
+  const { filter } = await searchParams;
   const testers = await getTesters();
 
   return (
@@ -26,7 +31,7 @@ export default async function TestersListPage() {
           <p className="text-xs font-sans font-semibold text-kavri-muted">No tester profiles logged.</p>
         </div>
       ) : (
-        <TesterDirectoryTable testers={testers} />
+        <TesterDirectoryTable testers={testers} initialNeedsInvitation={filter === "needs_invitation"} />
       )}
     </div>
   );
