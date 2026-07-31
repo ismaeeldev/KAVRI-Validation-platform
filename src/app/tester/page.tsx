@@ -38,7 +38,7 @@ export default async function TesterDashboardPage() {
             <Card
               key={asg.id}
               className={`border-kavri-line bg-kavri-surface dark:bg-card hover:border-kavri-line-strong transition-colors ${
-                asg.status === "active" ? "ring-1 ring-kavri-signal/30" : ""
+                asg.progress.label === "active" || asg.progress.label === "first_impression_due" ? "ring-1 ring-kavri-signal/30" : ""
               }`}
             >
               <CardHeader className="pb-2">
@@ -51,13 +51,20 @@ export default async function TesterDashboardPage() {
                       {asg.product.publicAlias}
                     </CardTitle>
                   </div>
-                  <StatusBadge status={asg.status as "draft" | "active" | "acknowledged" | "revoked" | "expired"} />
+                  <StatusBadge status={asg.progress.label} />
                 </div>
               </CardHeader>
               <CardContent className="font-mono text-xs space-y-3">
-                <div className="flex justify-between text-[10px] text-kavri-muted border-b border-kavri-line/40 pb-2">
+                <div className="flex justify-between items-center text-[10px] text-kavri-muted border-b border-kavri-line/40 pb-2">
                   <span>Revision: {asg.revision.revisionCode}</span>
-                  <span>Due: {new Date(asg.dueAt).toLocaleDateString()}</span>
+                  <span className="flex items-center gap-1.5">
+                    Due: {new Date(asg.dueAt).toLocaleDateString()}
+                    {asg.progress.overdue && (
+                      <span className="text-[9px] font-bold uppercase text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-sm">
+                        Overdue
+                      </span>
+                    )}
+                  </span>
                 </div>
                 <p className="text-kavri-ink dark:text-foreground line-clamp-2 leading-relaxed">
                   {asg.instructions}
@@ -65,7 +72,7 @@ export default async function TesterDashboardPage() {
                 <div className="pt-2">
                   <Link
                     href={`/tester/assignments/${asg.id}`}
-                    className="block w-full text-center bg-kavri-ink text-kavri-paper dark:bg-foreground dark:text-background py-2 text-xs font-mono uppercase tracking-wider rounded-sm hover:opacity-95 transition-opacity"
+                    className="block w-full text-center bg-kavri-ink text-kavri-paper dark:bg-foreground dark:text-background py-2 text-xs font-mono uppercase tracking-wider rounded-sm hover:opacity-95 transition-opacity min-h-[44px] flex items-center justify-center"
                   >
                     View Brief &rarr;
                   </Link>

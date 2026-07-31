@@ -44,7 +44,7 @@ export default async function OwnerDashboardPage() {
     .from(schema.testingAssignments)
     .where(
       or(
-        eq(schema.testingAssignments.status, "active"),
+        eq(schema.testingAssignments.status, "invited"),
         eq(schema.testingAssignments.status, "acknowledged")
       )
     );

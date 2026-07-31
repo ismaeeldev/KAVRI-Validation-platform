@@ -258,13 +258,21 @@ describe("Physical Sample Identity & Triage Unit Tests", () => {
         spy.mockRestore();
       }
 
+      // Step 10 wires getCurrentHolder to resolve the tester's display name via the sample's
+      // active assignment once status is 'assigned' - mock that lookup too, or the call falls
+      // through to a real network query and the test hangs until the vitest timeout.
       const assignedSpy = vi.spyOn(db.query.physicalSamples, "findFirst").mockResolvedValue({
         id: "samp_holder",
         status: "assigned",
         sampleCode: "S-HOLDER-01",
       } as unknown as Awaited<ReturnType<typeof db.query.physicalSamples.findFirst>>);
+      const assignmentSpy = vi.spyOn(db.query.testingAssignments, "findFirst").mockResolvedValue({
+        id: "asg_holder",
+        testerProfile: { displayName: "Jane Tester" },
+      } as unknown as Awaited<ReturnType<typeof db.query.testingAssignments.findFirst>>);
       expect(await getCurrentHolder("samp_holder")).not.toBe("KAVRI");
       assignedSpy.mockRestore();
+      assignmentSpy.mockRestore();
     });
 
     it("rejects photo attachment authorization for a tester with no assignment on the sample, allows the owner unconditionally", async () => {

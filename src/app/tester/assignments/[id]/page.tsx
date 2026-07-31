@@ -68,7 +68,12 @@ export default async function TesterAssignmentDetailPage({ params }: PageProps) 
           <span className="text-[10px] font-mono uppercase bg-kavri-surface-subtle border border-kavri-line px-2 py-0.5 rounded-sm font-bold">
             Sample: {assignment.sample.sampleCode}
           </span>
-          <StatusBadge status={assignment.status as "draft" | "active" | "acknowledged" | "revoked" | "expired"} />
+          <StatusBadge status={assignment.progress.label} />
+          {assignment.progress.overdue && (
+            <span className="text-[9px] font-bold uppercase text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-sm ml-1.5">
+              Overdue
+            </span>
+          )}
         </div>
         <PageHeader
           title={assignment.product.publicAlias}

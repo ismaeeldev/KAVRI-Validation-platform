@@ -183,6 +183,7 @@ describe("Tester Management & Assignment Constraints Unit Tests", () => {
       await expect(
         createAssignment(
           {
+            roundId: "round_1",
             testerProfileId: "tester_pending",
             sampleId: "sample_1",
             instructions: "Perform wear test.",
@@ -212,6 +213,7 @@ describe("Tester Management & Assignment Constraints Unit Tests", () => {
       await expect(
         createAssignment(
           {
+            roundId: "round_1",
             testerProfileId: "tester_approved",
             sampleId: "sample_not_ready",
             instructions: "Perform wear test.",

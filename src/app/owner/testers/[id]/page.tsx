@@ -186,7 +186,7 @@ export default async function TesterDetailPage({ params }: PageProps) {
                         Due: {new Date(asg.dueAt).toLocaleDateString()} | Sessions: {asg.requiredSessionCount}
                       </p>
                     </div>
-                    <StatusBadge status={asg.status as "draft" | "active" | "acknowledged" | "revoked" | "expired"} />
+                    <StatusBadge status={asg.status} />
                   </div>
                 ))}
               </div>

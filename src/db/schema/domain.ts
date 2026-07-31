@@ -300,8 +300,9 @@ export const testRoundRevisions = pgTable("test_round_revisions", {
 
 export const testingAssignments = pgTable("testing_assignments", {
   id: text("id").primaryKey().$defaultFn(uuidDefault),
-  // Nullable for backward compatibility with assignments created before Step 6; Step 10 makes
-  // this required in the create-assignment UI going forward.
+  // Nullable at the column level (any pre-Step-10 assignment may have no round), but required by
+  // the Step 10 createAssignment service function and the create-assignment form for every new
+  // assignment going forward.
   roundId: text("round_id").references(() => testRounds.id),
   testerProfileId: text("tester_profile_id").notNull().references(() => testerProfiles.id),
   testerUserId: text("tester_user_id").references(() => user.id),
@@ -311,13 +312,17 @@ export const testingAssignments = pgTable("testing_assignments", {
   instructions: text("instructions").notNull(),
   dueAt: timestamp("due_at", { withTimezone: true }).notNull(),
   requiredSessionCount: integer("required_session_count").notNull(),
-  status: text("status").notNull(), // 'draft' | 'active' | 'acknowledged' | 'revoked' | 'expired'
+  // 'draft' | 'invited' | 'acknowledged' | 'revoked' | 'expired' - stored lifecycle only.
+  // Renamed from 'active' to 'invited' in Step 10 to resolve a naming collision with the
+  // computed (never stored) progress label 'Active' meaning "testing underway."
+  status: text("status").notNull(),
   activatedAt: timestamp("activated_at", { withTimezone: true }),
   activatedBy: text("activated_by").references(() => user.id),
   acknowledgedAt: timestamp("acknowledged_at", { withTimezone: true }),
   revokedAt: timestamp("revoked_at", { withTimezone: true }),
   revokedBy: text("revoked_by").references(() => user.id),
   revocationReason: text("revocation_reason"),
+  lastReminderAt: timestamp("last_reminder_at", { withTimezone: true }),
   createdBy: text("created_by").notNull().references(() => user.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

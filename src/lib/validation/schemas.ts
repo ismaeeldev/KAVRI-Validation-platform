@@ -268,11 +268,13 @@ export const acceptInvitationSchema = zod.object({
 });
 
 export const createAssignmentSchema = zod.object({
+  roundId: zod.string().min(1, "Test round is required"),
   testerProfileId: zod.string().min(1, "Tester profile is required"),
   sampleId: zod.string().min(1, "Physical sample is required"),
   instructions: zod.string().trim().min(1, "Instructions are required"),
   dueAt: zod.string().min(1, "Due date is required"),
   requiredSessionCount: zod.number().int().min(1, "Required session count must be at least 1"),
+  forceAssign: zod.boolean().optional().default(false),
 });
 
 export const revokeAssignmentSchema = zod.object({

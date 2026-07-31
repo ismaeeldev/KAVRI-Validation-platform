@@ -18,9 +18,28 @@ export function StatusBadge({ status, className = "" }: StatusBadgeProps) {
       labelText = "DRAFT";
       break;
     case "active":
-    case ASSIGNMENT_STATUS.ACTIVE:
+      // Shared by test-round status (stored) and the computed assignment progress label
+      // (never stored) - both legitimately use the word "Active" for different concepts, which
+      // is exactly why the assignment lifecycle value was renamed to 'invited' in Step 10.
       badgeStyles = "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900";
       labelText = "ACTIVE";
+      break;
+    case "invited":
+    case ASSIGNMENT_STATUS.INVITED:
+      badgeStyles = "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900";
+      labelText = "INVITED";
+      break;
+    case "first_impression_due":
+      badgeStyles = "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900";
+      labelText = "FIRST IMPRESSION DUE";
+      break;
+    case "follow_up_due":
+      badgeStyles = "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900";
+      labelText = "FOLLOW-UP DUE";
+      break;
+    case "complete":
+      badgeStyles = "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900";
+      labelText = "COMPLETE";
       break;
     case "acknowledged":
     case ASSIGNMENT_STATUS.ACKNOWLEDGED:

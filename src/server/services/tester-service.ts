@@ -13,7 +13,7 @@ export async function getTesters() {
   if (testers.length === 0) return [];
   const testerProfileIds = testers.map((t) => t.id);
 
-  // Active assignment counts (draft/active/acknowledged = not yet concluded).
+  // Active assignment counts (draft/invited/acknowledged = not yet concluded).
   const assignmentCounts = await db
     .select({
       testerProfileId: schema.testingAssignments.testerProfileId,
@@ -23,7 +23,7 @@ export async function getTesters() {
     .where(
       and(
         inArray(schema.testingAssignments.testerProfileId, testerProfileIds),
-        inArray(schema.testingAssignments.status, ["draft", "active", "acknowledged"])
+        inArray(schema.testingAssignments.status, ["draft", "invited", "acknowledged"])
       )
     )
     .groupBy(schema.testingAssignments.testerProfileId);

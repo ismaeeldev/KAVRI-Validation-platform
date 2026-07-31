@@ -128,15 +128,30 @@ export const PHOTO_ENTITY_TYPE = {
 
 export type PhotoEntityType = typeof PHOTO_ENTITY_TYPE[keyof typeof PHOTO_ENTITY_TYPE];
 
+// Stored lifecycle only. Renamed ACTIVE -> INVITED in Step 10 (sprint1_rev.md) to resolve a
+// naming collision with the computed (never stored) progress label 'Active' meaning "testing
+// underway" - see ASSIGNMENT_COMPUTED_STATUS below.
 export const ASSIGNMENT_STATUS = {
   DRAFT: "draft",
-  ACTIVE: "active",
+  INVITED: "invited",
   ACKNOWLEDGED: "acknowledged",
   REVOKED: "revoked",
   EXPIRED: "expired",
 } as const;
 
 export type AssignmentStatus = typeof ASSIGNMENT_STATUS[keyof typeof ASSIGNMENT_STATUS];
+
+// Computed display-only progress status, layered on top of the stored 'acknowledged' state.
+// Never persisted as a column value - safe to reuse the word 'active' here since it can never
+// collide with the renamed stored 'invited' state above.
+export const ASSIGNMENT_COMPUTED_STATUS = {
+  FIRST_IMPRESSION_DUE: "first_impression_due",
+  ACTIVE: "active",
+  FOLLOW_UP_DUE: "follow_up_due",
+  COMPLETE: "complete",
+} as const;
+
+export type AssignmentComputedStatus = typeof ASSIGNMENT_COMPUTED_STATUS[keyof typeof ASSIGNMENT_COMPUTED_STATUS];
 
 export const PUBLIC_UPDATE_STATE = {
   DRAFT: "draft",

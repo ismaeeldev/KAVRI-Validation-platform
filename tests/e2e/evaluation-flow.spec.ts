@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import * as dotenv from "dotenv";
+import { createRecruitingRound } from "./helpers/round-helper";
 
 dotenv.config({ path: ".env.local" });
 
@@ -56,14 +57,17 @@ test.describe("Play Sessions & Evaluations Mobile E2E Test (Sprint 1 revision, S
     await page.fill("#confirmPassword", testerPassword);
     await page.click("button:has-text('Activate Account')");
 
-    // 3. Owner: create + activate assignment with requiredSessionCount=1
+    // 3. Owner: create round, create + invite assignment with requiredSessionCount=1
     await page.goto("/login");
     await page.fill("#email", ownerEmail);
     await page.fill("#password", ownerPassword);
     await page.click("button:has-text('Log In')");
     await expect(page).toHaveURL(/\/owner/, { timeout: 15000 });
 
+    const round = await createRecruitingRound(page, "E2EEval");
+
     await page.goto("/owner/assignments/new");
+    await page.selectOption("#roundId", { label: round.optionLabel });
     await page.selectOption("#testerProfileId", { label: testerName });
     await page.selectOption("#sampleSelect", { label: sampleCode });
     await page.fill("#instructions", "Log a session and complete both evaluations.");
@@ -72,8 +76,8 @@ test.describe("Play Sessions & Evaluations Mobile E2E Test (Sprint 1 revision, S
 
     await page.goto("/owner/assignments");
     await page.click(`tr:has-text('${sampleCode}') a:has-text('View brief')`);
-    await page.click("button:has-text('Activate Assignment')");
-    await expect(page.locator("text=active")).toBeVisible();
+    await page.click("button:has-text('Invite Tester')");
+    await expect(page.locator("text=INVITED")).toBeVisible();
     const assignmentUrl = page.url();
 
     // 4. Tester: log in, open assignment
@@ -115,10 +119,15 @@ test.describe("Play Sessions & Evaluations Mobile E2E Test (Sprint 1 revision, S
     await page.click("button:has-text('Submit Follow-Up')");
     await expect(page.locator("body")).toContainText("Follow-Up evaluation submitted");
 
-    // 8. Owner: confirm both evaluations appear on the round evaluations page (if a round exists)
-    // Assignments created outside a round have no roundId in Sprint 1 (Step 10 wires this up),
-    // so this assertion is scoped to what Step 7 guarantees: the assignment detail reflects
-    // both submissions.
+    // 8. Owner: confirm both evaluations appear on the round evaluations page. The assignment
+    // is linked to a round (Step 10), so the evaluations' denormalized roundId is set and both
+    // submissions should be listed there.
+    await page.goto("/owner/rounds");
+    await page.click(`tr:has-text('${round.roundName}') a:has-text('Manage')`);
+    await page.click("a:has-text('View Evaluations')");
+    await expect(page.locator("tbody")).toContainText("first impression");
+    await expect(page.locator("tbody")).toContainText("follow up");
+
     await page.goto(assignmentUrl);
   });
 });

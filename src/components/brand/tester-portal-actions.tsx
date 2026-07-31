@@ -29,7 +29,7 @@ export function TesterPortalActions({ assignmentId, status }: TesterPortalAction
     }
   };
 
-  if (status !== "active") {
+  if (status !== "invited") {
     return null;
   }
 

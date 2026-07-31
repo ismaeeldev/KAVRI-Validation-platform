@@ -1,5 +1,5 @@
 import "server-only";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
@@ -199,15 +199,24 @@ export async function requireSampleReady(sampleId: string) {
 }
 
 // Audit's "Current Holder - Tester or KAVRI - Derived from assignments/returns" field.
-// Until Step 10 wires assignment-to-sample linkage, a sample in 'assigned' status has no way
-// to resolve which tester holds it, so this returns a placeholder rather than guessing; every
-// other status unambiguously means the sample physically sits with KAVRI.
+// Wired in Step 10: while a sample is 'assigned', the holder is the tester on its active
+// (invited/acknowledged) assignment; every other status unambiguously means the sample
+// physically sits with KAVRI.
 export async function getCurrentHolder(sampleId: string): Promise<string> {
   const sample = await getSampleById(sampleId);
-  if (sample.status === "assigned") {
-    return "Assigned (holder TBD)";
+  if (sample.status !== "assigned") {
+    return "KAVRI";
   }
-  return "KAVRI";
+
+  const assignment = await db.query.testingAssignments.findFirst({
+    where: and(
+      eq(schema.testingAssignments.sampleId, sampleId),
+      inArray(schema.testingAssignments.status, ["invited", "acknowledged"])
+    ),
+    with: { testerProfile: true },
+  });
+
+  return assignment ? assignment.testerProfile.displayName : "Assigned (holder TBD)";
 }
 
 interface SampleMeasurementsInput {

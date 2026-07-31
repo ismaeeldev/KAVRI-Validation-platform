@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import * as dotenv from "dotenv";
+import { createRecruitingRound } from "./helpers/round-helper";
 
 dotenv.config({ path: ".env.local" });
 
@@ -56,14 +57,17 @@ test.describe("Issue Reports Module E2E Test (Sprint 1 revision, Step 8)", () =>
     await page.fill("#confirmPassword", testerPassword);
     await page.click("button:has-text('Activate Account')");
 
-    // 3. Owner: create + activate assignment
+    // 3. Owner: create round, create + invite assignment
     await page.goto("/login");
     await page.fill("#email", ownerEmail);
     await page.fill("#password", ownerPassword);
     await page.click("button:has-text('Log In')");
     await expect(page).toHaveURL(/\/owner/, { timeout: 15000 });
 
+    const round = await createRecruitingRound(page, "E2EIssue");
+
     await page.goto("/owner/assignments/new");
+    await page.selectOption("#roundId", { label: round.optionLabel });
     await page.selectOption("#testerProfileId", { label: testerName });
     await page.selectOption("#sampleSelect", { label: sampleCode });
     await page.fill("#instructions", "Report any defects observed.");
@@ -71,8 +75,8 @@ test.describe("Issue Reports Module E2E Test (Sprint 1 revision, Step 8)", () =>
 
     await page.goto("/owner/assignments");
     await page.click(`tr:has-text('${sampleCode}') a:has-text('View brief')`);
-    await page.click("button:has-text('Activate Assignment')");
-    await expect(page.locator("text=active")).toBeVisible();
+    await page.click("button:has-text('Invite Tester')");
+    await expect(page.locator("text=INVITED")).toBeVisible();
 
     // 4. Tester: log in, acknowledge, use the standalone "Report an Issue" entry point
     await page.goto("/login");

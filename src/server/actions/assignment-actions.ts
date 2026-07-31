@@ -1,7 +1,14 @@
 "use server";
 
 import { requireOwner } from "@/lib/permissions";
-import { createAssignment, activateAssignment, revokeAssignment } from "../services/assignment-service";
+import {
+  createAssignment,
+  activateAssignment,
+  revokeAssignment,
+  expireAssignment,
+  logAssignmentReminder,
+  checkAssignmentConflicts,
+} from "../services/assignment-service";
 import { createAssignmentSchema, revokeAssignmentSchema } from "@/lib/validation/schemas";
 import { revalidatePath } from "next/cache";
 
@@ -13,11 +20,20 @@ export async function createAssignmentAction(formData: unknown) {
   return result;
 }
 
+export async function checkAssignmentConflictsAction(testerProfileId: string, sampleId: string, roundId: string) {
+  await requireOwner();
+  if (!testerProfileId || !sampleId || !roundId) {
+    return [];
+  }
+  return await checkAssignmentConflicts(testerProfileId, sampleId, roundId);
+}
+
 export async function activateAssignmentAction(id: string) {
   const { session } = await requireOwner();
   const result = await activateAssignment(id, session.user.id);
   revalidatePath(`/owner/assignments/${id}`);
   revalidatePath("/owner/assignments");
+  revalidatePath(`/owner/samples/${result.sampleId}`);
   return result;
 }
 
@@ -27,5 +43,20 @@ export async function revokeAssignmentAction(id: string, reason: string) {
   const result = await revokeAssignment(id, parsed.reason, session.user.id);
   revalidatePath(`/owner/assignments/${id}`);
   revalidatePath("/owner/assignments");
+  return result;
+}
+
+export async function expireAssignmentAction(id: string) {
+  const { session } = await requireOwner();
+  const result = await expireAssignment(id, session.user.id);
+  revalidatePath(`/owner/assignments/${id}`);
+  revalidatePath("/owner/assignments");
+  return result;
+}
+
+export async function logAssignmentReminderAction(id: string) {
+  const { session } = await requireOwner();
+  const result = await logAssignmentReminder(id, session.user.id);
+  revalidatePath(`/owner/assignments/${id}`);
   return result;
 }

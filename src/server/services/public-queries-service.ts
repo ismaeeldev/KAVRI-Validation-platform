@@ -102,13 +102,13 @@ export async function getPublicMetrics(): Promise<PublicMetricsDTO> {
     .from(schema.testerProfiles)
     .where(eq(schema.testerProfiles.approvalStatus, "approved"));
 
-  // 4. Assignments active (active + acknowledged status count)
+  // 4. Assignments active (invited + acknowledged status count)
   const [assignmentsRow] = await db
     .select({ count: count() })
     .from(schema.testingAssignments)
     .where(
       or(
-        eq(schema.testingAssignments.status, "active"),
+        eq(schema.testingAssignments.status, "invited"),
         eq(schema.testingAssignments.status, "acknowledged")
       )
     );

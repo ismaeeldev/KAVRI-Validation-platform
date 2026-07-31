@@ -2,19 +2,25 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { activateAssignmentAction, revokeAssignmentAction } from "@/server/actions/assignment-actions";
+import {
+  activateAssignmentAction,
+  revokeAssignmentAction,
+  expireAssignmentAction,
+  logAssignmentReminderAction,
+} from "@/server/actions/assignment-actions";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ShieldAlert, Play, Ban } from "lucide-react";
+import { ShieldAlert, Play, Ban, Clock, BellRing } from "lucide-react";
 
 interface AssignmentActionsProps {
   assignmentId: string;
   currentStatus: string;
+  lastReminderAt: string | Date | null;
 }
 
-export function AssignmentActions({ assignmentId, currentStatus }: AssignmentActionsProps) {
+export function AssignmentActions({ assignmentId, currentStatus, lastReminderAt }: AssignmentActionsProps) {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [revocationReason, setRevocationReason] = useState("");
@@ -24,11 +30,11 @@ export function AssignmentActions({ assignmentId, currentStatus }: AssignmentAct
     setIsPending(true);
     try {
       await activateAssignmentAction(assignmentId);
-      toast.success("Validation assignment activated successfully.");
+      toast.success("Validation assignment invited successfully.");
       router.refresh();
     } catch (error: unknown) {
       const err = error as Error;
-      toast.error(err.message || "Failed to activate assignment. Verify tester onboard status and sample readiness.");
+      toast.error(err.message || "Failed to invite assignment. Verify tester onboard status and sample readiness.");
     } finally {
       setIsPending(false);
     }
@@ -54,33 +60,49 @@ export function AssignmentActions({ assignmentId, currentStatus }: AssignmentAct
     }
   };
 
-  if (currentStatus === "draft") {
-    return (
-      <div className="flex gap-2">
-        <Button
-          onClick={handleActivate}
-          disabled={isPending}
-          className="bg-kavri-signal text-kavri-ink font-sans font-bold hover:bg-[#c4dd40] text-xs h-10 px-4 rounded-lg focus-visible:outline-2 focus-visible:outline-kavri-signal transition-all flex items-center gap-1.5"
-        >
-          <Play className="h-3.5 w-3.5" />
-          <span>Activate Assignment</span>
-        </Button>
-      </div>
-    );
-  }
+  const handleExpire = async () => {
+    setIsPending(true);
+    try {
+      await expireAssignmentAction(assignmentId);
+      toast.success("Assignment marked expired.");
+      router.refresh();
+    } catch (error: unknown) {
+      const err = error as Error;
+      toast.error(err.message || "Failed to mark assignment expired.");
+    } finally {
+      setIsPending(false);
+    }
+  };
 
-  if ((currentStatus === "active" || currentStatus === "acknowledged") && !confirmRevoke) {
-    return (
-      <Button
-        onClick={() => setConfirmRevoke(true)}
-        disabled={isPending}
-        className="bg-[#f9e9e7] hover:bg-[#f2d7d4] text-[#b33a32] border border-[#f5d6d4] font-sans font-semibold text-xs h-10 px-4 rounded-lg focus-visible:outline-2 focus-visible:outline-[#b33a32] transition-all flex items-center gap-1.5"
-      >
-        <Ban className="h-3.5 w-3.5" />
-        <span>Revoke Assignment</span>
-      </Button>
-    );
-  }
+  const handleLogReminder = async () => {
+    setIsPending(true);
+    try {
+      await logAssignmentReminderAction(assignmentId);
+      toast.success("Reminder logged.");
+      router.refresh();
+    } catch (error: unknown) {
+      const err = error as Error;
+      toast.error(err.message || "Failed to log reminder.");
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  const canExpire = currentStatus === "draft" || currentStatus === "invited";
+  const canRemind = currentStatus === "invited" || currentStatus === "acknowledged";
+
+  const reminderButton = canRemind && (
+    <Button
+      onClick={handleLogReminder}
+      disabled={isPending}
+      variant="outline"
+      title="Logs an in-app reminder record - does not send an email (email reminders are a future phase)."
+      className="font-sans font-semibold text-xs h-10 px-4 rounded-lg flex items-center gap-1.5"
+    >
+      <BellRing className="h-3.5 w-3.5" />
+      <span>Log Reminder{lastReminderAt ? ` (last: ${new Date(lastReminderAt).toLocaleDateString()})` : ""}</span>
+    </Button>
+  );
 
   if (confirmRevoke) {
     return (
@@ -118,6 +140,59 @@ export function AssignmentActions({ assignmentId, currentStatus }: AssignmentAct
             Cancel
           </Button>
         </div>
+      </div>
+    );
+  }
+
+  if (currentStatus === "draft") {
+    return (
+      <div className="flex flex-wrap gap-2">
+        <Button
+          onClick={handleActivate}
+          disabled={isPending}
+          className="bg-kavri-signal text-kavri-ink font-sans font-bold hover:bg-[#c4dd40] text-xs h-10 px-4 rounded-lg focus-visible:outline-2 focus-visible:outline-kavri-signal transition-all flex items-center gap-1.5"
+        >
+          <Play className="h-3.5 w-3.5" />
+          <span>Invite Tester</span>
+        </Button>
+        {canExpire && (
+          <Button
+            onClick={handleExpire}
+            disabled={isPending}
+            variant="outline"
+            className="font-sans font-semibold text-xs h-10 px-4 rounded-lg flex items-center gap-1.5"
+          >
+            <Clock className="h-3.5 w-3.5" />
+            <span>Mark Expired</span>
+          </Button>
+        )}
+      </div>
+    );
+  }
+
+  if (currentStatus === "invited" || currentStatus === "acknowledged") {
+    return (
+      <div className="flex flex-wrap gap-2">
+        {reminderButton}
+        {canExpire && (
+          <Button
+            onClick={handleExpire}
+            disabled={isPending}
+            variant="outline"
+            className="font-sans font-semibold text-xs h-10 px-4 rounded-lg flex items-center gap-1.5"
+          >
+            <Clock className="h-3.5 w-3.5" />
+            <span>Mark Expired</span>
+          </Button>
+        )}
+        <Button
+          onClick={() => setConfirmRevoke(true)}
+          disabled={isPending}
+          className="bg-[#f9e9e7] hover:bg-[#f2d7d4] text-[#b33a32] border border-[#f5d6d4] font-sans font-semibold text-xs h-10 px-4 rounded-lg focus-visible:outline-2 focus-visible:outline-[#b33a32] transition-all flex items-center gap-1.5"
+        >
+          <Ban className="h-3.5 w-3.5" />
+          <span>Revoke Assignment</span>
+        </Button>
       </div>
     );
   }

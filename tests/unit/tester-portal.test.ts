@@ -99,7 +99,7 @@ describe("Tester Portal Access & IDOR Controls Unit Tests", () => {
       assignmentSpy.mockRestore();
     });
 
-    it("succeeds for active assignments and is idempotent on repeat calls", async () => {
+    it("succeeds for invited assignments and is idempotent on repeat calls", async () => {
       // Mock active tester profile
       const testerSpy = vi.spyOn(db.query.testerProfiles, "findFirst").mockResolvedValue({
         id: "tester_profile_A",
@@ -107,11 +107,11 @@ describe("Tester Portal Access & IDOR Controls Unit Tests", () => {
         approvalStatus: "approved",
       } as unknown as Awaited<ReturnType<typeof db.query.testerProfiles.findFirst>>);
 
-      // Mock assignment in 'active' state
+      // Mock assignment in 'invited' state (renamed from 'active' in Step 10)
       const assignmentSpy = vi.spyOn(db.query.testingAssignments, "findFirst").mockResolvedValue({
         id: "asg_active",
         testerProfileId: "tester_profile_A",
-        status: "active",
+        status: "invited",
         dueAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       } as unknown as Awaited<ReturnType<typeof db.query.testingAssignments.findFirst>>);
 
