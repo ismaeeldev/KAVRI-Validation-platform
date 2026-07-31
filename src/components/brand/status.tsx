@@ -92,6 +92,14 @@ export function StatusBadge({ status, className = "" }: StatusBadgeProps) {
       badgeStyles = "bg-gray-500/10 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-900";
       labelText = "CLOSED";
       break;
+    case "submitted":
+      badgeStyles = "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900";
+      labelText = "SUBMITTED";
+      break;
+    case "updated":
+      badgeStyles = "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-900";
+      labelText = "UPDATED (CORRECTED)";
+      break;
   }
 
   return (

@@ -104,9 +104,14 @@ export default async function RoundDetailPage({ params }: PageProps) {
           </div>
 
           <div className="border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-4">
-            <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink border-b border-kavri-line pb-3 flex items-center gap-1.5">
-              <Users className="h-4 w-4 text-kavri-muted" />
-              <span>Linked Assignments</span>
+            <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink border-b border-kavri-line pb-3 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Users className="h-4 w-4 text-kavri-muted" />
+                <span>Linked Assignments</span>
+              </span>
+              <Link href={`/owner/rounds/${round.id}/evaluations`} className="text-kavri-signal hover:underline text-[10px] normal-case font-semibold">
+                View Evaluations &rarr;
+              </Link>
             </h3>
             {round.assignments.length === 0 ? (
               <p className="text-xs text-kavri-muted font-sans py-2">

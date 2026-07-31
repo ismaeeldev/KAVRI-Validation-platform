@@ -18,6 +18,11 @@ import {
   PREFERENCE_FEEL,
   DOMINANT_HAND,
   ROUND_STATUS,
+  EVALUATION_TYPE,
+  COMPARISON_REFERENCE,
+  EVALUATION_PREFERENCE,
+  EVALUATION_CONFIDENCE,
+  EVALUATION_SCORE_FIELDS,
 } from "../constants";
 
 // react-hook-form's `valueAsNumber` turns an empty optional number input into NaN, not
@@ -303,5 +308,40 @@ export const updateRoundSchema = createRoundSchema.omit({ roundCode: true, revis
 
 export const transitionRoundStatusSchema = zod.object({
   status: zod.enum(Object.values(ROUND_STATUS) as [string, ...string[]]),
+});
+
+// Score fields are rendered as native <select> elements, so incoming values arrive as strings
+// (unlike text/number inputs elsewhere that use RHF's valueAsNumber) - coerce here rather than
+// relying on the client to convert.
+const optionalScore = () =>
+  zod.preprocess((val) => {
+    if (val === "" || val === undefined || val === null) return undefined;
+    const n = typeof val === "string" ? Number(val) : val;
+    return typeof n === "number" && Number.isNaN(n) ? undefined : n;
+  }, zod.number().int().min(1).max(5).optional());
+
+const evaluationScoreFields = Object.fromEntries(
+  EVALUATION_SCORE_FIELDS.map(({ key }) => [key, optionalScore()])
+) as Record<(typeof EVALUATION_SCORE_FIELDS)[number]["key"], ReturnType<typeof optionalScore>>;
+
+export const createPlaySessionSchema = zod.object({
+  sessionDate: zod.string().min(1, "Session date is required"),
+  durationMinutes: optionalNumber(),
+  conditions: zod.string().trim().optional().or(zod.literal("")),
+  referencePaddle: zod.string().trim().optional().or(zod.literal("")),
+  notes: zod.string().trim().optional().or(zod.literal("")),
+});
+
+export const evaluationDraftSchema = zod.object({
+  evaluationType: zod.enum(Object.values(EVALUATION_TYPE) as [string, ...string[]]),
+  playTimeMinutes: optionalNumber(),
+  conditions: zod.string().trim().optional().or(zod.literal("")),
+  comparisonReference: zod.enum(Object.values(COMPARISON_REFERENCE) as [string, ...string[]]).optional().or(zod.literal("")),
+  ...evaluationScoreFields,
+  strengths: zod.string().trim().optional().or(zod.literal("")),
+  weaknesses: zod.string().trim().optional().or(zod.literal("")),
+  preference: zod.enum(Object.values(EVALUATION_PREFERENCE) as [string, ...string[]]).optional().or(zod.literal("")),
+  confidence: zod.enum(Object.values(EVALUATION_CONFIDENCE) as [string, ...string[]]).optional().or(zod.literal("")),
+  issueTriggered: zod.boolean().default(false),
 });
 

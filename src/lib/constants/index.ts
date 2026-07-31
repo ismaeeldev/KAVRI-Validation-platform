@@ -244,6 +244,63 @@ export const ROUND_STATUS = {
 
 export type RoundStatus = typeof ROUND_STATUS[keyof typeof ROUND_STATUS];
 
+export const EVALUATION_TYPE = {
+  FIRST_IMPRESSION: "first_impression",
+  FOLLOW_UP: "follow_up",
+} as const;
+
+export type EvaluationType = typeof EVALUATION_TYPE[keyof typeof EVALUATION_TYPE];
+
+export const COMPARISON_REFERENCE = {
+  CURRENT_PADDLE: "current_paddle",
+  CANDIDATE: "candidate",
+  EXPECTATION: "expectation",
+} as const;
+
+export type ComparisonReference = typeof COMPARISON_REFERENCE[keyof typeof COMPARISON_REFERENCE];
+
+export const EVALUATION_PREFERENCE = {
+  PREFERRED: "preferred",
+  NEUTRAL: "neutral",
+  NOT_PREFERRED: "not_preferred",
+  NOT_ENOUGH_EVIDENCE: "not_enough_evidence",
+} as const;
+
+export type EvaluationPreference = typeof EVALUATION_PREFERENCE[keyof typeof EVALUATION_PREFERENCE];
+
+export const EVALUATION_CONFIDENCE = {
+  LOW: "low",
+  MEDIUM: "medium",
+  HIGH: "high",
+} as const;
+
+export type EvaluationConfidence = typeof EVALUATION_CONFIDENCE[keyof typeof EVALUATION_CONFIDENCE];
+
+export const EVALUATION_STATUS = {
+  DRAFT: "draft",
+  SUBMITTED: "submitted",
+  UPDATED: "updated",
+} as const;
+
+export type EvaluationStatus = typeof EVALUATION_STATUS[keyof typeof EVALUATION_STATUS];
+
+// The audit's 1-5 score categories - all nullable/optional ("not every category mandatory").
+export const EVALUATION_SCORE_FIELDS = [
+  { key: "scoreControl", label: "Control" },
+  { key: "scoreStability", label: "Stability" },
+  { key: "scoreFeel", label: "Feel" },
+  { key: "scoreComfort", label: "Comfort" },
+  { key: "scoreConsistency", label: "Consistency" },
+  { key: "scoreOverallPreference", label: "Overall Preference" },
+  { key: "scorePower", label: "Power" },
+  { key: "scoreSpin", label: "Spin" },
+  { key: "scoreForgiveness", label: "Forgiveness" },
+  { key: "scoreManeuverability", label: "Maneuverability" },
+  { key: "scoreSound", label: "Sound" },
+  { key: "scoreFatigue", label: "Fatigue" },
+  { key: "scoreBuildQuality", label: "Build Quality" },
+] as const;
+
 // Handle length category boundaries (audit-exact): Short < 5.2in; Medium 5.2-5.4in; Long > 5.4in.
 export function deriveHandleLengthCategory(handleLengthIn: number | null | undefined): "Short" | "Medium" | "Long" | null {
   if (handleLengthIn === null || handleLengthIn === undefined) return null;

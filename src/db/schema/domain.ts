@@ -291,6 +291,62 @@ export const testingAssignments = pgTable("testing_assignments", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const playSessions = pgTable("play_sessions", {
+  id: text("id").primaryKey().$defaultFn(uuidDefault),
+  // Immutable after creation - no update path for this FK anywhere in the service layer.
+  assignmentId: text("assignment_id").notNull().references(() => testingAssignments.id),
+  sessionDate: date("session_date").notNull(),
+  durationMinutes: integer("duration_minutes"),
+  conditions: text("conditions"), // indoor/outdoor/ball/format, free text for Sprint 1
+  referencePaddle: text("reference_paddle"),
+  notes: text("notes"),
+  createdBy: text("created_by").notNull().references(() => user.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index("play_sessions_assignment_idx").on(table.assignmentId),
+]);
+
+export const evaluations = pgTable("evaluations", {
+  id: text("id").primaryKey().$defaultFn(uuidDefault),
+  assignmentId: text("assignment_id").notNull().references(() => testingAssignments.id),
+  sampleId: text("sample_id").notNull().references(() => physicalSamples.id),
+  revisionId: text("revision_id").notNull().references(() => productRevisions.id),
+  // Denormalized from assignment at creation time (copied, not derived live) so historical
+  // evaluations remain correct even if an assignment's round somehow changes later.
+  roundId: text("round_id").references(() => testRounds.id),
+  evaluationType: text("evaluation_type").notNull(), // 'first_impression' | 'follow_up'
+  playTimeMinutes: integer("play_time_minutes"),
+  conditions: text("conditions"),
+  comparisonReference: text("comparison_reference"), // 'current_paddle'|'candidate'|'expectation'
+  // 1-5 scores, all nullable - "not every category mandatory" per audit.
+  scoreControl: integer("score_control"),
+  scoreStability: integer("score_stability"),
+  scoreFeel: integer("score_feel"),
+  scoreComfort: integer("score_comfort"),
+  scoreConsistency: integer("score_consistency"),
+  scoreOverallPreference: integer("score_overall_preference"),
+  scorePower: integer("score_power"),
+  scoreSpin: integer("score_spin"),
+  scoreForgiveness: integer("score_forgiveness"),
+  scoreManeuverability: integer("score_maneuverability"),
+  scoreSound: integer("score_sound"),
+  scoreFatigue: integer("score_fatigue"),
+  scoreBuildQuality: integer("score_build_quality"),
+  strengths: text("strengths"),
+  weaknesses: text("weaknesses"),
+  preference: text("preference"), // 'preferred'|'neutral'|'not_preferred'|'not_enough_evidence'
+  confidence: text("confidence"), // 'low'|'medium'|'high'
+  issueTriggered: boolean("issue_triggered").notNull().default(false),
+  status: text("status").notNull().default("draft"), // 'draft'|'submitted'|'updated'
+  submittedAt: timestamp("submitted_at", { withTimezone: true }),
+  lastSavedAt: timestamp("last_saved_at", { withTimezone: true }).notNull().defaultNow(),
+  createdBy: text("created_by").notNull().references(() => user.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index("evaluations_assignment_idx").on(table.assignmentId),
+]);
+
 export const publicUpdates = pgTable("public_updates", {
   id: text("id").primaryKey().$defaultFn(uuidDefault),
   productId: text("product_id").references(() => products.id),
@@ -388,7 +444,7 @@ export const physicalSamplesRelations = relations(physicalSamples, ({ one }) => 
   }),
 }));
 
-export const testingAssignmentsRelations = relations(testingAssignments, ({ one }) => ({
+export const testingAssignmentsRelations = relations(testingAssignments, ({ one, many }) => ({
   round: one(testRounds, {
     fields: [testingAssignments.roundId],
     references: [testRounds.id],
@@ -408,6 +464,34 @@ export const testingAssignmentsRelations = relations(testingAssignments, ({ one 
   sample: one(physicalSamples, {
     fields: [testingAssignments.sampleId],
     references: [physicalSamples.id],
+  }),
+  playSessions: many(playSessions),
+  evaluations: many(evaluations),
+}));
+
+export const playSessionsRelations = relations(playSessions, ({ one }) => ({
+  assignment: one(testingAssignments, {
+    fields: [playSessions.assignmentId],
+    references: [testingAssignments.id],
+  }),
+}));
+
+export const evaluationsRelations = relations(evaluations, ({ one }) => ({
+  assignment: one(testingAssignments, {
+    fields: [evaluations.assignmentId],
+    references: [testingAssignments.id],
+  }),
+  sample: one(physicalSamples, {
+    fields: [evaluations.sampleId],
+    references: [physicalSamples.id],
+  }),
+  revision: one(productRevisions, {
+    fields: [evaluations.revisionId],
+    references: [productRevisions.id],
+  }),
+  round: one(testRounds, {
+    fields: [evaluations.roundId],
+    references: [testRounds.id],
   }),
 }));
 
