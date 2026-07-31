@@ -18,7 +18,7 @@ const STAGE_COLORS: Record<string, { bg: string; text: string; border: string }>
 export function LandingTimeline({ updates }: Props) {
   return (
     <section
-      id="feed"
+      id="testing-log"
       className="bg-[#f7f7f3] border-b border-kavri-line px-6 md:px-10 py-16 md:py-24"
     >
       <div className="max-w-[1280px] mx-auto space-y-12">
@@ -42,7 +42,7 @@ export function LandingTimeline({ updates }: Props) {
               className="font-heading font-black uppercase text-kavri-ink leading-none"
               style={{ fontSize: "clamp(28px, 3.5vw, 48px)" }}
             >
-              Testing Log
+              Development Log
             </h2>
             <p className="font-sans text-sm text-kavri-muted max-w-lg leading-relaxed">
               A live record of every validation cycle, prototype review, and engineering milestone.

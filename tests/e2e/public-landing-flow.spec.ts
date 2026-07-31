@@ -44,20 +44,20 @@ test.describe("Public Landing Page & Waitlist Lifecycle E2E Test", () => {
 
     // 5. Verify Landing page DOES show published update
     await page.goto("/");
-    await expect(page.locator("#feed")).toContainText(uniqueTitle);
-    await expect(page.locator("#feed")).toContainText("This update description should remain hidden during draft state.");
+    await expect(page.locator("#testing-log")).toContainText(uniqueTitle);
+    await expect(page.locator("#testing-log")).toContainText("This update description should remain hidden during draft state.");
 
     // 6. Test Waitlist form submission
     await page.goto("/");
     const uniqueEmail = `subscriber-${Date.now().toString().slice(-4)}@kavri.co`;
     await page.fill("input[placeholder='Enter your email address']", uniqueEmail);
-    await page.click("button:has-text('Follow the build')");
+    await page.click("button:has-text('Join the build')");
     await expect(page.locator("text=Thank you. You have been added to the build follow feed.")).toBeVisible();
 
     // 7. Test Waitlist duplicate submission
     await page.goto("/");
     await page.fill("input[placeholder='Enter your email address']", uniqueEmail);
-    await page.click("button:has-text('Follow the build')");
+    await page.click("button:has-text('Join the build')");
     await expect(page.locator("text=Thank you. You have been added to the build follow feed.")).toBeVisible();
 
     // 8. Verify waitlist subscriber is listed on owner waitlist view
@@ -78,14 +78,15 @@ test.describe("Public Landing Page & Waitlist Lifecycle E2E Test", () => {
     const generalEmail = `utm-subscriber-${Date.now().toString().slice(-5)}@kavri.co`;
     await page.goto("/?utm_source=twitter&utm_medium=social&utm_campaign=launch");
     await page.fill("input[placeholder='Enter your email address']", generalEmail);
-    await page.click("button:has-text('Follow the build')");
+    await page.click("button:has-text('Join the build')");
     await expect(page.locator("text=Thank you. You have been added to the build follow feed.")).toBeVisible();
 
-    // 2. Submit the genuinely separate Apply to Test entry point
+    // 2. Submit the genuinely separate Apply to Test entry point (scoped to the Join the Build
+    // section since the main nav also has its own Apply to Test trigger)
     const applicantName = "Playwright Applicant";
     const applicantEmail = `applicant-${Date.now().toString().slice(-5)}@kavri.co`;
     await page.goto("/?ref=affiliate-9");
-    await page.click("button:has-text('Apply to Test')");
+    await page.locator("#join-the-build").getByRole("button", { name: "Apply to Test" }).click();
     await page.fill("#applicant-name", applicantName);
     await page.fill("#applicant-email", applicantEmail);
     await page.getByRole("checkbox").click();

@@ -68,8 +68,8 @@ test.describe("Public Update 6-State Workflow E2E Test (Sprint 1 revision, Step 
 
     // Confirm on the live landing page: title, summary, and Evidence & Context fields all visible.
     await page.goto("/");
-    await expect(page.locator("#feed")).toContainText(uniqueTitle);
-    await expect(page.locator("#feed")).toContainText("Public-facing summary for the scheduled-publish E2E test.");
+    await expect(page.locator("#testing-log")).toContainText(uniqueTitle);
+    await expect(page.locator("#testing-log")).toContainText("Public-facing summary for the scheduled-publish E2E test.");
 
     // Generate + verify the preview link works while logged out is out of scope here (requires
     // a separate unauthenticated context); the owner-authenticated preview path is covered by

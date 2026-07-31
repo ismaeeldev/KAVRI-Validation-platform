@@ -25,6 +25,21 @@ test.describe("Accessibility audits (Axe)", () => {
 
     expect(results.violations).toEqual([]);
   });
+
+  // Sprint1_rev.md Step 15, item 11: the reorganized landing page is the audit's top-priority
+  // public surface, and the new Apply to Test dialog (Step 14/15) must be audited with the
+  // dialog open, not just the closed base page.
+  test("landing page Apply to Test dialog should pass basic accessibility audits", async ({ page }) => {
+    await page.goto("/");
+    await page.locator("#join-the-build").getByRole("button", { name: "Apply to Test" }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+
+    const results = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .analyze();
+
+    expect(results.violations).toEqual([]);
+  });
 });
 
 // Sprint1_rev.md Step 12, item 8: extend coverage to every NEW route added in this revision

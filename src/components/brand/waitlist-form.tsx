@@ -99,7 +99,7 @@ export function WaitlistForm({ ctaSource, utmSource, utmMedium, utmCampaign, ref
           disabled={isLoading}
           className="bg-kavri-signal text-kavri-signal-ink hover:bg-kavri-signal-hover hover:opacity-90 font-mono text-xs uppercase tracking-wider h-11 px-6 min-h-[44px] font-black cursor-pointer rounded-sm flex items-center justify-center gap-1"
         >
-          {isLoading ? "SUBSCRIBING..." : "FOLLOW THE BUILD >"}
+          {isLoading ? "SUBSCRIBING..." : "JOIN THE BUILD >"}
         </Button>
       </div>
       <p className="text-[10px] text-neutral-500 font-mono">

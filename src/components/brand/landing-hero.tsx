@@ -49,16 +49,22 @@ export function LandingHero() {
             {/* CTAs */}
             <div className="flex flex-wrap items-center gap-3">
               <a
-                href="#active-specimen"
+                href="#join-the-build"
+                className="inline-flex items-center gap-2 bg-kavri-signal text-kavri-ink border border-kavri-ink hover:bg-kavri-ink hover:text-white transition-all duration-200 px-6 h-11 font-sans text-sm font-bold rounded-lg focus-visible:outline-2 focus-visible:outline-kavri-signal focus-visible:outline-offset-2 shadow-xs"
+              >
+                Join the Build <span aria-hidden>›</span>
+              </a>
+              <a
+                href="#current-testing"
                 className="inline-flex items-center gap-2 bg-kavri-ink text-kavri-surface hover:bg-[#2b2f35] active:bg-[#1a1d20] transition-colors duration-150 px-6 h-11 font-sans text-sm font-bold rounded-lg border border-kavri-ink focus-visible:outline-2 focus-visible:outline-kavri-signal focus-visible:outline-offset-2"
               >
                 View Active Tests <span aria-hidden>›</span>
               </a>
               <a
-                href="#feed"
+                href="#how-we-test"
                 className="inline-flex items-center gap-2 border border-kavri-line bg-transparent text-kavri-ink hover:bg-kavri-surface-subtle transition-colors duration-150 px-6 h-11 font-sans text-sm font-bold rounded-lg focus-visible:outline-2 focus-visible:outline-kavri-signal focus-visible:outline-offset-2"
               >
-                Explore the Process
+                See How We Test
               </a>
             </div>
 

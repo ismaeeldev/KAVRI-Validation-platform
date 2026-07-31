@@ -3,7 +3,12 @@ import {
   getPublicUpdatesFeed,
   getPublicProducts,
   getPublicMetrics,
+  getPublicWhatChangedAndWhy,
+  getPublicSampleSummaries,
   type PublicUpdateDTO,
+  type PublicProductDTO,
+  type PublicWhatChangedDTO,
+  type PublicSampleSummaryDTO,
 } from "@/server/services/public-queries-service";
 
 // Landing section components
@@ -12,6 +17,12 @@ import {
   LandingHero,
   LandingValidationProgress,
 } from "@/components/brand/landing-hero";
+import {
+  LandingWhatWeAreBuilding,
+  LandingHowWeValidate,
+  LandingWhatChangedAndWhy,
+  LandingAboutKavri,
+} from "@/components/brand/landing-info-sections";
 import { LandingMetrics } from "@/components/brand/landing-metrics";
 import { LandingActiveSpecs } from "@/components/brand/landing-active-specs";
 import { LandingTimeline } from "@/components/brand/landing-timeline";
@@ -40,8 +51,9 @@ export default async function PublicLandingPage({ searchParams }: PublicLandingP
 
   // ── Data fetching with offline fallback ──────────────────────────────────
   let updates: PublicUpdateDTO[] = [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let products: any[] = [];
+  let products: PublicProductDTO[] = [];
+  let whatChanged: PublicWhatChangedDTO[] = [];
+  let sampleSummaries: PublicSampleSummaryDTO[] = [];
   let metrics = {
     revisionsCount: 0,
     samplesReceived: 0,
@@ -52,10 +64,12 @@ export default async function PublicLandingPage({ searchParams }: PublicLandingP
   let isOfflineFallback = false;
 
   try {
-    [updates, products, metrics] = await Promise.all([
+    [updates, products, metrics, whatChanged, sampleSummaries] = await Promise.all([
       getPublicUpdatesFeed(),
       getPublicProducts(),
       getPublicMetrics(),
+      getPublicWhatChangedAndWhy(),
+      getPublicSampleSummaries(),
     ]);
   } catch (error) {
     console.warn(
@@ -79,33 +93,45 @@ export default async function PublicLandingPage({ searchParams }: PublicLandingP
         </div>
       )}
 
-      {/* 1. Header / Navigation */}
-      <LandingNav />
+      {/* Header / Navigation */}
+      <LandingNav utmSource={utmSource} utmMedium={utmMedium} utmCampaign={utmCampaign} refCode={ref} />
 
       <main className="flex-1">
-        {/* 2. Hero Section — hero image locked to /abstract-constellation.png */}
+        {/* 1. Hero */}
         <LandingHero />
 
-        {/* 4. Live Validation Progress */}
+        {/* 2. Current Build Status (repurposed Live Validation Progress rail) */}
         <LandingValidationProgress />
 
-        {/* 5. Statistics Cards */}
+        {/* 3. What We Are Building */}
+        <LandingWhatWeAreBuilding products={products} />
+
+        {/* 4. How KAVRI Validates */}
+        <LandingHowWeValidate />
+
+        {/* 5. Current Test Focus (repurposed Active Specs) */}
+        <LandingActiveSpecs product={featuredProduct} sampleSummaries={sampleSummaries} />
+
+        {/* 6. Validation Snapshot (repurposed Metrics, zero-value cards hidden) */}
         <LandingMetrics metrics={metrics} />
 
-        {/* 6. Active Testing / Specifications */}
-        <LandingActiveSpecs product={featuredProduct} />
+        {/* 7. What Changed and Why */}
+        <LandingWhatChangedAndWhy decisions={whatChanged} />
 
-        {/* 7. Testing Log / Development Timeline */}
+        {/* 8. Development Log (repurposed Testing Log / Timeline) */}
         <LandingTimeline updates={updates} />
 
-        {/* 8. Validation Values / Benefits */}
+        {/* 9. Why KAVRI Tests (repurposed Values) */}
         <LandingValues />
 
-        {/* 9. Newsletter / Follow-the-Build CTA */}
+        {/* 10. Join the Build (repurposed Newsletter CTA) */}
         <LandingNewsletterCTA utmSource={utmSource} utmMedium={utmMedium} utmCampaign={utmCampaign} refCode={ref} />
+
+        {/* 11. About KAVRI */}
+        <LandingAboutKavri />
       </main>
 
-      {/* 10. Footer */}
+      {/* 12. Footer */}
       <LandingFooter />
     </div>
   );
