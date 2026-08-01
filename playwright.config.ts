@@ -48,6 +48,14 @@ export default defineConfig({
       name: "mobile-safari",
       use: { ...devices["iPhone 12"] },
     },
+    {
+      name: "tablet",
+      use: { ...devices["iPad (gen 7)"] },
+    },
+    {
+      name: "small-desktop",
+      use: { ...devices["Desktop Chrome"], viewport: { width: 1024, height: 720 } },
+    },
   ],
   webServer: {
     command: "pnpm dev",

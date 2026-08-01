@@ -100,4 +100,40 @@ test.describe("Supplier Module Expansion E2E Test (Sprint 1 revision, Step 2)", 
     await expect(page.locator("#name")).toHaveValue("E2E Duplicate Attempt");
     await expect(page.locator("#notes")).toHaveValue("Attempt notes that must be preserved after the error.");
   });
+
+  // Sprint1_rev.md Step 19 / Section 15 checklist item 1: "search, and filter a supplier" -
+  // previously had zero coverage anywhere (E2E or unit).
+  test("search and status filter narrow the supplier directory to matching rows only", async ({ page }) => {
+    const email = process.env.BOOTSTRAP_OWNER_EMAIL || "admin@kavri.co";
+    const password = process.env.BOOTSTRAP_OWNER_TEMP_PASSWORD || "Kavri-SecureAdmin-2026!#";
+
+    await page.goto("/login");
+    await page.fill("#email", email);
+    await page.fill("#password", password);
+    await page.click("button:has-text('Log In')");
+    await expect(page).toHaveURL(/\/owner/, { timeout: 15000 });
+
+    const stamp = Date.now().toString().slice(-6);
+    const uniqueName = `E2E Search Target ${stamp}`;
+    const uniqueCode = `E2E-SRCH-${stamp}`;
+
+    await page.goto("/owner/suppliers/new");
+    await page.fill("#name", uniqueName);
+    await page.fill("#code", uniqueCode);
+    await page.fill("#notes", "Supplier used only to prove search/filter works.");
+    await page.click("button:has-text('Create Supplier')");
+    await expect(page).toHaveURL(/\/owner\/suppliers/);
+
+    // Search by name narrows the table to just this supplier.
+    await page.fill("input[placeholder='Search by name or code...']", uniqueName);
+    await expect(page.locator("table")).toContainText(uniqueName);
+    const rowCountAfterSearch = await page.locator("tbody tr").count();
+    expect(rowCountAfterSearch).toBe(1);
+
+    // Clearing search then filtering to "Archived" status excludes this (active) supplier.
+    await page.fill("input[placeholder='Search by name or code...']", "");
+    const statusFilter = page.locator("select").first();
+    await statusFilter.selectOption("archived");
+    await expect(page.locator("table")).not.toContainText(uniqueName);
+  });
 });
