@@ -169,7 +169,7 @@ export function LandingNewsletterCTA() {
             <p className="font-mono text-[10px] uppercase tracking-wider text-[#7a8078] mb-3 pt-4">
               Want hands-on access instead?
             </p>
-            <TesterApplicationDialog />
+            <TesterApplicationDialog variant="dark" />
           </div>
         </div>
       </div>
