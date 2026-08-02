@@ -49,7 +49,7 @@ describe("Application Security & Data Integrity Hardening Tests", () => {
       } as unknown as Awaited<ReturnType<typeof db.query.testerInvitations.findFirst>>);
 
       await expect(
-        consumeInvitation("used-token", "SecretPass123!", "Tester Name")
+        consumeInvitation("used-token", "SecretPass123!", "Tester Name", "v1.0")
       ).rejects.toThrow("verification failed");
 
       spy.mockRestore();

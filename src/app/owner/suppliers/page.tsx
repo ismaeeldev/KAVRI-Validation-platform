@@ -2,8 +2,8 @@ import React from "react";
 import Link from "next/link";
 import { getSuppliers } from "@/server/services/supplier-service";
 import { DashboardPageHeader } from "@/components/brand/dashboard-layout-components";
-import { StatusBadge } from "@/components/brand/status";
-import { Building2, Plus, ArrowRight } from "lucide-react";
+import { SupplierDirectoryTable } from "@/components/brand/supplier-directory-table";
+import { Building2, Plus } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -14,7 +14,7 @@ export default async function SuppliersListPage() {
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 select-none">
       <DashboardPageHeader
         title="Suppliers Directory"
-        eyebrow="Inventory Supply"
+        eyebrow="Suppliers"
         description="Log and manage validation suppliers, partners, and manufacturing entities."
         count={suppliers.length}
         actions={
@@ -40,57 +40,7 @@ export default async function SuppliersListPage() {
           </Link>
         </div>
       ) : (
-        <div className="overflow-hidden border border-kavri-line rounded-xl bg-kavri-surface shadow-xs">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse font-sans text-xs">
-              <thead>
-                <tr className="border-b border-kavri-line text-[10px] font-bold uppercase tracking-wider text-kavri-muted bg-[#fafaf8] select-none">
-                  <th className="px-6 py-4">Name / Code</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Products</th>
-                  <th className="px-6 py-4">Physical Samples</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-kavri-line/60">
-                {suppliers.map((supplier) => (
-                  <tr
-                    key={supplier.id}
-                    className="hover:bg-[#f9f9f7]/50 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <p className="font-semibold text-kavri-ink text-[13px]">{supplier.name}</p>
-                      <p className="text-[10px] font-mono text-kavri-muted uppercase tracking-wider mt-0.5">{supplier.code || "No Code"}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <StatusBadge status={supplier.status as "active" | "archived"} />
-                    </td>
-                    <td className="px-6 py-4 text-kavri-muted font-medium">{supplier.productCount}</td>
-                    <td className="px-6 py-4 text-kavri-muted font-medium">{supplier.sampleCount}</td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="inline-flex items-center gap-3">
-                        <Link
-                          href={`/owner/suppliers/${supplier.id}`}
-                          className="text-kavri-ink hover:underline font-semibold"
-                        >
-                          View
-                        </Link>
-                        {supplier.status !== "archived" && (
-                          <Link
-                            href={`/owner/suppliers/${supplier.id}/edit`}
-                            className="text-kavri-muted hover:text-kavri-ink hover:underline font-semibold"
-                          >
-                            Edit
-                          </Link>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <SupplierDirectoryTable suppliers={suppliers} />
       )}
     </div>
   );

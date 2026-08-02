@@ -1,13 +1,13 @@
 import React from "react";
 import Link from "next/link";
-import { getSupplierById } from "@/server/services/supplier-service";
+import { getSupplierById, getSupplierLinkedRecordCounts } from "@/server/services/supplier-service";
 import { DashboardPageHeader } from "@/components/brand/dashboard-layout-components";
 import { StatusBadge } from "@/components/brand/status";
 import { SupplierArchiveButton } from "@/components/brand/supplier-actions";
 import { db } from "@/db";
 import { eq } from "drizzle-orm";
 import * as schema from "@/db/schema";
-import { FileText, ShieldAlert, Award } from "lucide-react";
+import { FileText, ShieldAlert, Award, Globe, Phone, MapPin } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -22,6 +22,15 @@ export default async function SupplierDetailPage({ params }: PageProps) {
   const linkedProducts = await db.query.products.findMany({
     where: eq(schema.products.supplierId, id),
   });
+
+  const linkedCounts = await getSupplierLinkedRecordCounts(id);
+
+  const addressParts = [
+    supplier.addressLine1,
+    supplier.addressLine2,
+    [supplier.city, supplier.region].filter(Boolean).join(", "),
+    [supplier.postalCode, supplier.country].filter(Boolean).join(" "),
+  ].filter(Boolean);
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 select-none">
@@ -41,9 +50,14 @@ export default async function SupplierDetailPage({ params }: PageProps) {
                 >
                   Edit Details
                 </Link>
-                <SupplierArchiveButton supplierId={id} />
+                <SupplierArchiveButton
+                  supplierId={id}
+                  linkedProductCount={linkedCounts.productCount}
+                  linkedSampleCount={linkedCounts.sampleCount}
+                />
               </>
             )}
+            <StatusBadge status={supplier.relationshipStatus} />
             <StatusBadge status={supplier.status as "active" | "archived"} />
           </div>
         }
@@ -130,7 +144,58 @@ export default async function SupplierDetailPage({ params }: PageProps) {
                 {new Date(supplier.createdAt).toLocaleDateString()}
               </p>
             </div>
+
+            {supplier.supplierType && (
+              <div className="space-y-1">
+                <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Supplier Type</span>
+                <p className="font-semibold text-kavri-ink text-[13px] capitalize">
+                  {supplier.supplierType}
+                </p>
+              </div>
+            )}
           </div>
+
+          {(supplier.website || supplier.phone || addressParts.length > 0) && (
+            <div className="space-y-4 text-xs font-sans border-t border-kavri-line pt-4">
+              {supplier.website && (
+                <div className="space-y-1">
+                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest flex items-center gap-1">
+                    <Globe className="h-3 w-3" /> Website
+                  </span>
+                  <a
+                    href={supplier.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-kavri-signal-ink hover:underline text-[13px] break-all"
+                  >
+                    {supplier.website}
+                  </a>
+                </div>
+              )}
+
+              {supplier.phone && (
+                <div className="space-y-1">
+                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest flex items-center gap-1">
+                    <Phone className="h-3 w-3" /> Phone
+                  </span>
+                  <p className="font-semibold text-kavri-ink text-[13px]">{supplier.phone}</p>
+                </div>
+              )}
+
+              {addressParts.length > 0 && (
+                <div className="space-y-1">
+                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest flex items-center gap-1">
+                    <MapPin className="h-3 w-3" /> Address
+                  </span>
+                  <p className="font-semibold text-kavri-ink text-[13px] leading-relaxed">
+                    {addressParts.map((line, i) => (
+                      <span key={i} className="block">{line}</span>
+                    ))}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

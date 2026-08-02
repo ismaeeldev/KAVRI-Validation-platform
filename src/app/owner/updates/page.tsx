@@ -2,18 +2,26 @@ import React from "react";
 import Link from "next/link";
 import { getPublicUpdates } from "@/server/services/public-update-service";
 import { DashboardPageHeader } from "@/components/brand/dashboard-layout-components";
+import { StatusBadge } from "@/components/brand/status";
+import { PUBLIC_UPDATE_STATE } from "@/lib/constants";
 import { Rss, Plus } from "lucide-react";
 
 export const revalidate = 0;
 
-export default async function PublicUpdatesListPage() {
-  const updates = await getPublicUpdates();
+interface PageProps {
+  searchParams: Promise<{ status?: string }>;
+}
+
+export default async function PublicUpdatesListPage({ searchParams }: PageProps) {
+  const { status } = await searchParams;
+  const allUpdates = await getPublicUpdates();
+  const updates = status ? allUpdates.filter((u) => u.publishedState === status) : allUpdates;
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 select-none">
       <DashboardPageHeader
         title="Public Development Log Updates"
-        eyebrow="Newsroom & Feedback"
+        eyebrow="Public Updates"
         description="Manage public updates published on the landing page build log feed."
         count={updates.length}
         actions={
@@ -26,6 +34,24 @@ export default async function PublicUpdatesListPage() {
           </Link>
         }
       />
+
+      <div className="flex flex-wrap gap-2">
+        <Link
+          href="/owner/updates"
+          className={`text-[10px] font-mono uppercase tracking-wider px-3 py-1.5 rounded-md border ${!status ? "bg-kavri-ink text-white border-kavri-ink" : "border-kavri-line text-kavri-muted hover:text-kavri-ink"}`}
+        >
+          All
+        </Link>
+        {Object.values(PUBLIC_UPDATE_STATE).map((s) => (
+          <Link
+            key={s}
+            href={`/owner/updates?status=${s}`}
+            className={`text-[10px] font-mono uppercase tracking-wider px-3 py-1.5 rounded-md border ${status === s ? "bg-kavri-ink text-white border-kavri-ink" : "border-kavri-line text-kavri-muted hover:text-kavri-ink"}`}
+          >
+            {s.replace("_", " ")}
+          </Link>
+        ))}
+      </div>
 
       {updates.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-12 border border-dashed border-kavri-line rounded-xl bg-kavri-surface text-center space-y-3">
@@ -70,19 +96,7 @@ export default async function PublicUpdatesListPage() {
                       {upd.developmentStage || "None"}
                     </td>
                     <td className="px-6 py-4">
-                      {upd.publishedState === "published" ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-kavri-signal-soft text-kavri-signal-ink border border-kavri-line px-2 py-0.5 rounded-md uppercase">
-                          Published
-                        </span>
-                      ) : upd.publishedState === "archived" ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#f9e9e7] text-[#b33a32] border border-[#f5d6d4] px-2 py-0.5 rounded-md uppercase">
-                          Archived
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#ecefea] text-kavri-muted border border-kavri-line px-2 py-0.5 rounded-md uppercase">
-                          Draft
-                        </span>
-                      )}
+                      <StatusBadge status={upd.publishedState} />
                     </td>
                     <td className="px-6 py-4 text-kavri-muted font-mono font-medium">
                       {upd.sortOrder}

@@ -4,6 +4,7 @@ import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { AppError } from "@/lib/errors";
 import { logActivity } from "./activity-service";
+import { summarizeAssignmentProgress } from "./assignment-service";
 
 async function getActiveTesterProfile(testerUserId: string) {
   const profile = await db.query.testerProfiles.findFirst({
@@ -30,6 +31,8 @@ export async function getTesterAssignments(testerUserId: string) {
       product: true,
       revision: true,
       sample: true,
+      playSessions: true,
+      evaluations: true,
     },
     orderBy: (asg, { desc }) => [desc(asg.createdAt)],
   });
@@ -41,6 +44,7 @@ export async function getTesterAssignments(testerUserId: string) {
     dueAt: asg.dueAt,
     requiredSessionCount: asg.requiredSessionCount,
     instructions: asg.instructions,
+    progress: summarizeAssignmentProgress(asg),
     product: {
       publicAlias: asg.product.publicAlias || "Generic Product",
     },
@@ -66,6 +70,8 @@ export async function getTesterAssignmentById(assignmentId: string, testerUserId
       product: true,
       revision: true,
       sample: true,
+      playSessions: true,
+      evaluations: true,
     },
   });
 
@@ -80,6 +86,7 @@ export async function getTesterAssignmentById(assignmentId: string, testerUserId
     dueAt: assignment.dueAt,
     requiredSessionCount: assignment.requiredSessionCount,
     instructions: assignment.instructions,
+    progress: summarizeAssignmentProgress(assignment),
     product: {
       publicAlias: assignment.product.publicAlias || "Generic Product",
     },
@@ -112,7 +119,7 @@ export async function acknowledgeAssignment(assignmentId: string, testerUserId: 
       return assignment; // Idempotent
     }
 
-    if (assignment.status !== "active") {
+    if (assignment.status !== "invited") {
       throw AppError.invalidState(`Assignments in state '${assignment.status}' cannot be acknowledged.`);
     }
 

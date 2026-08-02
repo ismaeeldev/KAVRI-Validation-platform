@@ -1,12 +1,14 @@
 import React from "react";
 import Link from "next/link";
 import { getTesterAssignmentById } from "@/server/services/tester-portal-service";
+import { getEvaluationProgress } from "@/server/services/evaluation-service";
 import { requireActiveTester } from "@/lib/permissions";
 import { PageHeader } from "@/components/brand/headers";
 import { TechnicalDivider } from "@/components/brand/metadata";
 import { StatusBadge } from "@/components/brand/status";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { TesterPortalActions } from "@/components/brand/tester-portal-actions";
+import { TesterEvaluationPanel } from "@/components/brand/tester-evaluation-panel";
 
 export const revalidate = 0;
 
@@ -25,6 +27,11 @@ export default async function TesterAssignmentDetailPage({ params }: PageProps) 
   } catch (error: unknown) {
     const err = error as Error;
     errorMsg = err.message || "The requested assignment was not found.";
+  }
+
+  let progress = null;
+  if (assignment) {
+    progress = await getEvaluationProgress(id, session.user.id);
   }
 
   if (errorMsg || !assignment) {
@@ -61,7 +68,12 @@ export default async function TesterAssignmentDetailPage({ params }: PageProps) 
           <span className="text-[10px] font-mono uppercase bg-kavri-surface-subtle border border-kavri-line px-2 py-0.5 rounded-sm font-bold">
             Sample: {assignment.sample.sampleCode}
           </span>
-          <StatusBadge status={assignment.status as "draft" | "active" | "acknowledged" | "revoked" | "expired"} />
+          <StatusBadge status={assignment.progress.label} />
+          {assignment.progress.overdue && (
+            <span className="text-[9px] font-bold uppercase text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-sm ml-1.5">
+              Overdue
+            </span>
+          )}
         </div>
         <PageHeader
           title={assignment.product.publicAlias}
@@ -101,15 +113,29 @@ export default async function TesterAssignmentDetailPage({ params }: PageProps) 
         </CardContent>
       </Card>
 
-      {/* Future Phase Disclaimer */}
-      <Card className="border-kavri-line bg-kavri-surface-subtle text-center p-4">
-        <CardContent className="font-mono text-[10px] text-kavri-muted leading-relaxed p-0">
-          Note: Detailed validation checklists, telemetry logging utilities, and issue logs reporting interfaces will unlock during a future phase.
-        </CardContent>
-      </Card>
-
       {/* Primary Acknowledge action button */}
       <TesterPortalActions assignmentId={id} status={assignment.status} />
+
+      {/* Play Sessions & Evaluations */}
+      {progress && (
+        <TesterEvaluationPanel
+          assignmentId={id}
+          sessionCount={progress.sessionCount}
+          requiredSessionCount={progress.requiredSessionCount}
+          firstImpression={progress.firstImpression}
+          followUp={progress.followUp}
+          followUpUnlocked={progress.followUpUnlocked}
+          roundClosed={progress.roundClosed}
+        />
+      )}
+
+      {/* Standalone issue-report entry point - not tied to submitting an evaluation */}
+      <Link
+        href={`/tester/assignments/${id}/issues/new`}
+        className="w-full border border-kavri-line hover:bg-kavri-surface-subtle text-kavri-ink font-mono text-xs uppercase tracking-wider h-11 min-h-[44px] rounded-sm flex items-center justify-center transition-colors"
+      >
+        Report an Issue
+      </Link>
     </div>
   );
 }

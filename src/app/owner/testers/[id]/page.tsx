@@ -59,6 +59,12 @@ export default async function TesterDetailPage({ params }: PageProps) {
         backLabel="Back to testers directory"
         actions={
           <div className="flex items-center gap-2">
+            <Link
+              href={`/owner/testers/${id}/edit`}
+              className="border border-kavri-line-strong hover:bg-kavri-surface-subtle text-xs font-sans font-semibold px-4 py-2 h-9 rounded-lg transition-colors flex items-center justify-center focus-visible:outline-2 focus-visible:outline-kavri-signal"
+            >
+              Edit Profile
+            </Link>
             <span className="font-mono text-[10px] uppercase tracking-widest px-2.5 py-1 bg-kavri-surface border border-kavri-line rounded-md text-kavri-ink font-semibold">
               Invite: {inviteState.replace("_", " ")}
             </span>
@@ -67,6 +73,8 @@ export default async function TesterDetailPage({ params }: PageProps) {
                 ? "bg-[#e8f5ec] text-[#257a47] border-[#d1ecd9]"
                 : tester.approvalStatus === "deactivated"
                 ? "bg-[#f9e9e7] text-[#b33a32] border-[#f5d6d4]"
+                : tester.approvalStatus === "declined"
+                ? "bg-gray-100 text-gray-700 border-gray-200"
                 : "bg-[#fff5d8] text-[#986b11] border-[#faecd1]"
             }`}>
               {tester.approvalStatus}
@@ -107,6 +115,40 @@ export default async function TesterDetailPage({ params }: PageProps) {
                   </p>
                 </div>
               </div>
+              {tester.approvalStatus === "declined" && tester.declinedReason && (
+                <div className="pt-2">
+                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Decline Reason</span>
+                  <p className="text-kavri-ink mt-0.5 italic">{tester.declinedReason}</p>
+                </div>
+              )}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t border-kavri-line">
+                <div>
+                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Skill</span>
+                  <p className="font-semibold text-kavri-ink mt-0.5 text-[12px]">{tester.skillLevel || "—"}</p>
+                </div>
+                <div>
+                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Frequency</span>
+                  <p className="font-semibold text-kavri-ink mt-0.5 text-[12px] capitalize">{tester.playingFrequency?.split("_").join(" ") || "—"}</p>
+                </div>
+                <div>
+                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Current Paddle</span>
+                  <p className="font-semibold text-kavri-ink mt-0.5 text-[12px]">{tester.currentPaddle || "—"}</p>
+                </div>
+                <div>
+                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Dominant Hand</span>
+                  <p className="font-semibold text-kavri-ink mt-0.5 text-[12px] capitalize">{tester.dominantHand?.split("_").join(" ") || "—"}</p>
+                </div>
+                <div>
+                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Play Style</span>
+                  <p className="font-semibold text-kavri-ink mt-0.5 text-[12px] capitalize">{tester.playStyle?.split(",").join(", ") || "—"}</p>
+                </div>
+                <div>
+                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Consent</span>
+                  <p className="font-semibold text-kavri-ink mt-0.5 text-[12px]">
+                    {tester.consentAt ? `${new Date(tester.consentAt).toLocaleDateString()} (${tester.consentTextVersion})` : "Not yet given"}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -144,7 +186,7 @@ export default async function TesterDetailPage({ params }: PageProps) {
                         Due: {new Date(asg.dueAt).toLocaleDateString()} | Sessions: {asg.requiredSessionCount}
                       </p>
                     </div>
-                    <StatusBadge status={asg.status as "draft" | "active" | "acknowledged" | "revoked" | "expired"} />
+                    <StatusBadge status={asg.status} />
                   </div>
                 ))}
               </div>

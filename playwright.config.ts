@@ -1,4 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
+import * as dotenv from "dotenv";
+
+dotenv.config({ path: ".env.local" });
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -7,8 +10,21 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: "html",
+  // Every page in this app queries a remote Neon Postgres instance over a
+  // WebSocket connection pool (@neondatabase/serverless); a cold connection
+  // can take several seconds. The default 5s assertion timeout produces
+  // false failures under normal latency, not actual bugs - raise it globally
+  // rather than patching individual assertions.
+  expect: {
+    timeout: 15000,
+  },
   use: {
-    baseURL: "http://127.0.0.1:3000",
+    // Must match NEXT_PUBLIC_APP_URL (.env.local) exactly. auth-client.ts calls better-auth
+    // with an ABSOLUTE baseURL of NEXT_PUBLIC_APP_URL; if Playwright navigates the browser to
+    // a different host (e.g. 127.0.0.1 while NEXT_PUBLIC_APP_URL is localhost), the browser
+    // treats every auth fetch as cross-origin and silently fails with "Failed to fetch",
+    // which looks like a login bug but is purely a test-origin mismatch.
+    baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
     trace: "on-first-retry",
   },
   projects: [
@@ -32,10 +48,18 @@ export default defineConfig({
       name: "mobile-safari",
       use: { ...devices["iPhone 12"] },
     },
+    {
+      name: "tablet",
+      use: { ...devices["iPad (gen 7)"] },
+    },
+    {
+      name: "small-desktop",
+      use: { ...devices["Desktop Chrome"], viewport: { width: 1024, height: 720 } },
+    },
   ],
   webServer: {
     command: "pnpm dev",
-    url: "http://127.0.0.1:3000",
+    url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
     reuseExistingServer: false,
     timeout: 120000,
   },

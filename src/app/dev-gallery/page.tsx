@@ -82,6 +82,7 @@ export default function DevGalleryPage() {
                 <p className="text-xs font-mono uppercase tracking-widest text-kavri-muted">Status Badge Variants</p>
                 <div className="flex flex-wrap gap-2">
                   <StatusBadge status="draft" />
+                  <StatusBadge status="invited" />
                   <StatusBadge status="active" />
                   <StatusBadge status="acknowledged" />
                   <StatusBadge status="received" />

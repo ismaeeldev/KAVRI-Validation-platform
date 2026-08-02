@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from "zod";
 import { useRouter } from "next/navigation";
 import { createProductSchema } from "@/lib/validation/schemas";
 import { createProductAction } from "@/server/actions/product-actions";
+import { SHAPE, PERFORMANCE_PROFILE, FIREPOWER_BALANCE, PUBLIC_STATE } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,9 +33,10 @@ export function ProductCreateForm({ suppliers }: CreateFormProps) {
     handleSubmit,
     formState: { errors },
   } = useForm<ProductFormData>({
-    resolver: zodResolver(createProductSchema as any),
+    resolver: zodResolver(createProductSchema) as unknown as Resolver<ProductFormData>,
     defaultValues: {
       isPublic: false,
+      publicState: PUBLIC_STATE.PRIVATE,
     },
   });
 
@@ -155,6 +157,47 @@ export function ProductCreateForm({ suppliers }: CreateFormProps) {
           <Label htmlFor="isPublic" className="text-xs font-medium text-kavri-ink cursor-pointer">
             Expose this product structure in public updates?
           </Label>
+        </div>
+
+        <div className="border-t border-kavri-line pt-4 space-y-4">
+          <h4 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink">Defaults (revisions may override)</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="shape" className="text-xs font-semibold text-kavri-ink">Shape</Label>
+              <select id="shape" {...register("shape")} className="w-full rounded-lg border border-kavri-line bg-background px-3 h-10 text-xs font-sans focus-visible:outline-2 focus-visible:outline-kavri-signal" disabled={isLoading}>
+                <option value="">Not specified</option>
+                {Object.entries(SHAPE).map(([key, val]) => (
+                  <option key={val} value={val}>{key.charAt(0) + key.slice(1).toLowerCase()}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="performanceProfile" className="text-xs font-semibold text-kavri-ink">Performance Profile</Label>
+              <select id="performanceProfile" {...register("performanceProfile")} className="w-full rounded-lg border border-kavri-line bg-background px-3 h-10 text-xs font-sans focus-visible:outline-2 focus-visible:outline-kavri-signal" disabled={isLoading}>
+                <option value="">Not specified</option>
+                {Object.entries(PERFORMANCE_PROFILE).map(([key, val]) => (
+                  <option key={val} value={val}>{key.split("_").map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ")}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="firepowerBalance" className="text-xs font-semibold text-kavri-ink">Firepower Balance</Label>
+              <select id="firepowerBalance" {...register("firepowerBalance")} className="w-full rounded-lg border border-kavri-line bg-background px-3 h-10 text-xs font-sans focus-visible:outline-2 focus-visible:outline-kavri-signal" disabled={isLoading}>
+                <option value="">Not specified</option>
+                {Object.entries(FIREPOWER_BALANCE).map(([key, val]) => (
+                  <option key={val} value={val}>{key.split("_").map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ")}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="publicState" className="text-xs font-semibold text-kavri-ink">Public State</Label>
+              <select id="publicState" {...register("publicState")} className="w-full rounded-lg border border-kavri-line bg-background px-3 h-10 text-xs font-sans focus-visible:outline-2 focus-visible:outline-kavri-signal" disabled={isLoading}>
+                {Object.entries(PUBLIC_STATE).map(([key, val]) => (
+                  <option key={val} value={val}>{key.charAt(0) + key.slice(1).toLowerCase()}</option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
 
         <div className="flex justify-end gap-3 pt-4 border-t border-kavri-line mt-6">

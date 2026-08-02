@@ -8,12 +8,51 @@ import { db } from "@/db";
 import { eq } from "drizzle-orm";
 import * as schema from "@/db/schema";
 import { FileText, Rss, Clock, ShieldAlert, CheckCircle, HelpCircle, Layers, Plus } from "lucide-react";
+import { DownloadCsvButton } from "@/components/brand/download-csv-button";
+import { rowsToCsv, type CsvColumn } from "@/lib/csv-export";
 
 export const revalidate = 0;
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
+
+type RevisionExportRow = Awaited<ReturnType<typeof getProductRevisions>>[number];
+
+const REVISION_CSV_COLUMNS: CsvColumn<RevisionExportRow>[] = [
+  { header: "revisionCode", value: (r) => r.revisionCode },
+  { header: "publicTitle", value: (r) => r.publicTitle },
+  { header: "developmentStage", value: (r) => r.developmentStage },
+  { header: "publicState", value: (r) => r.publicState },
+  { header: "isPublic", value: (r) => r.isPublic },
+  { header: "revisionReason", value: (r) => r.revisionReason },
+  { header: "requestedChanges", value: (r) => r.requestedChanges },
+  { header: "supplierReportedChanges", value: (r) => r.supplierReportedChanges },
+  { header: "shape", value: (r) => r.shape },
+  { header: "performanceProfile", value: (r) => r.performanceProfile },
+  { header: "firepowerBalance", value: (r) => r.firepowerBalance },
+  { header: "coreThicknessMm", value: (r) => r.coreThicknessMm },
+  { header: "overallLengthIn", value: (r) => r.overallLengthIn },
+  { header: "overallWidthIn", value: (r) => r.overallWidthIn },
+  { header: "handleLengthIn", value: (r) => r.handleLengthIn },
+  { header: "gripCircumferenceIn", value: (r) => r.gripCircumferenceIn },
+  { header: "handleWidthIn", value: (r) => r.handleWidthIn },
+  { header: "handleDepthIn", value: (r) => r.handleDepthIn },
+  { header: "targetStaticWeightMinG", value: (r) => r.targetStaticWeightMinG },
+  { header: "targetStaticWeightMaxG", value: (r) => r.targetStaticWeightMaxG },
+  { header: "targetSwingWeight", value: (r) => r.targetSwingWeight },
+  { header: "targetSwingWeightMethod", value: (r) => r.targetSwingWeightMethod },
+  { header: "targetTwistWeight", value: (r) => r.targetTwistWeight },
+  { header: "targetTwistWeightMethod", value: (r) => r.targetTwistWeightMethod },
+  { header: "targetBalancePointMm", value: (r) => r.targetBalancePointMm },
+  { header: "spinRating", value: (r) => r.spinRating },
+  { header: "spinRatingSource", value: (r) => r.spinRatingSource },
+  { header: "spinRatingDate", value: (r) => r.spinRatingDate },
+  { header: "spinRatingConfidence", value: (r) => r.spinRatingConfidence },
+  { header: "feelQuadrant", value: (r) => r.feelQuadrant },
+  { header: "createdAt", value: (r) => r.createdAt },
+  { header: "updatedAt", value: (r) => r.updatedAt },
+];
 
 export default async function ProductDetailPage({ params }: PageProps) {
   const { id } = await params;
@@ -120,15 +159,22 @@ export default async function ProductDetailPage({ params }: PageProps) {
                   Engineering specifications and version history logs.
                 </p>
               </div>
-              {product.status !== "archived" && (
-                <Link
-                  href={`/owner/products/${id}/revisions/new`}
-                  className="bg-kavri-ink text-white hover:bg-neutral-800 text-[10px] font-sans font-bold px-3 py-1.5 rounded-md transition-all flex items-center gap-1 focus-visible:outline-2 focus-visible:outline-kavri-signal"
-                >
-                  <Plus className="h-3 w-3" />
-                  <span>Add Revision</span>
-                </Link>
-              )}
+              <div className="flex items-center gap-2">
+                <DownloadCsvButton
+                  csv={rowsToCsv(revisions, REVISION_CSV_COLUMNS)}
+                  filenamePrefix={`revisions-${product.internalName}`}
+                  className="bg-kavri-surface border border-kavri-line text-kavri-ink hover:bg-kavri-surface-subtle text-[10px] font-sans font-bold px-3 py-1.5 rounded-md transition-all flex items-center gap-1"
+                />
+                {product.status !== "archived" && (
+                  <Link
+                    href={`/owner/products/${id}/revisions/new`}
+                    className="bg-kavri-ink text-white hover:bg-neutral-800 text-[10px] font-sans font-bold px-3 py-1.5 rounded-md transition-all flex items-center gap-1 focus-visible:outline-2 focus-visible:outline-kavri-signal"
+                  >
+                    <Plus className="h-3 w-3" />
+                    <span>Add Revision</span>
+                  </Link>
+                )}
+              </div>
             </div>
 
             {revisions.length === 0 ? (

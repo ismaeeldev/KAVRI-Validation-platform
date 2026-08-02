@@ -76,36 +76,49 @@ export function LandingMetrics({ metrics }: Props) {
     },
   ];
 
+  // Hide or de-emphasize zero-value metrics rather than presenting a dashboard full of zeros.
+  const nonZeroCards = cards.filter((c) => c.value > 0);
+
   return (
     <section
-      id="metrics"
+      id="validation-snapshot"
       className="bg-kavri-surface border-b border-kavri-line px-6 md:px-10 py-12"
       aria-label="Validation statistics"
     >
-      <div className="max-w-[1280px] mx-auto">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-0 border border-kavri-line rounded-xl overflow-hidden divide-x divide-y lg:divide-y-0 divide-kavri-line shadow-xs">
-          {cards.map(({ icon, value, label, desc }) => (
-            <div
-              key={label}
-              className="p-6 lg:p-7 space-y-4 bg-kavri-surface hover:bg-[#f9f9f7] transition-colors duration-150 group"
-            >
-              <span className="text-kavri-muted group-hover:text-kavri-ink transition-colors duration-150 block">
-                {icon}
-              </span>
-              <div className="space-y-1">
-                <span className="font-heading text-[44px] font-black leading-none block text-kavri-ink">
-                  <MetricCountUp value={value} />
+      <div className="max-w-[1280px] mx-auto space-y-6">
+        <h2 className="font-mono text-[10px] uppercase tracking-[0.18em] text-kavri-muted font-semibold">
+          Validation Snapshot
+        </h2>
+
+        {nonZeroCards.length === 0 ? (
+          <div className="border border-dashed border-kavri-line rounded-xl bg-kavri-surface py-12 text-center">
+            <p className="font-mono text-xs text-kavri-muted">Just getting started — the first numbers will appear here soon.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-0 border border-kavri-line rounded-xl overflow-hidden divide-x divide-y sm:divide-y-0 divide-kavri-line shadow-xs">
+            {nonZeroCards.map(({ icon, value, label, desc }) => (
+              <div
+                key={label}
+                className="p-6 lg:p-7 space-y-4 bg-kavri-surface hover:bg-[#f9f9f7] transition-colors duration-150 group"
+              >
+                <span className="text-kavri-muted group-hover:text-kavri-ink transition-colors duration-150 block">
+                  {icon}
                 </span>
-                <span className="font-sans text-xs font-bold text-kavri-ink block leading-snug">
-                  {label}
-                </span>
-                <span className="font-mono text-[10px] text-kavri-muted block">
-                  {desc}
-                </span>
+                <div className="space-y-1">
+                  <span className="font-heading text-[44px] font-black leading-none block text-kavri-ink">
+                    <MetricCountUp value={value} />
+                  </span>
+                  <span className="font-sans text-xs font-bold text-kavri-ink block leading-snug">
+                    {label}
+                  </span>
+                  <span className="font-mono text-[10px] text-kavri-muted block">
+                    {desc}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

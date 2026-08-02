@@ -1,8 +1,18 @@
 "use server";
 
 import { requireOwner } from "@/lib/permissions";
-import { createSample, transitionSampleStatus } from "../services/sample-service";
-import { createSampleSchema, transitionStatusSchema } from "@/lib/validation/schemas";
+import {
+  createSample,
+  transitionSampleStatus,
+  updateSampleMeasurements,
+  updateSampleInspection,
+} from "../services/sample-service";
+import {
+  createSampleSchema,
+  transitionStatusSchema,
+  updateSampleMeasurementsSchema,
+  updateSampleInspectionSchema,
+} from "@/lib/validation/schemas";
 import { revalidatePath } from "next/cache";
 
 export async function createSampleAction(formData: unknown) {
@@ -10,6 +20,22 @@ export async function createSampleAction(formData: unknown) {
   const parsed = createSampleSchema.parse(formData);
   const result = await createSample(parsed, session.user.id);
   revalidatePath("/owner/samples");
+  return result;
+}
+
+export async function updateSampleMeasurementsAction(sampleId: string, formData: unknown) {
+  const { session } = await requireOwner();
+  const parsed = updateSampleMeasurementsSchema.parse(formData);
+  const result = await updateSampleMeasurements(sampleId, parsed, session.user.id);
+  revalidatePath(`/owner/samples/${sampleId}`);
+  return result;
+}
+
+export async function updateSampleInspectionAction(sampleId: string, formData: unknown) {
+  const { session } = await requireOwner();
+  const parsed = updateSampleInspectionSchema.parse(formData);
+  const result = await updateSampleInspection(sampleId, parsed, session.user.id);
+  revalidatePath(`/owner/samples/${sampleId}`);
   return result;
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from "zod";
 import { useRouter } from "next/navigation";
@@ -33,7 +33,7 @@ export function SampleCreateForm({ products, revisions }: CreateFormProps) {
     setValue,
     formState: { errors },
   } = useForm<SampleFormData>({
-    resolver: zodResolver(createSampleSchema as any),
+    resolver: zodResolver(createSampleSchema) as unknown as Resolver<SampleFormData>,
     defaultValues: {
       receivedAt: new Date().toISOString().split("T")[0],
     },

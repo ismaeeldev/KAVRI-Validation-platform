@@ -1,5 +1,6 @@
 import React from "react";
 import { WaitlistForm } from "@/components/brand/waitlist-form";
+import { TesterApplicationDialog } from "@/components/brand/tester-application-dialog";
 import { KAVRIWordmark } from "@/components/brand/wordmark";
 import Link from "next/link";
 
@@ -42,7 +43,7 @@ const VALUES = [
 export function LandingValues() {
   return (
     <section
-      id="why-we-test"
+      id="why-kavri-tests"
       className="bg-kavri-surface border-b border-kavri-line px-6 md:px-10 py-16 md:py-24"
     >
       <div className="max-w-[1280px] mx-auto space-y-14">
@@ -55,7 +56,7 @@ export function LandingValues() {
                   className="absolute -inset-x-4 -inset-y-2 bg-no-repeat pointer-events-none"
                   style={{ backgroundImage: "url('/paint-stroke.png')", backgroundSize: "100% 100%" }}
                 />
-                <span className="relative z-10">Why We Test in the Open</span>
+                <span className="relative z-10">Why KAVRI Tests</span>
               </span>
             </div>
             <h2
@@ -115,7 +116,7 @@ export function LandingValues() {
 export function LandingNewsletterCTA() {
   return (
     <section
-      id="signup"
+      id="join-the-build"
       className="bg-[#0f1111] border-b border-[#1a1d1c] px-6 md:px-10 py-16 md:py-24 relative overflow-hidden"
     >
       {/* Subtle grid pattern */}
@@ -133,7 +134,7 @@ export function LandingNewsletterCTA() {
         {/* Left: headline */}
         <div className="space-y-5">
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-kavri-signal font-black">
-            Follow the Build
+            Join the Build
           </p>
           <h2
             className="font-heading font-black uppercase text-white leading-[1.0]"
@@ -151,18 +152,24 @@ export function LandingNewsletterCTA() {
 
         {/* Right: form */}
         <div className="space-y-5">
-          <WaitlistForm />
+          <WaitlistForm ctaSource="update" />
           <div className="inline-block pt-1">
             <span className="relative inline-block text-kavri-ink font-mono text-[10px] uppercase tracking-wider font-black whitespace-nowrap select-none">
-              <span 
+              <span
                 className="absolute -inset-x-4 -inset-y-1.5 bg-no-repeat pointer-events-none"
-                style={{ 
+                style={{
                   backgroundImage: "url('/paint-stroke.png')",
                   backgroundSize: "100% 100%"
                 }}
               />
               <span className="relative z-10">No spam. Unsubscribe anytime.</span>
             </span>
+          </div>
+          <div className="pt-2 border-t border-[#1a1d1c] mt-1">
+            <p className="font-mono text-[10px] uppercase tracking-wider text-[#7a8078] mb-3 pt-4">
+              Want hands-on access instead?
+            </p>
+            <TesterApplicationDialog variant="dark" />
           </div>
         </div>
       </div>
@@ -172,10 +179,9 @@ export function LandingNewsletterCTA() {
 
 export function LandingFooter() {
   const NAV_LINKS = [
-    { href: "#active-specimen", label: "What We Test" },
-    { href: "#feed", label: "Testing Log" },
-    { href: "#why-we-test", label: "About" },
-    { href: "/login", label: "Validation Portal" },
+    { href: "#current-testing", label: "What We Test" },
+    { href: "#testing-log", label: "Testing Log" },
+    { href: "#about-kavri", label: "About" },
   ];
 
   return (
@@ -197,6 +203,12 @@ export function LandingFooter() {
               {label}
             </a>
           ))}
+          <Link
+            href="/login"
+            className="font-mono text-[11px] text-kavri-muted hover:text-kavri-ink transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-kavri-signal rounded-sm"
+          >
+            Team Login
+          </Link>
         </nav>
 
         {/* Copyright */}

@@ -38,18 +38,20 @@ export function PublicFooter() {
 }
 
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  Building2, 
-  ShoppingBag, 
-  Box, 
-  UserCheck, 
-  FileSpreadsheet, 
-  Rss, 
-  List, 
+import {
+  LayoutDashboard,
+  Building2,
+  ShoppingBag,
+  Box,
+  UserCheck,
+  FileSpreadsheet,
+  Rss,
+  List,
   ShieldAlert,
   Menu,
-  X
+  X,
+  ClipboardList,
+  AlertTriangle
 } from "lucide-react";
 
 const OWNER_NAV_LINKS = [
@@ -58,7 +60,9 @@ const OWNER_NAV_LINKS = [
   { name: "Products", href: "/owner/products", icon: ShoppingBag },
   { name: "Samples", href: "/owner/samples", icon: Box },
   { name: "Testers", href: "/owner/testers", icon: UserCheck },
+  { name: "Rounds", href: "/owner/rounds", icon: ClipboardList },
   { name: "Assignments", href: "/owner/assignments", icon: FileSpreadsheet },
+  { name: "Issues", href: "/owner/issues", icon: AlertTriangle },
   { name: "Public Updates", href: "/owner/updates", icon: Rss },
   { name: "Waitlist", href: "/owner/waitlist", icon: List },
 ];
@@ -68,13 +72,16 @@ export function OwnerSidebar() {
 
   return (
     <aside className="hidden md:flex flex-col w-64 bg-kavri-surface border-r border-kavri-line h-screen sticky top-0 z-40">
-      {/* Brand area */}
-      <div className="h-16 flex flex-col justify-center px-6 border-b border-kavri-line select-none">
+      {/* Brand area - logo always routes back to the dashboard (UX-01) */}
+      <Link
+        href="/owner"
+        className="h-16 flex flex-col justify-center px-6 border-b border-kavri-line select-none focus-visible:outline-2 focus-visible:outline-kavri-signal focus-visible:outline-offset-[-2px]"
+      >
         <KAVRIWordmark />
         <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-kavri-muted mt-0.5">
           Owner Workspace
         </span>
-      </div>
+      </Link>
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
@@ -131,12 +138,12 @@ export function OwnerMobileNav() {
   return (
     <div className="md:hidden w-full bg-kavri-surface border-b border-kavri-line sticky top-0 z-40 select-none">
       <div className="h-16 px-4 flex items-center justify-between">
-        <div className="flex flex-col">
+        <Link href="/owner" className="flex flex-col focus-visible:outline-2 focus-visible:outline-kavri-signal" onClick={() => setIsOpen(false)}>
           <KAVRIWordmark />
           <span className="font-mono text-[7px] uppercase tracking-widest text-kavri-muted">
             Owner Workspace
           </span>
-        </div>
+        </Link>
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="p-2 text-kavri-ink focus:outline-none rounded-md focus:ring-2 focus:ring-kavri-signal"

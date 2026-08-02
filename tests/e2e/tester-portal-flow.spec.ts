@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import * as dotenv from "dotenv";
+import { createRecruitingRound } from "./helpers/round-helper";
 
 dotenv.config({ path: ".env.local" });
 
@@ -28,7 +29,7 @@ test.describe("Mobile-First Tester Portal E2E Test", () => {
 
     // Mark ready for testing
     await page.goto("/owner/samples");
-    await page.click(`tr:has-text('${sampleCode}') a:has-text('View Triage')`);
+    await page.click(`tr:has-text('${sampleCode}') a:has-text('Review Sample')`);
     await page.fill("#readinessNote", "Scans completed.");
     await page.click("button:has-text('Begin Review')");
     await page.fill("#readinessNote", "Ready to dispatch.");
@@ -60,24 +61,30 @@ test.describe("Mobile-First Tester Portal E2E Test", () => {
     await page.fill("#confirmPassword", testerPassword);
     await page.click("button:has-text('Activate Account')");
 
-    // 4. Owner logs back in to dispatch/activate assignment brief
+    // 4. Owner logs back in to dispatch/invite the assignment brief
     await page.goto("/login");
     await page.fill("#email", ownerEmail);
     await page.fill("#password", ownerPassword);
     await page.click("button:has-text('Log In')");
 
+    // Create a round and link it to the sample's revision (Step 10 requires a round on every
+    // new assignment).
+    const round = await createRecruitingRound(page, "E2EPortal");
+
     // Create Draft Assignment
     await page.goto("/owner/assignments/new");
+    await page.selectOption("#roundId", { label: round.optionLabel });
     await page.selectOption("#testerProfileId", { label: testerName });
     await page.selectOption("#sampleSelect", { label: sampleCode });
     await page.fill("#instructions", "Conduct physical batch stress validation. Log observations.");
     await page.click("button:has-text('Save Draft Assignment')");
 
-    // Activate Assignment
+    // Invite the tester (formerly "Activate Assignment" - Step 10 renamed the stored 'active'
+    // status to 'invited' to avoid colliding with the new computed 'Active' progress label)
     await page.goto("/owner/assignments");
     await page.click(`tr:has-text('${sampleCode}') a:has-text('View brief')`);
-    await page.click("button:has-text('Activate Assignment')");
-    await expect(page.locator("text=active")).toBeVisible();
+    await page.click("button:has-text('Invite Tester')");
+    await expect(page.locator("text=INVITED")).toBeVisible();
 
     // 5. Log in as TESTER to mobile portal and Acknowledge brief
     await page.goto("/login");
@@ -88,7 +95,6 @@ test.describe("Mobile-First Tester Portal E2E Test", () => {
     // Expect redirect to mobile tester portal overview
     await expect(page).toHaveURL(/\/tester/);
     await expect(page.locator("text=Tester Workspace")).toBeVisible();
-    await expect(page.locator("text=active")).toBeVisible();
 
     // View Assignment detail brief page
     await page.click("a:has-text('View Brief')");
@@ -97,7 +103,8 @@ test.describe("Mobile-First Tester Portal E2E Test", () => {
     // Acknowledge the brief
     await page.click("button:has-text('Acknowledge Brief')");
 
-    // Verify state updates to "acknowledged"
-    await expect(page.locator("text=acknowledged")).toBeVisible();
+    // Verify the computed progress status advances past "acknowledged" to the next real step
+    // (Step 10: computed status layers on top of the stored 'acknowledged' state).
+    await expect(page.locator("text=FIRST IMPRESSION DUE")).toBeVisible();
   });
 });

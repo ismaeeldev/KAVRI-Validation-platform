@@ -3,6 +3,14 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { KAVRIWordmark } from "@/components/brand/wordmark";
+import { TesterApplicationDialog } from "@/components/brand/tester-application-dialog";
+
+const ANCHOR_LINKS = [
+  { href: "#how-we-test", label: "How We Test" },
+  { href: "#current-testing", label: "Current Testing" },
+  { href: "#testing-log", label: "Testing Log" },
+  { href: "#about-kavri", label: "About" },
+];
 
 export function LandingNav() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -22,39 +30,29 @@ export function LandingNav() {
           aria-label="Main navigation"
           className="hidden md:flex items-center gap-8"
         >
-          {[
-            { href: "#active-specimen", label: "What We Test" },
-            { href: "#feed", label: "Testing Log" },
-            { href: "#why-we-test", label: "About" },
-            { href: "/login", label: "Validation Portal", isLink: true },
-          ].map(({ href, label, isLink }) =>
-            isLink ? (
-              <Link
-                key={label}
-                href={href}
-                className="font-sans text-sm text-kavri-muted hover:text-kavri-ink transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-kavri-signal rounded-md py-1.5"
-              >
-                {label}
-              </Link>
-            ) : (
-              <a
-                key={label}
-                href={href}
-                className="font-sans text-sm text-kavri-muted hover:text-kavri-ink transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-kavri-signal rounded-md py-1.5"
-              >
-                {label}
-              </a>
-            )
-          )}
+          {ANCHOR_LINKS.map(({ href, label }) => (
+            <a
+              key={label}
+              href={href}
+              className="font-sans text-sm text-kavri-muted hover:text-kavri-ink transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-kavri-signal rounded-md py-1.5"
+            >
+              {label}
+            </a>
+          ))}
         </nav>
 
         <div className="flex items-center gap-3">
-          {/* CTA */}
+          {/* Secondary CTA */}
+          <div className="hidden md:block">
+            <TesterApplicationDialog />
+          </div>
+
+          {/* Primary CTA */}
           <a
-            href="#signup"
+            href="#join-the-build"
             className="hidden md:inline-flex items-center justify-center gap-1.5 bg-kavri-signal text-kavri-ink border border-kavri-ink hover:bg-kavri-ink hover:text-white transition-all duration-200 px-5 h-10 font-sans text-xs font-bold rounded-lg focus-visible:outline-2 focus-visible:outline-kavri-signal focus-visible:outline-offset-2 shadow-xs"
           >
-            Follow the Build <span aria-hidden>›</span>
+            Join the Build <span aria-hidden>›</span>
           </a>
 
           {/* Mobile hamburger */}
@@ -85,12 +83,7 @@ export function LandingNav() {
           aria-label="Mobile navigation"
           className="md:hidden border-t border-kavri-line bg-kavri-surface px-6 py-5 space-y-4"
         >
-          {[
-            { href: "#active-specimen", label: "What We Test" },
-            { href: "#feed", label: "Testing Log" },
-            { href: "#why-we-test", label: "About" },
-            { href: "/login", label: "Validation Portal" },
-          ].map(({ href, label }) => (
+          {ANCHOR_LINKS.map(({ href, label }) => (
             <a
               key={label}
               href={href}
@@ -100,12 +93,15 @@ export function LandingNav() {
               {label}
             </a>
           ))}
+          <div className="pt-2">
+            <TesterApplicationDialog />
+          </div>
           <a
-            href="#signup"
+            href="#join-the-build"
             onClick={() => setMobileOpen(false)}
             className="inline-flex items-center justify-center gap-1.5 bg-kavri-signal text-kavri-ink border border-kavri-ink hover:bg-kavri-ink hover:text-white transition-all duration-200 px-5 h-10 font-sans text-xs font-bold rounded-lg mt-2 w-full shadow-xs"
           >
-            Follow the Build ›
+            Join the Build ›
           </a>
         </nav>
       )}

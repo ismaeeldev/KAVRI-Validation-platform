@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import * as dotenv from "dotenv";
+import { createRecruitingRound } from "./helpers/round-helper";
 
 dotenv.config({ path: ".env.local" });
 
@@ -26,12 +27,16 @@ test.describe("Tester Onboarding & Assignments Workflow E2E Test", () => {
 
     // Go to triage detail page and mark ready
     await page.goto("/owner/samples");
-    await page.click(`tr:has-text('${uniqueSampleCode}') a:has-text('View Triage')`);
+    await page.click(`tr:has-text('${uniqueSampleCode}') a:has-text('Review Sample')`);
     await page.fill("#readinessNote", "Surface scans completed, approved for assignments.");
     await page.click("button:has-text('Begin Review')");
     await page.fill("#readinessNote", "Microscope stress test passed, marked ready.");
     await page.click("button:has-text('Mark Ready for Testing')");
     await expect(page.locator("text=ready_for_testing")).toBeVisible();
+
+    // 2b. Create a Test Round and link it to the same revision the sample uses (Step 10 requires
+    // every assignment to be linked to a round whose revision list includes the sample's revision).
+    const round = await createRecruitingRound(page, "E2EAssignment");
 
     // 3. Register Pending Tester
     await page.goto("/owner/testers");
@@ -86,6 +91,7 @@ test.describe("Tester Onboarding & Assignments Workflow E2E Test", () => {
 
     // Navigate to Create Assignment Form
     await page.goto("/owner/assignments/new");
+    await page.selectOption("#roundId", { label: round.optionLabel });
     await page.selectOption("#testerProfileId", { label: testerName });
     await page.selectOption("#sampleSelect", { label: uniqueSampleCode });
     await page.fill("#instructions", "Conduct carbon weave wear logs. Log logs hourly.");
@@ -96,13 +102,13 @@ test.describe("Tester Onboarding & Assignments Workflow E2E Test", () => {
     await expect(page.locator("table")).toContainText(testerName);
     await expect(page.locator("table")).toContainText(uniqueSampleCode);
 
-    // View assignment detail and Activate it
+    // View assignment detail and invite the tester (formerly "Activate")
     await page.click(`tr:has-text('${uniqueSampleCode}') a:has-text('View brief')`);
     await expect(page.locator("text=draft")).toBeVisible();
-    await page.click("button:has-text('Activate Assignment')");
+    await page.click("button:has-text('Invite Tester')");
 
-    // Verify active assignment status
-    await expect(page.locator("text=active")).toBeVisible();
-    await expect(page.locator("text=assignment.activated")).toBeVisible();
+    // Verify the stored status renamed from 'active' to 'invited' (Step 10) is now set
+    await expect(page.locator("text=INVITED")).toBeVisible();
+    await expect(page.locator("text=assignment.invited")).toBeVisible();
   });
 });

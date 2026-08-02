@@ -1,37 +1,120 @@
 import React from "react";
 import Link from "next/link";
-import { getAssignments } from "@/server/services/assignment-service";
+import { getAssignments, summarizeAssignmentProgress } from "@/server/services/assignment-service";
 import { DashboardPageHeader } from "@/components/brand/dashboard-layout-components";
 import { StatusBadge } from "@/components/brand/status";
 import { FileSpreadsheet, Plus } from "lucide-react";
+import { DownloadCsvButton } from "@/components/brand/download-csv-button";
+import { rowsToCsv, type CsvColumn } from "@/lib/csv-export";
 
 export const revalidate = 0;
 
-export default async function AssignmentsListPage() {
-  const assignments = await getAssignments();
+interface PageProps {
+  searchParams: Promise<{ status?: string; roundId?: string; overdue?: string }>;
+}
+
+type AssignmentExportRow = Awaited<ReturnType<typeof getAssignments>>[number] & {
+  progress: ReturnType<typeof summarizeAssignmentProgress>;
+};
+
+const ASSIGNMENT_CSV_COLUMNS: CsvColumn<AssignmentExportRow>[] = [
+  { header: "tester", value: (a) => a.testerProfile.displayName },
+  { header: "sample", value: (a) => a.sample.sampleCode },
+  { header: "round", value: (a) => a.round?.roundCode },
+  { header: "status", value: (a) => a.progress.label },
+  { header: "dueAt", value: (a) => a.dueAt },
+  { header: "sessionCount", value: (a) => a.progress.sessionCount },
+  { header: "requiredSessionCount", value: (a) => a.requiredSessionCount },
+  { header: "firstImpressionSubmitted", value: (a) => a.progress.firstImpressionSubmitted },
+  { header: "followUpSubmitted", value: (a) => a.progress.followUpSubmitted },
+  { header: "overdue", value: (a) => a.progress.overdue },
+];
+
+export default async function AssignmentsListPage({ searchParams }: PageProps) {
+  const { status, roundId, overdue } = await searchParams;
+  const rawAssignments = await getAssignments();
+
+  const assignments = rawAssignments.map((asg) => ({
+    ...asg,
+    progress: summarizeAssignmentProgress(asg),
+  }));
+
+  const filtered = assignments.filter((asg) => {
+    if (status && asg.progress.label !== status && asg.status !== status) return false;
+    if (roundId && asg.roundId !== roundId) return false;
+    if (overdue === "true" && !asg.progress.overdue) return false;
+    return true;
+  });
+
+  const statusFilters = [
+    { value: "draft", label: "Draft" },
+    { value: "invited", label: "Invited" },
+    { value: "first_impression_due", label: "First Impression Due" },
+    { value: "active", label: "Active" },
+    { value: "follow_up_due", label: "Follow-Up Due" },
+    { value: "complete", label: "Complete" },
+    { value: "revoked", label: "Revoked" },
+    { value: "expired", label: "Expired" },
+  ];
+
+  const filterLink = (params: Record<string, string | undefined>) => {
+    const merged = { status, roundId, overdue, ...params };
+    const qs = Object.entries(merged)
+      .filter(([, v]) => v)
+      .map(([k, v]) => `${k}=${v}`)
+      .join("&");
+    return `/owner/assignments${qs ? `?${qs}` : ""}`;
+  };
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 select-none">
       <DashboardPageHeader
         title="Testing Assignments"
-        eyebrow="Verification Dispatches"
+        eyebrow="Assignments"
         description="Dispatch active testing cycles, manage instruction briefs, and track tester feedback logs."
-        count={assignments.length}
+        count={filtered.length}
         actions={
-          <Link
-            href="/owner/assignments/new"
-            className="bg-kavri-ink text-white hover:bg-neutral-800 text-xs font-sans font-bold px-4 py-2.5 rounded-lg flex items-center gap-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-kavri-signal focus-visible:outline-offset-1"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Create Assignment</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <DownloadCsvButton csv={rowsToCsv(filtered, ASSIGNMENT_CSV_COLUMNS)} filenamePrefix="assignments" />
+            <Link
+              href="/owner/assignments/new"
+              className="bg-kavri-ink text-white hover:bg-neutral-800 text-xs font-sans font-bold px-4 py-2.5 rounded-lg flex items-center gap-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-kavri-signal focus-visible:outline-offset-1"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Create Assignment</span>
+            </Link>
+          </div>
         }
       />
 
-      {assignments.length === 0 ? (
+      <div className="flex flex-wrap gap-2">
+        <Link
+          href={filterLink({ status: undefined })}
+          className={`text-[10px] font-mono uppercase tracking-wider px-3 py-1.5 rounded-md border ${!status ? "bg-kavri-ink text-white border-kavri-ink" : "border-kavri-line text-kavri-muted hover:text-kavri-ink"}`}
+        >
+          All
+        </Link>
+        {statusFilters.map((s) => (
+          <Link
+            key={s.value}
+            href={filterLink({ status: s.value })}
+            className={`text-[10px] font-mono uppercase tracking-wider px-3 py-1.5 rounded-md border ${status === s.value ? "bg-kavri-ink text-white border-kavri-ink" : "border-kavri-line text-kavri-muted hover:text-kavri-ink"}`}
+          >
+            {s.label}
+          </Link>
+        ))}
+        <Link
+          href={filterLink({ overdue: overdue === "true" ? undefined : "true" })}
+          className={`text-[10px] font-mono uppercase tracking-wider px-3 py-1.5 rounded-md border ${overdue === "true" ? "bg-red-600 text-white border-red-600" : "border-red-200 text-red-700 hover:bg-red-50"}`}
+        >
+          Overdue Only
+        </Link>
+      </div>
+
+      {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-12 border border-dashed border-kavri-line rounded-xl bg-kavri-surface text-center space-y-3">
           <FileSpreadsheet className="h-8 w-8 text-kavri-muted" />
-          <p className="text-xs font-sans font-semibold text-kavri-muted">No assignments dispatched to validation cycle.</p>
+          <p className="text-xs font-sans font-semibold text-kavri-muted">No assignments match the current filters.</p>
           <Link
             href="/owner/assignments/new"
             className="text-xs font-mono uppercase text-kavri-signal hover:underline"
@@ -46,19 +129,18 @@ export default async function AssignmentsListPage() {
               <thead>
                 <tr className="border-b border-kavri-line text-[10px] font-bold uppercase tracking-wider text-kavri-muted bg-[#fafaf8] select-none">
                   <th className="px-6 py-4">Tester</th>
-                  <th className="px-6 py-4">Sample Code</th>
-                  <th className="px-6 py-4">Product / Revision</th>
+                  <th className="px-6 py-4">Sample</th>
+                  <th className="px-6 py-4">Round</th>
+                  <th className="px-6 py-4">Sessions</th>
+                  <th className="px-6 py-4">FI / FU</th>
                   <th className="px-6 py-4">Due Date</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-kavri-line/60">
-                {assignments.map((asg) => (
-                  <tr
-                    key={asg.id}
-                    className="hover:bg-[#f9f9f7]/50 transition-colors"
-                  >
+                {filtered.map((asg) => (
+                  <tr key={asg.id} className="hover:bg-[#f9f9f7]/50 transition-colors">
                     <td className="px-6 py-4 font-semibold text-kavri-ink text-[13px]">
                       {asg.testerProfile.displayName}
                     </td>
@@ -67,17 +149,33 @@ export default async function AssignmentsListPage() {
                         {asg.sample.sampleCode}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <p className="font-semibold text-kavri-ink text-[13px]">{asg.product.internalName}</p>
-                      <p className="text-[10px] font-mono text-kavri-muted uppercase tracking-wider mt-0.5">
-                        Rev: {asg.revision.revisionCode}
-                      </p>
+                    <td className="px-6 py-4 text-kavri-muted font-mono text-[11px]">
+                      {asg.round ? asg.round.roundCode : "—"}
                     </td>
                     <td className="px-6 py-4 text-kavri-muted font-mono text-[11px]">
-                      {new Date(asg.dueAt).toLocaleDateString()}
+                      {asg.progress.sessionCount} / {asg.requiredSessionCount}
+                    </td>
+                    <td className="px-6 py-4 font-mono text-[11px]">
+                      <span className={asg.progress.firstImpressionSubmitted ? "text-emerald-700" : "text-kavri-muted"}>
+                        {asg.progress.firstImpressionSubmitted ? "✓" : "—"}
+                      </span>
+                      {" / "}
+                      <span className={asg.progress.followUpSubmitted ? "text-emerald-700" : "text-kavri-muted"}>
+                        {asg.progress.followUpSubmitted ? "✓" : "—"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-kavri-muted font-mono text-[11px]">
+                      <div className="flex items-center gap-1.5">
+                        <span>{new Date(asg.dueAt).toLocaleDateString()}</span>
+                        {asg.progress.overdue && (
+                          <span className="text-[9px] font-bold uppercase text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-md">
+                            Overdue
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
-                      <StatusBadge status={asg.status as "draft" | "active" | "acknowledged" | "revoked" | "expired"} />
+                      <StatusBadge status={asg.progress.label} />
                     </td>
                     <td className="px-6 py-4 text-right">
                       <Link

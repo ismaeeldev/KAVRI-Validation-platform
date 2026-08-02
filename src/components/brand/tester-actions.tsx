@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { updateTesterApprovalAction, generateInvitationAction } from "@/server/actions/tester-actions";
+import { updateTesterApprovalAction, generateInvitationAction, declineTesterAction } from "@/server/actions/tester-actions";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { KeyRound, ShieldAlert, Copy, Check } from "lucide-react";
 
@@ -18,6 +19,8 @@ export function TesterActions({ testerId, approvalStatus, isRegistered }: Tester
   const [isPending, setIsPending] = useState(false);
   const [invitationUrl, setInvitationUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [declineOpen, setDeclineOpen] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
 
   const handleApprovalChange = async (status: "approved" | "deactivated") => {
     setIsPending(true);
@@ -28,6 +31,26 @@ export function TesterActions({ testerId, approvalStatus, isRegistered }: Tester
     } catch (error: unknown) {
       const err = error as Error;
       toast.error(err.message || "Failed to update approval status.");
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  const handleDecline = async () => {
+    if (!declineReason.trim()) {
+      toast.error("Please provide a reason for declining this application.");
+      return;
+    }
+    setIsPending(true);
+    try {
+      await declineTesterAction(testerId, { reason: declineReason });
+      toast.success("Tester application declined.");
+      setDeclineOpen(false);
+      setDeclineReason("");
+      router.refresh();
+    } catch (error: unknown) {
+      const err = error as Error;
+      toast.error(err.message || "Failed to decline tester application.");
     } finally {
       setIsPending(false);
     }
@@ -67,7 +90,7 @@ export function TesterActions({ testerId, approvalStatus, isRegistered }: Tester
           <span>Access Controls</span>
         </h3>
         <div className="flex flex-wrap gap-3 pt-1">
-          {approvalStatus !== "approved" && (
+          {approvalStatus === "pending" && (
             <Button
               onClick={() => handleApprovalChange("approved")}
               disabled={isPending}
@@ -77,7 +100,21 @@ export function TesterActions({ testerId, approvalStatus, isRegistered }: Tester
             </Button>
           )}
 
-          {approvalStatus !== "deactivated" && (
+          {approvalStatus === "pending" && !declineOpen && (
+            <Button
+              onClick={() => setDeclineOpen(true)}
+              disabled={isPending}
+              variant="outline"
+              className="font-sans font-semibold text-xs h-10 px-4 rounded-lg border-kavri-line"
+            >
+              Decline Application
+            </Button>
+          )}
+
+          {/* Deactivate only applies once a tester has actually been approved - matching the
+              server-side guard in updateTesterApproval, which now rejects this for a pending
+              or declined tester (there is no active access to deactivate). */}
+          {approvalStatus === "approved" && (
             <Button
               onClick={() => handleApprovalChange("deactivated")}
               disabled={isPending}
@@ -97,6 +134,26 @@ export function TesterActions({ testerId, approvalStatus, isRegistered }: Tester
             </Button>
           )}
         </div>
+
+        {declineOpen && (
+          <div className="border border-red-200 bg-red-50/50 rounded-lg p-4 space-y-3">
+            <Textarea
+              value={declineReason}
+              onChange={(e) => setDeclineReason(e.target.value)}
+              placeholder="Reason for declining this application (required)..."
+              className="text-xs min-h-[70px] bg-white"
+              disabled={isPending}
+            />
+            <div className="flex gap-2">
+              <Button onClick={handleDecline} disabled={isPending} className="bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold h-8 px-3 rounded-md">
+                Confirm Decline
+              </Button>
+              <Button variant="outline" onClick={() => setDeclineOpen(false)} disabled={isPending} className="text-[11px] font-semibold h-8 px-3 rounded-md">
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Copyable raw token warning dialog modal */}

@@ -7,7 +7,7 @@ import { PublicUpdateActions } from "@/components/brand/public-update-actions";
 import { db } from "@/db";
 import { eq, and, desc } from "drizzle-orm";
 import * as schema from "@/db/schema";
-import { Clock, Eye, Edit2 } from "lucide-react";
+import { Clock, Eye, Edit2, FileText } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -36,23 +36,7 @@ export default async function PublicUpdateDetailPage({ params }: PageProps) {
         description="Preview and configure development timeline log details displayed publicly."
         backHref="/owner/updates"
         backLabel="Back to updates"
-        actions={
-          <div className="flex items-center gap-2">
-            {update.publishedState === "published" ? (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-kavri-signal-soft text-kavri-signal-ink border border-kavri-line px-2.5 py-1 rounded-md uppercase">
-                Published
-              </span>
-            ) : update.publishedState === "archived" ? (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#f9e9e7] text-[#b33a32] border border-[#f5d6d4] px-2.5 py-1 rounded-md uppercase">
-                Archived
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#ecefea] text-kavri-muted border border-kavri-line px-2.5 py-1 rounded-md uppercase">
-                Draft
-              </span>
-            )}
-          </div>
-        }
+        actions={<StatusBadge status={update.publishedState} />}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -91,16 +75,52 @@ export default async function PublicUpdateDetailPage({ params }: PageProps) {
             </div>
           </div>
 
+          {/* Evidence & Context */}
+          {(update.observation || update.evidenceLevel || update.limitation || update.nextAction) && (
+            <div className="border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-4">
+              <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink flex items-center gap-1.5 border-b border-kavri-line pb-2.5">
+                <FileText className="h-4 w-4 text-kavri-muted" />
+                <span>Evidence &amp; Context</span>
+              </h3>
+              <div className="space-y-3 font-sans text-xs">
+                {update.evidenceLevel && (
+                  <div>
+                    <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Evidence Level</span>
+                    <p className="font-semibold text-kavri-ink capitalize">{update.evidenceLevel.replace(/_/g, " ")}</p>
+                  </div>
+                )}
+                {update.observation && (
+                  <div>
+                    <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Observation</span>
+                    <p className="text-kavri-ink whitespace-pre-wrap">{update.observation}</p>
+                  </div>
+                )}
+                {update.limitation && (
+                  <div>
+                    <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Limitation</span>
+                    <p className="text-kavri-ink whitespace-pre-wrap">{update.limitation}</p>
+                  </div>
+                )}
+                {update.nextAction && (
+                  <div>
+                    <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Next Action</span>
+                    <p className="text-kavri-ink whitespace-pre-wrap">{update.nextAction}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Action options */}
           <div className="border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-4">
             <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink border-b border-kavri-line pb-3">
               Publication Controls
             </h3>
-            <div className="flex flex-wrap items-center justify-between gap-4 pt-1">
-              <PublicUpdateActions updateId={id} currentState={update.publishedState} />
+            <div className="space-y-4 pt-1">
+              <PublicUpdateActions updateId={id} currentState={update.publishedState} previewToken={update.previewToken} />
               <Link
                 href={`/owner/updates/${id}/edit`}
-                className="border border-kavri-line-strong hover:bg-kavri-surface-subtle text-xs font-sans font-semibold px-4 py-2 h-9 rounded-lg transition-colors flex items-center justify-center gap-1.5 focus-visible:outline-2 focus-visible:outline-kavri-signal"
+                className="inline-flex border border-kavri-line-strong hover:bg-kavri-surface-subtle text-xs font-sans font-semibold px-4 py-2 h-9 rounded-lg transition-colors items-center justify-center gap-1.5 focus-visible:outline-2 focus-visible:outline-kavri-signal"
               >
                 <Edit2 className="h-3.5 w-3.5" />
                 <span>Edit Details</span>
@@ -113,7 +133,7 @@ export default async function PublicUpdateDetailPage({ params }: PageProps) {
         <div className="lg:col-span-4 border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-4">
           <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink flex items-center gap-1.5 border-b border-kavri-line pb-2.5">
             <Clock className="h-4 w-4 text-kavri-muted" />
-            <span>Audit History</span>
+            <span>Publication History</span>
           </h3>
 
           {activityLogs.length === 0 ? (

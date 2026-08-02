@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from "zod";
 import { changePasswordAction } from "@/server/actions/auth-actions";
@@ -35,7 +35,7 @@ export default function SecurityPage() {
     reset,
     formState: { errors },
   } = useForm<PasswordFormData>({
-    resolver: zodResolver(passwordSchema as any),
+    resolver: zodResolver(passwordSchema) as unknown as Resolver<PasswordFormData>,
   });
 
   const onSubmit = async (data: PasswordFormData) => {

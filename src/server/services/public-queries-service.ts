@@ -1,5 +1,5 @@
 import "server-only";
-import { eq, or, count } from "drizzle-orm";
+import { eq, or, and, isNotNull, count, asc } from "drizzle-orm";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 
@@ -102,13 +102,13 @@ export async function getPublicMetrics(): Promise<PublicMetricsDTO> {
     .from(schema.testerProfiles)
     .where(eq(schema.testerProfiles.approvalStatus, "approved"));
 
-  // 4. Assignments active (active + acknowledged status count)
+  // 4. Assignments active (invited + acknowledged status count)
   const [assignmentsRow] = await db
     .select({ count: count() })
     .from(schema.testingAssignments)
     .where(
       or(
-        eq(schema.testingAssignments.status, "active"),
+        eq(schema.testingAssignments.status, "invited"),
         eq(schema.testingAssignments.status, "acknowledged")
       )
     );
@@ -126,4 +126,93 @@ export async function getPublicMetrics(): Promise<PublicMetricsDTO> {
     activeAssignments: assignmentsRow?.count ?? 0,
     publishedUpdates: updatesRow?.count ?? 0,
   };
+}
+
+export interface PublicWhatChangedDTO {
+  id: string;
+  publicVersion: string;
+  evidenceStrength: string | null;
+  decisionDate: Date;
+}
+
+// "What Changed and Why" (Step 15) — only decisions whose author explicitly wrote a
+// publicVersion AND whose parent revision/product has been exposed publicly. closeoutDecisions
+// is polymorphic (scope + scopeId, no FK), so each scope type needs its own join; scope='round'
+// is excluded because test_rounds has no publicState gate to check against.
+export async function getPublicWhatChangedAndWhy(): Promise<PublicWhatChangedDTO[]> {
+  const [revisionScoped, productScoped] = await Promise.all([
+    db
+      .select({
+        id: schema.closeoutDecisions.id,
+        publicVersion: schema.closeoutDecisions.publicVersion,
+        evidenceStrength: schema.closeoutDecisions.evidenceStrength,
+        decisionDate: schema.closeoutDecisions.decisionDate,
+      })
+      .from(schema.closeoutDecisions)
+      .innerJoin(schema.productRevisions, eq(schema.productRevisions.id, schema.closeoutDecisions.scopeId))
+      .where(
+        and(
+          eq(schema.closeoutDecisions.scope, "revision"),
+          isNotNull(schema.closeoutDecisions.publicVersion),
+          or(eq(schema.productRevisions.publicState, "candidate"), eq(schema.productRevisions.publicState, "published"))
+        )
+      ),
+    db
+      .select({
+        id: schema.closeoutDecisions.id,
+        publicVersion: schema.closeoutDecisions.publicVersion,
+        evidenceStrength: schema.closeoutDecisions.evidenceStrength,
+        decisionDate: schema.closeoutDecisions.decisionDate,
+      })
+      .from(schema.closeoutDecisions)
+      .innerJoin(schema.products, eq(schema.products.id, schema.closeoutDecisions.scopeId))
+      .where(
+        and(
+          eq(schema.closeoutDecisions.scope, "product"),
+          isNotNull(schema.closeoutDecisions.publicVersion),
+          or(eq(schema.products.publicState, "candidate"), eq(schema.products.publicState, "published"))
+        )
+      ),
+  ]);
+
+  return [...revisionScoped, ...productScoped]
+    .filter((row): row is typeof row & { publicVersion: string } => Boolean(row.publicVersion))
+    .sort((a, b) => b.decisionDate.getTime() - a.decisionDate.getTime());
+}
+
+export interface PublicSampleSummaryDTO {
+  alias: string;
+  statusLabel: string;
+}
+
+const SAMPLE_STATUS_LABELS: Record<string, string> = {
+  received: "Received",
+  under_review: "Under Review",
+  ready_for_testing: "Ready for Testing",
+  assigned: "In Field Testing",
+  blocked: "On Hold",
+  rejected: "Did Not Pass Inspection",
+  returned: "Testing Complete",
+  retired: "Retired",
+};
+
+// Anonymous sample cards (Step 15 item 7) — deliberately returns only a generated alias
+// ("Specimen A/B/C") and a status-safe label. No sampleCode, supplierId, or notes fields.
+export async function getPublicSampleSummaries(): Promise<PublicSampleSummaryDTO[]> {
+  const rows = await db
+    .select({
+      status: schema.physicalSamples.status,
+      receivedAt: schema.physicalSamples.receivedAt,
+    })
+    .from(schema.physicalSamples)
+    .innerJoin(schema.productRevisions, eq(schema.productRevisions.id, schema.physicalSamples.revisionId))
+    .where(
+      or(eq(schema.productRevisions.publicState, "candidate"), eq(schema.productRevisions.publicState, "published"))
+    )
+    .orderBy(asc(schema.physicalSamples.receivedAt));
+
+  return rows.map((row, idx) => ({
+    alias: `Specimen ${String.fromCharCode(65 + idx)}`,
+    statusLabel: SAMPLE_STATUS_LABELS[row.status] ?? "In Progress",
+  }));
 }

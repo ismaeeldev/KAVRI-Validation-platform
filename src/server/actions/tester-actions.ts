@@ -1,9 +1,14 @@
 "use server";
 
 import { requireOwner } from "@/lib/permissions";
-import { createPendingTester, updateTesterApproval } from "../services/tester-service";
-import { createInvitation } from "../services/invitation-service";
-import { createTesterSchema } from "@/lib/validation/schemas";
+import { createPendingTester, updateTesterApproval, updateTesterProfile, declineTester } from "../services/tester-service";
+import { createInvitation, consumeInvitation } from "../services/invitation-service";
+import {
+  createTesterSchema,
+  updateTesterProfileSchema,
+  declineTesterSchema,
+  acceptInvitationSchema,
+} from "@/lib/validation/schemas";
 import { revalidatePath } from "next/cache";
 
 export async function createTesterAction(formData: unknown) {
@@ -22,6 +27,23 @@ export async function updateTesterApprovalAction(id: string, approvalStatus: "ap
   return result;
 }
 
+export async function updateTesterProfileAction(id: string, formData: unknown) {
+  const { session } = await requireOwner();
+  const parsed = updateTesterProfileSchema.parse(formData);
+  const result = await updateTesterProfile(id, parsed, session.user.id);
+  revalidatePath(`/owner/testers/${id}`);
+  return result;
+}
+
+export async function declineTesterAction(id: string, formData: unknown) {
+  const { session } = await requireOwner();
+  const parsed = declineTesterSchema.parse(formData);
+  const result = await declineTester(id, parsed.reason, session.user.id);
+  revalidatePath(`/owner/testers/${id}`);
+  revalidatePath("/owner/testers");
+  return result;
+}
+
 export async function generateInvitationAction(testerProfileId: string) {
   const { session } = await requireOwner();
   const result = await createInvitation(testerProfileId, session.user.id);
@@ -32,11 +54,8 @@ export async function generateInvitationAction(testerProfileId: string) {
   };
 }
 
-import { consumeInvitation } from "../services/invitation-service";
-import { acceptInvitationSchema } from "@/lib/validation/schemas";
-
 export async function acceptInvitationAction(rawToken: string, displayName: string, formData: unknown) {
   const parsed = acceptInvitationSchema.parse(formData);
-  const result = await consumeInvitation(rawToken, parsed.password, displayName);
+  const result = await consumeInvitation(rawToken, parsed.password, displayName, parsed.consentTextVersion);
   return result;
 }

@@ -19,6 +19,8 @@ const BUTTON_CLASSES: Record<string, string> = {
   ready_for_testing: "bg-kavri-signal text-kavri-ink hover:bg-[#c4dd40]",
   blocked: "bg-[#f9e9e7] hover:bg-[#f2d7d4] text-[#b33a32] border border-[#f5d6d4]",
   rejected: "bg-red-600 hover:bg-red-700 text-white",
+  retired: "bg-gray-600 hover:bg-gray-700 text-white",
+  returned: "bg-kavri-ink text-white hover:bg-neutral-800",
 };
 
 const BUTTON_LABELS: Record<string, string> = {
@@ -26,7 +28,11 @@ const BUTTON_LABELS: Record<string, string> = {
   ready_for_testing: "Mark Ready for Testing",
   blocked: "Block Sample",
   rejected: "Reject Sample",
+  retired: "Retire Sample",
+  returned: "Mark Returned",
 };
+
+const CRITICAL_STATUSES = new Set(["blocked", "rejected", "retired"]);
 
 export function SampleTriageControls({ sampleId, currentStatus }: TriageControlsProps) {
   const router = useRouter();
@@ -35,13 +41,18 @@ export function SampleTriageControls({ sampleId, currentStatus }: TriageControls
   const [confirmNeeded, setConfirmNeeded] = useState(false);
   const [isPending, setIsPending] = useState(false);
 
-  // Define allowed transitions map
+  // Owner-triggerable transitions map - mirrors sample-service.ts's
+  // OWNER_TRIGGERABLE_TRANSITIONS ('assigned' excluded; it is system-triggered only, wired in
+  // Step 10 when an assignment activates against this sample).
   const allowedMap: Record<string, string[]> = {
     received: ["under_review", "blocked", "rejected"],
     under_review: ["ready_for_testing", "blocked", "rejected"],
     blocked: ["under_review"],
-    ready_for_testing: ["blocked", "rejected"],
+    ready_for_testing: ["blocked", "rejected", "retired"],
     rejected: [],
+    assigned: ["returned"],
+    returned: ["ready_for_testing", "retired", "blocked"],
+    retired: [],
   };
 
   const allowed = allowedMap[currentStatus] || [];
@@ -52,7 +63,7 @@ export function SampleTriageControls({ sampleId, currentStatus }: TriageControls
       return;
     }
     setTargetStatus(status);
-    if (status === "blocked" || status === "rejected") {
+    if (CRITICAL_STATUSES.has(status)) {
       setConfirmNeeded(true);
     } else {
       triggerTransition(status);

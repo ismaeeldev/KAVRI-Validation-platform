@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated test artifacts (gitignored, but ESLint has its own ignore list) - these are
+    // bundled/minified JS from Playwright's HTML report and traces, not project source.
+    "playwright-report/**",
+    "test-results/**",
+    "backups/**",
   ]),
 ]);
 

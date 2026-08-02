@@ -1,12 +1,14 @@
 import React from "react";
 import Link from "next/link";
 import { getRevisionById } from "@/server/services/product-service";
+import { getCertificationsByRevision, getDualCertificationStatus } from "@/server/services/certification-service";
 import { DashboardPageHeader } from "@/components/brand/dashboard-layout-components";
-import { StatusBadge } from "@/components/brand/status";
+import { CertificationPanel } from "@/components/brand/certification-panel";
 import { db } from "@/db";
 import { eq } from "drizzle-orm";
 import * as schema from "@/db/schema";
-import { FileText, ShieldAlert, Award, Activity } from "lucide-react";
+import { FileText, ShieldAlert, Activity } from "lucide-react";
+import { deriveHandleLengthCategory } from "@/lib/constants";
 
 export const revalidate = 0;
 
@@ -17,6 +19,11 @@ interface PageProps {
 export default async function RevisionDetailPage({ params }: PageProps) {
   const { id, revId } = await params;
   const revision = await getRevisionById(revId);
+  const certifications = await getCertificationsByRevision(revId);
+  const isDual = await getDualCertificationStatus(revId);
+  const handleLengthCategory = deriveHandleLengthCategory(
+    revision.handleLengthIn !== null ? Number(revision.handleLengthIn) : undefined
+  );
 
   // Fetch linked physical samples for this specific revision
   const physicalSamples = await db.query.physicalSamples.findMany({
@@ -33,15 +40,15 @@ export default async function RevisionDetailPage({ params }: PageProps) {
         backLabel={`Back to Product: ${revision.product.internalName}`}
         actions={
           <div className="flex items-center gap-2">
-            {revision.isPublic ? (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-kavri-signal-soft text-kavri-signal-ink border border-kavri-line px-2 py-0.5 rounded-md uppercase">
-                Public
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#ecefea] text-kavri-muted border border-kavri-line px-2 py-0.5 rounded-md uppercase">
-                Private
-              </span>
-            )}
+            <Link
+              href={`/owner/products/${id}/revisions/${revId}/edit`}
+              className="border border-kavri-line-strong hover:bg-kavri-surface-subtle text-xs font-sans font-semibold px-4 py-2 h-9 rounded-lg transition-colors flex items-center justify-center focus-visible:outline-2 focus-visible:outline-kavri-signal"
+            >
+              Edit Revision
+            </Link>
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase border border-kavri-line bg-[#ecefea] text-kavri-muted">
+              {revision.publicState}
+            </span>
             <span className="font-mono text-[10px] uppercase tracking-widest px-2.5 py-1 bg-kavri-surface border border-kavri-line rounded-md text-kavri-ink">
               {revision.developmentStage}
             </span>
@@ -76,6 +83,36 @@ export default async function RevisionDetailPage({ params }: PageProps) {
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Specifications Card */}
+          <div className="border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-4">
+            <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink border-b border-kavri-line pb-3">
+              Specifications (Targets)
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs font-sans">
+              {[
+                ["Shape", revision.shape],
+                ["Performance Profile", revision.performanceProfile],
+                ["Firepower Balance", revision.firepowerBalance],
+                ["Core Thickness", revision.coreThicknessMm ? `${revision.coreThicknessMm} mm` : null],
+                ["Overall Length", revision.overallLengthIn ? `${revision.overallLengthIn} in` : null],
+                ["Overall Width", revision.overallWidthIn ? `${revision.overallWidthIn} in` : null],
+                ["Handle Length", revision.handleLengthIn ? `${revision.handleLengthIn} in${handleLengthCategory ? ` (${handleLengthCategory})` : ""}` : null],
+                ["Grip Circumference", revision.gripCircumferenceIn ? `${revision.gripCircumferenceIn} in` : null],
+                ["Static Weight Range", revision.targetStaticWeightMinG || revision.targetStaticWeightMaxG ? `${revision.targetStaticWeightMinG ?? "?"}-${revision.targetStaticWeightMaxG ?? "?"} g` : null],
+                ["Swing Weight", revision.targetSwingWeight ? `${revision.targetSwingWeight}${revision.targetSwingWeightMethod ? ` (${revision.targetSwingWeightMethod})` : ""}` : null],
+                ["Twist Weight", revision.targetTwistWeight ? `${revision.targetTwistWeight}${revision.targetTwistWeightMethod ? ` (${revision.targetTwistWeightMethod})` : ""}` : null],
+                ["Balance Point", revision.targetBalancePointMm ? `${revision.targetBalancePointMm} mm` : null],
+                ["Spin Rating", revision.spinRating.replace(/_/g, " ")],
+                ["Feel Quadrant", revision.feelQuadrant.replace(/_/g, " ")],
+              ].map(([label, value]) => (
+                <div key={label} className="space-y-0.5">
+                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">{label}</span>
+                  <p className="font-semibold text-kavri-ink capitalize">{value || "—"}</p>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -114,8 +151,10 @@ export default async function RevisionDetailPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Sidebar Info Card */}
-        <div className="lg:col-span-4 border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-6">
+        {/* Sidebar Column */}
+        <div className="lg:col-span-4 space-y-6">
+        <CertificationPanel revisionId={revId} certifications={certifications} isDual={isDual} />
+        <div className="border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-6">
           <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink flex items-center gap-2 border-b border-kavri-line pb-3">
             <Activity className="h-4 w-4 text-kavri-muted" />
             <span>Traceability Context</span>
@@ -160,6 +199,7 @@ export default async function RevisionDetailPage({ params }: PageProps) {
               )}
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>

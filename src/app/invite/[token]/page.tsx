@@ -1,9 +1,11 @@
 import React from "react";
+import type { Metadata } from "next";
 import { verifyInvitation } from "@/server/services/invitation-service";
 import { TesterInviteForm } from "@/components/brand/tester-invite-form";
 import { KAVRIWordmark } from "@/components/brand/wordmark";
 
 export const revalidate = 0;
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 interface PageProps {
   params: Promise<{ token: string }>;

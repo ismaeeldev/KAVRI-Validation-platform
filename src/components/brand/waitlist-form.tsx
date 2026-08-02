@@ -1,18 +1,26 @@
 "use client";
 
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from "zod";
 import { waitlistSignupSchema } from "@/lib/validation/schemas";
 import { waitlistSignupAction } from "@/server/actions/waitlist-actions";
+import { WAITLIST_CONSENT_TEXT_VERSION } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useUtmAttribution } from "@/components/brand/landing-utm-context";
 
 type SignupFormData = zod.infer<typeof waitlistSignupSchema>;
 
-export function WaitlistForm() {
+interface WaitlistFormProps {
+  /** Which CTA instance rendered this form (hero/navigation/footer/update). */
+  ctaSource?: string;
+}
+
+export function WaitlistForm({ ctaSource }: WaitlistFormProps) {
+  const { utmSource, utmMedium, utmCampaign, refCode } = useUtmAttribution();
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -22,13 +30,21 @@ export function WaitlistForm() {
     reset,
     formState: { errors },
   } = useForm<SignupFormData>({
-    resolver: zodResolver(waitlistSignupSchema as any),
+    resolver: zodResolver(waitlistSignupSchema) as unknown as Resolver<SignupFormData>,
   });
 
   const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true);
     try {
-      await waitlistSignupAction(data);
+      await waitlistSignupAction({
+        ...data,
+        ctaSource,
+        utmSource,
+        utmMedium,
+        utmCampaign,
+        ref: refCode,
+        consentTextVersion: WAITLIST_CONSENT_TEXT_VERSION,
+      });
       setIsSuccess(true);
       toast.success("Subscription processed successfully.");
       reset();
@@ -81,7 +97,7 @@ export function WaitlistForm() {
           disabled={isLoading}
           className="bg-kavri-signal text-kavri-signal-ink hover:bg-kavri-signal-hover hover:opacity-90 font-mono text-xs uppercase tracking-wider h-11 px-6 min-h-[44px] font-black cursor-pointer rounded-sm flex items-center justify-center gap-1"
         >
-          {isLoading ? "SUBSCRIBING..." : "FOLLOW THE BUILD >"}
+          {isLoading ? "SUBSCRIBING..." : "JOIN THE BUILD >"}
         </Button>
       </div>
       <p className="text-[10px] text-neutral-500 font-mono">

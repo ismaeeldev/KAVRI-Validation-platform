@@ -1,16 +1,20 @@
-import React from "react";
-import type { PublicProductDTO } from "@/server/services/public-queries-service";
+"use client";
+
+import React, { useState } from "react";
+import type { PublicProductDTO, PublicSampleSummaryDTO } from "@/server/services/public-queries-service";
 
 interface Props {
   product: PublicProductDTO | null;
+  sampleSummaries: PublicSampleSummaryDTO[];
 }
 
-export function LandingActiveSpecs({ product }: Props) {
+export function LandingActiveSpecs({ product, sampleSummaries }: Props) {
+  const [expanded, setExpanded] = useState(false);
   const revision = product?.revisions[0] ?? null;
 
   return (
     <section
-      id="active-specimen"
+      id="current-testing"
       className="bg-kavri-surface border-b border-kavri-line px-6 md:px-10 py-16 md:py-24"
     >
       <div className="max-w-[1280px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
@@ -25,27 +29,47 @@ export function LandingActiveSpecs({ product }: Props) {
                   backgroundSize: "100% 100%",
                 }}
               />
-              <span className="relative z-10">Active Specs</span>
+              <span className="relative z-10">Current Test Focus</span>
             </span>
           </div>
 
           <h2 className="font-heading font-black uppercase text-kavri-ink leading-[1.05]" style={{ fontSize: "clamp(28px, 3.5vw, 46px)" }}>
-            What We Are Testing
+            What We Are
             <br />
-            Under Active Test
+            Testing Right Now
           </h2>
 
           <p className="text-[15px] text-kavri-muted leading-relaxed max-w-[420px] font-sans">
-            We compile and measure build quality on every iteration. Below are the public parameters
-            of the product currently under validation.
+            {revision
+              ? `We are currently focused on whether ${revision.publicTitle} holds up to real-world play — structural integrity and durability under repeated use.`
+              : "We are currently validating structural integrity and durability under repeated real-world play."}
           </p>
 
           <a
-            href="#feed"
+            href="#testing-log"
             className="inline-flex items-center gap-2 border border-kavri-line bg-kavri-surface text-kavri-ink hover:bg-kavri-surface-subtle hover:border-kavri-line-strong transition-colors duration-150 px-6 h-11 font-sans text-sm font-bold rounded-lg focus-visible:outline-2 focus-visible:outline-kavri-signal focus-visible:outline-offset-2"
           >
             View All Tests <span aria-hidden>›</span>
           </a>
+
+          {sampleSummaries.length > 0 && (
+            <div className="pt-4 space-y-3">
+              <p className="font-mono text-[9px] uppercase tracking-wider text-kavri-muted font-semibold">
+                Samples In Rotation
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {sampleSummaries.map((sample) => (
+                  <div
+                    key={sample.alias}
+                    className="border border-kavri-line rounded-lg bg-[#fafaf8] px-4 py-2.5 space-y-0.5"
+                  >
+                    <p className="font-mono text-[10px] font-black text-kavri-ink uppercase">{sample.alias}</p>
+                    <p className="font-mono text-[9px] text-kavri-muted uppercase tracking-wide">{sample.statusLabel}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ── RIGHT: Spec Card ── */}
@@ -63,7 +87,7 @@ export function LandingActiveSpecs({ product }: Props) {
                   backgroundSize: "100% 100%",
                 }}
               />
-              <span className="relative z-10">Active Specs</span>
+              <span className="relative z-10">Field Test</span>
             </span>
           </div>
 
@@ -92,33 +116,40 @@ export function LandingActiveSpecs({ product }: Props) {
             </div>
           </div>
 
-          {/* Revision data table */}
           {!product ? (
             <div className="px-7 py-10 text-center font-sans text-sm text-kavri-muted">
               The current approved revision specs have not yet been published.
             </div>
           ) : (
-            <div className="px-7 py-6 space-y-0">
-              <p className="font-mono text-[9px] uppercase tracking-wider text-kavri-muted font-semibold pb-4">
-                Current Revision Context
-              </p>
-              {[
-                { label: "Revision Code", value: revision?.revisionCode ?? "REV-1" },
-                { label: "Public Title", value: revision?.publicTitle ?? "Revision 1.0" },
-                { label: "Testing Focus", value: "Core Integrity · Structural Load · Durability" },
-                { label: "Testers", value: "12 Active" },
-                { label: "Next Review", value: "Aug 1, 2026" },
-              ].map(({ label, value }) => (
-                <div
-                  key={label}
-                  className="flex justify-between items-baseline py-3 border-b border-kavri-line last:border-b-0"
-                >
-                  <span className="font-sans text-xs text-kavri-muted">{label}</span>
-                  <span className="font-mono text-[11px] font-semibold text-kavri-ink text-right max-w-[55%]">
-                    {value}
-                  </span>
+            <div className="px-7 py-6">
+              <button
+                type="button"
+                onClick={() => setExpanded((e) => !e)}
+                aria-expanded={expanded}
+                className="w-full flex items-center justify-between font-mono text-[9px] uppercase tracking-wider text-kavri-muted font-semibold pb-2"
+              >
+                <span>Current Revision Context</span>
+                <span aria-hidden>{expanded ? "−" : "+"}</span>
+              </button>
+              {expanded && (
+                <div className="space-y-0 pt-2">
+                  {[
+                    { label: "Revision Code", value: revision?.revisionCode ?? "REV-1" },
+                    { label: "Public Title", value: revision?.publicTitle ?? "Revision 1.0" },
+                    { label: "Testing Focus", value: "Core Integrity · Structural Load · Durability" },
+                  ].map(({ label, value }) => (
+                    <div
+                      key={label}
+                      className="flex justify-between items-baseline py-3 border-b border-kavri-line last:border-b-0"
+                    >
+                      <span className="font-sans text-xs text-kavri-muted">{label}</span>
+                      <span className="font-mono text-[11px] font-semibold text-kavri-ink text-right max-w-[55%]">
+                        {value}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           )}
         </div>
