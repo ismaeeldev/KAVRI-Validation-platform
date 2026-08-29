@@ -2,6 +2,7 @@ import React from "react";
 import type { Metadata } from "next";
 import { requireOwner } from "@/lib/permissions";
 import { OwnerSidebar, OwnerMobileNav } from "@/components/brand/layout-shells";
+import { OwnerPwaShell } from "@/components/pwa/owner-pwa-shell";
 
 import { redirect } from "next/navigation";
 
@@ -22,6 +23,7 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
         <OwnerMobileNav />
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
+      <OwnerPwaShell />
     </div>
   );
 }

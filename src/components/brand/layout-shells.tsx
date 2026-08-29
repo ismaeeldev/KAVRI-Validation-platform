@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { KAVRIWordmark } from "./wordmark";
+import { PwaInstallSidebarAction } from "@/components/pwa/pwa-install-sidebar-action";
 
 export function PublicHeader() {
   return (
@@ -126,6 +127,7 @@ export function OwnerSidebar() {
           <ShieldAlert className="h-3.5 w-3.5" />
           <span>Security Settings</span>
         </Link>
+        <PwaInstallSidebarAction />
       </div>
     </aside>
   );

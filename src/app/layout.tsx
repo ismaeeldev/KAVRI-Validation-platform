@@ -1,8 +1,17 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Manrope, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { MotionProvider } from "@/components/brand/motion-provider";
 import { NetworkStatusBanner } from "@/components/brand/network-status-banner";
+import { PwaRootProvider } from "@/components/pwa/pwa-root-provider";
+import {
+  PWA_APP_NAME,
+  PWA_BACKGROUND_COLOR,
+  PWA_DESCRIPTION,
+  PWA_SHORT_NAME,
+  PWA_THEME_COLOR,
+  pwaIconUrl,
+} from "@/lib/pwa/config";
 import { Toaster } from "sonner";
 
 const manrope = Manrope({
@@ -32,6 +41,25 @@ export const metadata: Metadata = {
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
   metadataBase: new URL(APP_URL),
+  applicationName: PWA_APP_NAME,
+  appleWebApp: {
+    capable: true,
+    title: PWA_SHORT_NAME,
+    statusBarStyle: "black-translucent",
+  },
+  formatDetection: {
+    telephone: false,
+    email: false,
+    address: false,
+  },
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: pwaIconUrl(192), sizes: "192x192", type: "image/png" },
+      { url: pwaIconUrl(512), sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: pwaIconUrl(180), sizes: "180x180", type: "image/png" }],
+  },
   openGraph: {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
@@ -48,6 +76,14 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: PWA_BACKGROUND_COLOR },
+    { media: "(prefers-color-scheme: dark)", color: PWA_THEME_COLOR },
+  ],
+  colorScheme: "light dark",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -59,11 +95,13 @@ export default function RootLayout({
       className={`h-full antialiased font-sans ${manrope.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <MotionProvider>
-          <NetworkStatusBanner />
-          {children}
-          <Toaster richColors position="top-right" />
-        </MotionProvider>
+        <PwaRootProvider>
+          <MotionProvider>
+            <NetworkStatusBanner />
+            {children}
+            <Toaster richColors position="top-right" />
+          </MotionProvider>
+        </PwaRootProvider>
       </body>
     </html>
   );
