@@ -38,22 +38,22 @@ export function useLandingHeroMotion(scopeRef: React.RefObject<HTMLElement | nul
         if (!root) return;
         const bg = root.querySelector("[data-hero-bg]");
         const glow = root.querySelector("[data-hero-glow]");
-        const underline = root.querySelector("[data-hero-underline]");
+        const panel = root.querySelector("[data-hero-panel]");
         const scrollHint = root.querySelector("[data-hero-scroll]");
-        const lines = root.querySelectorAll("[data-hero-line]");
         const mobile = isMobileViewport();
-        const yDist = mobile ? 16 : 28;
 
-        gsap.set(lines, { opacity: 0, y: yDist });
-        gsap.set("[data-hero-eyebrow]", { opacity: 0, y: 12, letterSpacing: "0.1em" });
-        gsap.set("[data-hero-body]", { opacity: 0, y: 14 });
-        gsap.set("[data-hero-cta]", { opacity: 0, y: 12, scale: 0.98 });
+        gsap.set(panel, { opacity: 0, y: mobile ? 10 : 16 });
+        gsap.set("[data-hero-eyebrow]", { opacity: 0 });
+        gsap.set("[data-hero-status]", { opacity: 0 });
+        gsap.set("[data-hero-narrative-label]", { opacity: 0 });
+        gsap.set("[data-hero-headline]", { opacity: 0 });
+        gsap.set("[data-hero-body]", { opacity: 0 });
+        gsap.set("[data-hero-cta]", { opacity: 0 });
         gsap.set("[data-hero-cta-group]", { opacity: 0 });
         gsap.set("[data-hero-trust]", { opacity: 0 });
-        gsap.set("[data-hero-trust-item]", { opacity: 0, y: 8 });
-        if (bg) gsap.set(bg, { scale: 1.06 });
+        gsap.set("[data-hero-trust-item]", { opacity: 0 });
+        if (bg) gsap.set(bg, { scale: 1.04 });
         if (glow) gsap.set(glow, { opacity: 0 });
-        if (underline) gsap.set(underline, { scaleX: 0, transformOrigin: "left center" });
         if (scrollHint) gsap.set(scrollHint, { opacity: 0, y: -6 });
 
         const tl = gsap.timeline({ defaults: { ease: EASE_SNAP } });
@@ -65,29 +65,19 @@ export function useLandingHeroMotion(scopeRef: React.RefObject<HTMLElement | nul
           tl.to(glow, { opacity: 1, duration: 0.8, ease: "power2.out" }, 0.1);
         }
 
-        tl.to(
-          "[data-hero-eyebrow]",
-          { opacity: 1, y: 0, letterSpacing: "0.28em", duration: 0.55, ease: "power3.out" },
-          0.1
-        )
-          .to(
-            lines,
-            { opacity: 1, y: 0, duration: 0.6, stagger: 0.08, ease: "power4.out" },
-            0.2
-          )
-          .to(underline, { scaleX: 1, duration: 0.45, ease: "power2.inOut" }, "-=0.3")
-          .to("[data-hero-body]", { opacity: 1, y: 0, duration: 0.5, ease: EASE }, "-=0.25")
-          .to("[data-hero-cta-group]", { opacity: 1, duration: 0.01 }, "-=0.15")
-          .to(
-            "[data-hero-cta]",
-            { opacity: 1, y: 0, scale: 1, duration: 0.42, stagger: 0.06, ease: "back.out(1.3)" },
-            "-=0.1"
-          )
-          .to("[data-hero-trust]", { opacity: 1, duration: 0.25 }, "-=0.1")
+        tl.to(panel, { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }, 0.15)
+          .to("[data-hero-eyebrow]", { opacity: 1, duration: 0.35 }, 0.25)
+          .to("[data-hero-status]", { opacity: 1, duration: 0.35 }, 0.3)
+          .to("[data-hero-narrative-label]", { opacity: 1, duration: 0.35 }, 0.35)
+          .to("[data-hero-headline]", { opacity: 1, duration: 0.45 }, 0.4)
+          .to("[data-hero-body]", { opacity: 1, duration: 0.45, ease: EASE }, 0.48)
+          .to("[data-hero-cta-group]", { opacity: 1, duration: 0.01 }, 0.52)
+          .to("[data-hero-cta]", { opacity: 1, duration: 0.35, stagger: 0.05, ease: EASE }, 0.54)
+          .to("[data-hero-trust]", { opacity: 1, duration: 0.25 }, 0.58)
           .to(
             "[data-hero-trust-item]",
-            { opacity: 1, y: 0, duration: 0.35, stagger: 0.06, ease: EASE },
-            "-=0.15"
+            { opacity: 1, duration: 0.3, stagger: 0.05, ease: EASE },
+            0.6
           );
 
         if (scrollHint) {

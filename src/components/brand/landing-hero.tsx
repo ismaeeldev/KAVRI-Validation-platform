@@ -2,6 +2,7 @@
 
 import React, { useRef } from "react";
 import Image from "next/image";
+import { BarChart3, Layers, UserRoundPlus } from "lucide-react";
 import {
   MagneticButton,
   useLandingHeroMotion,
@@ -12,6 +13,24 @@ import { ProgressBarFill } from "@/components/brand/animated-landing-elements";
 const STAGES = ["Concept", "Design", "Prototype", "Field Test", "Production", "Launch"] as const;
 const ACTIVE_STAGE_IDX = 3;
 
+const TRUST_PILLARS = [
+  {
+    icon: BarChart3,
+    title: "Built on Real Data",
+    subtitle: "Measured. Not guessed.",
+  },
+  {
+    icon: Layers,
+    title: "Multi-Stage Validation",
+    subtitle: "Tested across real conditions.",
+  },
+  {
+    icon: UserRoundPlus,
+    title: "Player-First Iteration",
+    subtitle: "Feedback drives every step.",
+  },
+] as const;
+
 export function LandingHero() {
   const scopeRef = useRef<HTMLElement>(null);
   useLandingHeroMotion(scopeRef);
@@ -19,9 +38,8 @@ export function LandingHero() {
   return (
     <section
       ref={scopeRef}
-      className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden pt-20"
+      className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden pt-16 lg:pt-[4.25rem]"
     >
-      {/* Background */}
       <div className="absolute inset-0 overflow-hidden" aria-hidden>
         <div data-hero-bg className="absolute inset-0">
           <Image
@@ -33,141 +51,148 @@ export function LandingHero() {
             className="object-cover object-center"
           />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-[#070807]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/50 to-[#070807]" />
         <div
           data-hero-glow
           className="absolute inset-0 opacity-0"
           style={{
             background:
-              "radial-gradient(ellipse 70% 50% at 50% 45%, rgba(184,255,46,0.12), transparent 65%)",
+              "radial-gradient(ellipse 70% 50% at 50% 42%, rgba(184,255,46,0.14), transparent 65%)",
           }}
         />
       </div>
 
-      {/* Centered copy */}
-      <div className="relative z-10 w-full max-w-[1280px] mx-auto px-5 sm:px-6 md:px-10 py-16 sm:py-20">
-        <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
-          <p
-            data-hero-eyebrow
-            className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--lp-sage)] font-semibold mb-7 sm:mb-8"
-          >
-            Premium Hardware. Built in the Open.
-          </p>
-
-          <h1
-            className="font-heading font-bold leading-[1.08] tracking-[-0.035em] text-[var(--lp-text)] text-balance"
-            style={{ fontSize: "clamp(2.35rem, 7vw, 4.75rem)" }}
-          >
-            <span data-hero-line className="block overflow-hidden">
-              <span>
-                We Don&apos;t{" "}
-                <span className="text-[var(--lp-sage)] [text-shadow:0_0_48px_rgba(184,255,46,0.28)]">
-                  Show
-                </span>
-              </span>
-            </span>
-            <span
-              data-hero-line
-              className="block text-white/45 overflow-hidden mt-2 sm:mt-3 font-medium tracking-[0.01em]"
-              style={{ fontSize: "0.88em" }}
-            >
-              Coming Soon.
-            </span>
-            <span data-hero-line className="block mt-3 sm:mt-4 overflow-hidden">
-              <span>
-                We{" "}
-                <span className="text-[var(--lp-sage)] [text-shadow:0_0_48px_rgba(184,255,46,0.28)]">
-                  Show
-                </span>{" "}
-                <span className="relative whitespace-nowrap">
-                  Testing.
-                  <span
-                    data-hero-underline
-                    className="absolute left-0 right-0 -bottom-1 sm:-bottom-1.5 h-[3px] bg-[var(--lp-sage)] origin-left shadow-[0_0_16px_var(--lp-sage-glow)]"
-                    aria-hidden
-                  />
-                </span>
-              </span>
-            </span>
-          </h1>
-
-          <p
-            data-hero-body
-            className="mt-7 sm:mt-8 text-[15px] sm:text-[17px] text-[var(--lp-muted)] leading-[1.7] max-w-[34rem] font-sans"
-          >
-            Every KAVRI product earns its way to launch through measured inspection, real-world
-            testing, and recorded decisions. This page is your window into our validation
-            platform—what we test, how we test, and where we are right now.
-          </p>
-
+      <div className="relative z-10 w-full max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 lg:py-4">
+        <div className="flex flex-col items-center w-full max-w-[40rem] mx-auto">
           <div
-            data-hero-cta-group
-            className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-center gap-3 sm:gap-4 mt-8 sm:mt-9 w-full sm:w-auto"
+            data-hero-panel
+            className="lp-hero-glass w-full text-center px-4 py-4 sm:px-7 sm:py-5 lg:px-8 lg:py-6 backdrop-blur-[20px]"
+            style={{
+              WebkitBackdropFilter: "blur(20px)",
+              backdropFilter: "blur(20px)",
+            }}
           >
-            <MagneticButton
-              href="#join-the-build"
-              className="lp-btn-primary inline-flex items-center justify-center gap-2 bg-[var(--lp-sage)] text-[var(--lp-sage-ink)] px-8 min-h-[3.25rem] h-[3.25rem] font-sans text-sm font-bold rounded-xl focus-visible:outline-2 focus-visible:outline-[var(--lp-sage)] focus-visible:outline-offset-2 w-full sm:w-auto shadow-[0_0_32px_-4px_var(--lp-sage-glow)]"
+            <p
+              data-hero-eyebrow
+              className="font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.22em] text-white/55 font-medium"
             >
-              <span data-hero-cta className="inline-flex items-center gap-2">
-                Join the Build <span aria-hidden>→</span>
-              </span>
-            </MagneticButton>
-            <MagneticButton
-              href="#how-we-test"
-              strength={0.16}
-              className="lp-btn-ghost inline-flex items-center justify-center gap-2.5 border border-white/25 text-[var(--lp-text)] px-7 min-h-[3.25rem] h-[3.25rem] font-sans text-sm font-semibold rounded-xl focus-visible:outline-2 focus-visible:outline-[var(--lp-sage)] focus-visible:outline-offset-2 w-full sm:w-auto backdrop-blur-sm bg-white/[0.03]"
-            >
-              <span data-hero-cta className="inline-flex items-center gap-2.5">
-                <span
-                  className="inline-flex w-7 h-7 rounded-full border border-[var(--lp-sage)]/60 items-center justify-center shadow-[0_0_12px_-2px_var(--lp-sage-glow)]"
-                  aria-hidden
-                >
-                  <svg width="9" height="9" viewBox="0 0 8 8" fill="var(--lp-sage)">
-                    <path d="M1.5 0.5v7l6-3.5z" />
-                  </svg>
-                </span>
-                Watch How It Works
-              </span>
-            </MagneticButton>
-          </div>
+              Premium Hardware · Built in the Open
+            </p>
 
-          <div
-            data-hero-trust
-            className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 mt-10 sm:mt-12 pt-8 border-t border-white/10 w-full max-w-lg"
-            role="list"
-          >
-            {[
-              "Built on Real Data",
-              "Multi-Stage Validation",
-              "Player-First Iteration",
-            ].map((label) => (
-              <div
-                key={label}
-                role="listitem"
-                data-hero-trust-item
-                className="flex items-center gap-2 font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/75"
+            <div
+              data-hero-status
+              className="mt-3 sm:mt-4 inline-flex flex-wrap items-center justify-center gap-2 sm:gap-0 rounded-full border border-white/12 bg-black/35 px-1 py-1"
+            >
+              <span className="lp-hero-live-pill font-mono text-[8px] sm:text-[9px] uppercase tracking-[0.14em] rounded-full">
+                Live · Field Test
+              </span>
+              <span className="hidden sm:block w-px h-4 bg-white/15 mx-2" aria-hidden />
+              <span className="font-mono text-[8px] sm:text-[9px] uppercase tracking-[0.16em] text-white/45 px-2 sm:px-0">
+                VAL-L06-001
+              </span>
+            </div>
+
+            <div
+              data-hero-narrative-label
+              className="mt-5 sm:mt-6 flex items-center justify-center gap-3 font-mono text-[8px] sm:text-[9px] uppercase tracking-[0.28em] text-[var(--lp-sage)] font-semibold"
+            >
+              <span className="h-px w-8 sm:w-12 bg-[var(--lp-sage)]/35" aria-hidden />
+              Active narrative
+              <span className="h-px w-8 sm:w-12 bg-[var(--lp-sage)]/35" aria-hidden />
+            </div>
+
+            <h1
+              data-hero-headline
+              className="mt-3 sm:mt-4 font-heading font-bold leading-[1.02] tracking-[-0.04em] text-[var(--lp-text)] text-balance"
+              style={{ fontSize: "clamp(2rem, 5.5vw, 3.35rem)" }}
+            >
+              We <span className="text-[var(--lp-sage)]">Show</span> Testing.
+            </h1>
+
+            <p
+              data-hero-body
+              className="mt-3 sm:mt-4 text-[13px] sm:text-[14px] text-white/62 leading-[1.65] max-w-[30rem] mx-auto font-sans"
+            >
+              Every KAVRI product earns its way to launch through measured inspection,
+              real-world testing, and recorded decisions. This page is your window into our
+              validation platform—what we test, how we test, and where we are right now.
+            </p>
+
+            <div
+              data-hero-cta-group
+              className="mt-5 sm:mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-3"
+            >
+              <MagneticButton
+                href="#join-the-build"
+                className="lp-btn-primary inline-flex flex-1 sm:flex-none items-center justify-center gap-2 bg-[var(--lp-sage)] text-[var(--lp-sage-ink)] px-6 min-h-[2.75rem] h-[2.75rem] font-sans text-xs sm:text-sm font-bold rounded-2xl focus-visible:outline-2 focus-visible:outline-[var(--lp-sage)] focus-visible:outline-offset-2 shadow-[0_0_24px_-6px_var(--lp-sage-glow)]"
               >
-                <span
-                  className="w-1.5 h-1.5 rounded-full bg-[var(--lp-sage)] shadow-[0_0_10px_var(--lp-sage)]"
-                  aria-hidden
-                />
-                {label}
-              </div>
-            ))}
+                <span data-hero-cta className="inline-flex items-center gap-2">
+                  Join the Build <span aria-hidden>→</span>
+                </span>
+              </MagneticButton>
+              <MagneticButton
+                href="#how-we-test"
+                strength={0.16}
+                className="lp-btn-ghost inline-flex flex-1 sm:flex-none items-center justify-center gap-2 border border-white/22 text-[var(--lp-text)] px-5 min-h-[2.75rem] h-[2.75rem] font-sans text-xs sm:text-sm font-semibold rounded-2xl focus-visible:outline-2 focus-visible:outline-[var(--lp-sage)] focus-visible:outline-offset-2 bg-white/[0.04] backdrop-blur-sm"
+              >
+                <span data-hero-cta className="inline-flex items-center gap-2">
+                  <span
+                    className="inline-flex w-6 h-6 rounded-full border border-[var(--lp-sage)]/55 items-center justify-center"
+                    aria-hidden
+                  >
+                    <svg width="8" height="8" viewBox="0 0 8 8" fill="var(--lp-sage)">
+                      <path d="M1.5 0.5v7l6-3.5z" />
+                    </svg>
+                  </span>
+                  Watch How It Works
+                </span>
+              </MagneticButton>
+            </div>
+
+            <div
+              data-hero-trust
+              className="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-2"
+              role="list"
+            >
+              {TRUST_PILLARS.map((pillar, index) => {
+                const Icon = pillar.icon;
+                return (
+                  <div
+                    key={pillar.title}
+                    role="listitem"
+                    data-hero-trust-item
+                    className={`flex flex-col items-center text-center px-1 ${
+                      index > 0 ? "sm:border-l sm:border-white/10 sm:pl-3" : ""
+                    }`}
+                  >
+                    <Icon
+                      className="h-4 w-4 text-[var(--lp-sage)] mb-2"
+                      strokeWidth={2}
+                      aria-hidden
+                    />
+                    <p className="font-mono text-[8px] sm:text-[9px] uppercase tracking-[0.14em] text-white/85 font-semibold leading-tight">
+                      {pillar.title}
+                    </p>
+                    <p className="mt-1 text-[10px] sm:text-[11px] text-white/45 leading-snug">
+                      {pillar.subtitle}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Scroll hint */}
       <div
         data-hero-scroll
-        className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 opacity-0"
+        className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1.5 opacity-0"
         aria-hidden
       >
-        <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/40">
+        <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-[var(--lp-sage)]/70">
           Scroll
         </span>
-        <span className="w-px h-8 bg-gradient-to-b from-[var(--lp-sage)]/60 to-transparent" />
+        <span className="w-px h-7 bg-gradient-to-b from-[var(--lp-sage)]/55 to-transparent" />
       </div>
     </section>
   );
@@ -182,7 +207,6 @@ export function LandingValidationProgress() {
       ref={railRef}
       className="relative z-10 border-y border-[var(--lp-line)] bg-[#0a0a0a]/95 backdrop-blur-md px-4 sm:px-6 md:px-10 py-7 md:py-10 overflow-hidden"
     >
-      {/* Ambient glow behind active stage */}
       <div
         data-rail-ambient
         className="pointer-events-none absolute top-1/2 -translate-y-1/2 h-32 w-32 rounded-full opacity-0 blur-3xl bg-[var(--lp-sage)]"
