@@ -49,43 +49,51 @@ export function LandingHero() {
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
           <p
             data-hero-eyebrow
-            className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--lp-sage)] font-semibold mb-6 sm:mb-7"
+            className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--lp-sage)] font-semibold mb-7 sm:mb-8"
           >
             Premium Hardware. Built in the Open.
           </p>
 
           <h1
-            className="font-heading font-bold leading-[1.02] tracking-[-0.035em] text-[var(--lp-text)]"
+            className="font-heading font-bold leading-[1.08] tracking-[-0.035em] text-[var(--lp-text)] text-balance"
             style={{ fontSize: "clamp(2.35rem, 7vw, 4.75rem)" }}
           >
             <span data-hero-line className="block overflow-hidden">
-              <span className="inline-block">We Don&apos;t </span>
-              <span className="inline-block text-[var(--lp-sage)]">Show</span>
+              <span>
+                We Don&apos;t{" "}
+                <span className="text-[var(--lp-sage)] [text-shadow:0_0_48px_rgba(184,255,46,0.28)]">
+                  Show
+                </span>
+              </span>
             </span>
             <span
               data-hero-line
-              className="block text-white/50 overflow-hidden mt-1"
+              className="block text-white/45 overflow-hidden mt-2 sm:mt-3 font-medium tracking-[0.01em]"
+              style={{ fontSize: "0.88em" }}
             >
-              <span className="inline-block">Coming Soon.</span>
+              Coming Soon.
             </span>
-            <span data-hero-line className="block mt-2 sm:mt-3 overflow-hidden">
-              <span className="inline-block">We </span>
-              <span className="inline-block text-[var(--lp-sage)]">Show </span>
-              <span className="relative inline-block">
-                Testing
-                <span
-                  data-hero-underline
-                  className="absolute left-0 right-0 -bottom-1 sm:-bottom-1.5 h-[3px] bg-[var(--lp-sage)] origin-left shadow-[0_0_16px_var(--lp-sage-glow)]"
-                  aria-hidden
-                />
+            <span data-hero-line className="block mt-3 sm:mt-4 overflow-hidden">
+              <span>
+                We{" "}
+                <span className="text-[var(--lp-sage)] [text-shadow:0_0_48px_rgba(184,255,46,0.28)]">
+                  Show
+                </span>{" "}
+                <span className="relative whitespace-nowrap">
+                  Testing.
+                  <span
+                    data-hero-underline
+                    className="absolute left-0 right-0 -bottom-1 sm:-bottom-1.5 h-[3px] bg-[var(--lp-sage)] origin-left shadow-[0_0_16px_var(--lp-sage-glow)]"
+                    aria-hidden
+                  />
+                </span>
               </span>
-              <span className="inline-block">.</span>
             </span>
           </h1>
 
           <p
             data-hero-body
-            className="mt-6 sm:mt-7 text-[15px] sm:text-[17px] text-[var(--lp-muted)] leading-relaxed max-w-[34rem] font-sans"
+            className="mt-7 sm:mt-8 text-[15px] sm:text-[17px] text-[var(--lp-muted)] leading-[1.7] max-w-[34rem] font-sans"
           >
             Every KAVRI product earns its way to launch through measured inspection, real-world
             testing, and recorded decisions. This page is your window into our validation
