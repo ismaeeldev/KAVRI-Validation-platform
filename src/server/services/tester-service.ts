@@ -167,6 +167,13 @@ export async function updateTesterApproval(
     throw AppError.invalidState("Only an approved tester can be deactivated.");
   }
 
+  // 'approved' is reachable from 'pending' (normal approval) or 'deactivated' (reactivation -
+  // Step 05 fix for the previously dead-end deactivated status). Declined testers are not
+  // reactivable through this path; that requires a new application.
+  if (approvalStatus === "approved" && !["pending", "deactivated"].includes(tester.approvalStatus)) {
+    throw AppError.invalidState(`Cannot approve a tester from status '${tester.approvalStatus}'.`);
+  }
+
   const [updatedTester] = await db
     .update(schema.testerProfiles)
     .set({

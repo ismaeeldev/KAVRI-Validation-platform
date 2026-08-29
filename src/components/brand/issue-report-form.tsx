@@ -49,6 +49,13 @@ export function IssueReportForm({ sampleId, assignmentId, redirectHref }: IssueR
     try {
       const result = await createIssueReportAction({ ...data, sampleId, assignmentId: assignmentId || "" });
       toast.success("Issue reported.");
+      if (data.severity === "stop_use") {
+        if (result.emailSent) {
+          toast.success("KAVRI has been alerted immediately by email.");
+        } else {
+          toast.error(result.emailError || "This is a Stop Use issue, but the immediate alert email failed to send. It is still visible on the dashboard.");
+        }
+      }
       setCreatedIssueId(result.id);
     } catch (error: unknown) {
       const err = error as Error;

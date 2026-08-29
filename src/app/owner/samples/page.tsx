@@ -7,6 +7,7 @@ import { DashboardPageHeader } from "@/components/brand/dashboard-layout-compone
 import { StatusBadge } from "@/components/brand/status";
 import { Box, Plus, ShieldAlert } from "lucide-react";
 import { DownloadCsvButton } from "@/components/brand/download-csv-button";
+import { SampleScanLookup } from "@/components/brand/sample-scan-lookup";
 import { rowsToCsv, type CsvColumn } from "@/lib/csv-export";
 import { db } from "@/db";
 
@@ -32,6 +33,13 @@ const SAMPLE_CSV_COLUMNS: CsvColumn<SampleExportRow>[] = [
   { header: "actualBalancePointMm", value: (s) => s.actualBalancePointMm },
   { header: "actualLengthIn", value: (s) => s.actualLengthIn },
   { header: "actualWidthIn", value: (s) => s.actualWidthIn },
+  { header: "actualHandleLengthIn", value: (s) => s.actualHandleLengthIn },
+  { header: "actualGripCircumferenceIn", value: (s) => s.actualGripCircumferenceIn },
+  { header: "actualCoreThicknessMm", value: (s) => s.actualCoreThicknessMm },
+  { header: "actualSwingWeightMethod", value: (s) => s.actualSwingWeightMethod },
+  { header: "actualSwingWeightDate", value: (s) => s.actualSwingWeightDate },
+  { header: "actualTwistWeightMethod", value: (s) => s.actualTwistWeightMethod },
+  { header: "actualTwistWeightDate", value: (s) => s.actualTwistWeightDate },
   { header: "inspectionPackagingOk", value: (s) => s.inspectionPackagingOk },
   { header: "inspectionCosmeticOk", value: (s) => s.inspectionCosmeticOk },
   { header: "inspectionConstructionOk", value: (s) => s.inspectionConstructionOk },
@@ -77,6 +85,7 @@ export default async function SamplesListPage({ searchParams }: PageProps) {
         count={samples.length}
         actions={
           <div className="flex items-center gap-2">
+            <SampleScanLookup />
             <DownloadCsvButton csv={rowsToCsv(sampleExportRows, SAMPLE_CSV_COLUMNS)} filenamePrefix="samples" />
             <Link
               href="/owner/samples/new"

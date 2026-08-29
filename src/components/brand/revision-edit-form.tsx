@@ -16,6 +16,8 @@ import {
   FEEL_QUADRANT,
   PUBLIC_STATE,
   deriveHandleLengthCategory,
+  MEASUREMENT_METHOD,
+  BALANCE_POINT_HELPER_TEXT,
 } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -308,7 +310,7 @@ export function RevisionEditForm({ productId, revision, isLocked }: EditFormProp
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="targetSwingWeightMethod" className="text-xs font-semibold text-kavri-ink">Swing Weight Method</Label>
-              <Input id="targetSwingWeightMethod" {...register("targetSwingWeightMethod")} className="text-xs focus-visible:ring-kavri-signal h-10 px-3 rounded-lg border-kavri-line disabled:opacity-60 disabled:cursor-not-allowed" disabled={isLoading || specFieldsDisabled} />
+              <Input id="targetSwingWeightMethod" list="measurement-method-options" {...register("targetSwingWeightMethod")} className="text-xs focus-visible:ring-kavri-signal h-10 px-3 rounded-lg border-kavri-line disabled:opacity-60 disabled:cursor-not-allowed" disabled={isLoading || specFieldsDisabled} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="targetTwistWeight" className="text-xs font-semibold text-kavri-ink">Twist Weight</Label>
@@ -316,13 +318,19 @@ export function RevisionEditForm({ productId, revision, isLocked }: EditFormProp
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="targetTwistWeightMethod" className="text-xs font-semibold text-kavri-ink">Twist Weight Method</Label>
-              <Input id="targetTwistWeightMethod" {...register("targetTwistWeightMethod")} className="text-xs focus-visible:ring-kavri-signal h-10 px-3 rounded-lg border-kavri-line disabled:opacity-60 disabled:cursor-not-allowed" disabled={isLoading || specFieldsDisabled} />
+              <Input id="targetTwistWeightMethod" list="measurement-method-options" {...register("targetTwistWeightMethod")} className="text-xs focus-visible:ring-kavri-signal h-10 px-3 rounded-lg border-kavri-line disabled:opacity-60 disabled:cursor-not-allowed" disabled={isLoading || specFieldsDisabled} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="targetBalancePointMm" className="text-xs font-semibold text-kavri-ink">Balance Point (mm)</Label>
+              <Label htmlFor="targetBalancePointMm" className="text-xs font-semibold text-kavri-ink">Balance Point (cm)</Label>
               <Input id="targetBalancePointMm" type="number" step="0.1" {...register("targetBalancePointMm", { valueAsNumber: true })} className="text-xs focus-visible:ring-kavri-signal h-10 px-3 rounded-lg border-kavri-line disabled:opacity-60 disabled:cursor-not-allowed" disabled={isLoading || specFieldsDisabled} />
+              <p className="text-[10px] text-kavri-muted italic">{BALANCE_POINT_HELPER_TEXT}</p>
             </div>
           </div>
+          <datalist id="measurement-method-options">
+            {Object.values(MEASUREMENT_METHOD).map((m) => (
+              <option key={m} value={m} />
+            ))}
+          </datalist>
           {specFieldsDisabled && (
             <p className="text-[10px] text-amber-700">
               Locked because a physical sample references this revision. Fields not listed under REVISION_SPEC_FIELDS

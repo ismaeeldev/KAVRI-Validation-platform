@@ -74,6 +74,8 @@ export async function getEvaluationProgress(assignmentId: string, testerUserId: 
     where: eq(schema.evaluations.assignmentId, assignment.id),
   });
 
+  // 'reopened' still counts as submitted for gating purposes - an owner reopening a First
+  // Impression for a correction must not silently re-lock the tester's Follow-Up.
   const firstImpression = evaluations.find((e) => e.evaluationType === "first_impression");
   const followUp = evaluations.find((e) => e.evaluationType === "follow_up");
 
@@ -246,9 +248,10 @@ export async function submitEvaluation(evaluationId: string, testerUserId: strin
   return updated;
 }
 
-// The only path that can change a submitted evaluation. assignmentId/sampleId/revisionId are
-// never part of this update - they are immutable once the row exists. Only works while the
-// parent round is not 'closed'.
+// Decision 1: the only path that can change a submitted evaluation, and it is gated on the owner
+// having explicitly reopened it first (status='reopened'). A tester can no longer self-unlock a
+// submitted evaluation. assignmentId/sampleId/revisionId are never part of this update - they are
+// immutable once the row exists. Only works while the parent round is not 'closed'.
 export async function editSubmittedEvaluation(
   evaluationId: string,
   data: EvaluationDraftInput,
@@ -258,6 +261,12 @@ export async function editSubmittedEvaluation(
 
   if (evaluation.status === "draft") {
     throw AppError.invalidState("Use the draft autosave path for an evaluation that has not been submitted yet.");
+  }
+
+  if (evaluation.status !== "reopened") {
+    throw AppError.invalidState(
+      "This evaluation is locked. Ask KAVRI to reopen it if a correction is needed."
+    );
   }
 
   if (evaluation.roundId) {
@@ -286,6 +295,66 @@ export async function editSubmittedEvaluation(
   return updated;
 }
 
+// Decision 1 (owner-only): reopen a locked evaluation so the tester can correct it.
+//
+//   - `submittedAt` is deliberately absent from the update - the original submission timestamp is
+//     preserved forever and is never overwritten by a reopen or by the correction that follows.
+//   - `reopenedAt` records the most recent reopen; `updatedAt` is the general last-updated stamp.
+//   - No revision-history table: these two timestamps are the entire audit surface per Decision 1
+//     (the activity log additionally records who reopened it and why).
+//
+// Authorization is enforced by the caller (reopenEvaluationAction -> requireOwner); ownerUserId is
+// only ever supplied by that verified session.
+export async function reopenEvaluation(
+  evaluationId: string,
+  ownerUserId: string,
+  reason?: string
+) {
+  const evaluation = await db.query.evaluations.findFirst({
+    where: eq(schema.evaluations.id, evaluationId),
+  });
+  if (!evaluation) {
+    throw AppError.notFound("Evaluation not found.");
+  }
+
+  if (evaluation.status === "draft") {
+    throw AppError.invalidState("This evaluation has not been submitted yet, so there is nothing to reopen.");
+  }
+
+  if (evaluation.status === "reopened") {
+    throw AppError.invalidState("This evaluation is already open for edits.");
+  }
+
+  if (evaluation.roundId) {
+    const round = await db.query.testRounds.findFirst({
+      where: eq(schema.testRounds.id, evaluation.roundId),
+    });
+    if (round && round.status === "closed") {
+      throw AppError.invalidState("This round is closed; the evaluation can no longer be reopened.");
+    }
+  }
+
+  const now = new Date();
+  const [updated] = await db
+    .update(schema.evaluations)
+    .set({
+      status: "reopened",
+      reopenedAt: now,
+      reopenedBy: ownerUserId,
+      updatedAt: now,
+    })
+    .where(eq(schema.evaluations.id, evaluationId))
+    .returning();
+
+  await logActivity(ownerUserId, "evaluation.reopened", "evaluation", evaluationId, {
+    evaluationType: evaluation.evaluationType,
+    previousStatus: evaluation.status,
+    reason: reason || null,
+  });
+
+  return updated;
+}
+
 // Owner-side review, scoped by round.
 export async function getEvaluationsByRound(roundId: string) {
   return await db.query.evaluations.findMany({
@@ -305,6 +374,8 @@ export async function getEvaluationDetailForOwner(evaluationId: string) {
       sample: true,
       revision: { with: { product: true } },
       assignment: { with: { testerProfile: true } },
+      // Needed so the owner's reopen control can be hidden once the round is closed.
+      round: true,
     },
   });
   if (!evaluation) {

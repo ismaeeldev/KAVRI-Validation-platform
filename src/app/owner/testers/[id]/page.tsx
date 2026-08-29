@@ -1,13 +1,12 @@
 import React from "react";
 import Link from "next/link";
 import { getTesterById } from "@/server/services/tester-service";
-import { DashboardPageHeader } from "@/components/brand/dashboard-layout-components";
 import { StatusBadge } from "@/components/brand/status";
-import { TesterActions } from "@/components/brand/tester-actions";
+import { TesterDetailClient } from "@/components/brand/tester-detail-client";
 import { db } from "@/db";
 import { eq, and, desc } from "drizzle-orm";
 import * as schema from "@/db/schema";
-import { ShieldAlert, Award, FileText, Activity, Clock } from "lucide-react";
+import { FileText, Clock } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -50,157 +49,29 @@ export default async function TesterDetailPage({ params }: PageProps) {
   });
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 select-none">
-      <DashboardPageHeader
-        title={tester.displayName}
-        eyebrow="Tester Profile Manager"
-        description="Manage tester activation workflows, security credentials, and active dispatch briefs."
-        backHref="/owner/testers"
-        backLabel="Back to testers directory"
-        actions={
-          <div className="flex items-center gap-2">
-            <Link
-              href={`/owner/testers/${id}/edit`}
-              className="border border-kavri-line-strong hover:bg-kavri-surface-subtle text-xs font-sans font-semibold px-4 py-2 h-9 rounded-lg transition-colors flex items-center justify-center focus-visible:outline-2 focus-visible:outline-kavri-signal"
-            >
-              Edit Profile
-            </Link>
-            <span className="font-mono text-[10px] uppercase tracking-widest px-2.5 py-1 bg-kavri-surface border border-kavri-line rounded-md text-kavri-ink font-semibold">
-              Invite: {inviteState.replace("_", " ")}
-            </span>
-            <span className={`text-[10px] font-bold px-2.5 py-1 border rounded-md uppercase ${
-              tester.approvalStatus === "approved"
-                ? "bg-[#e8f5ec] text-[#257a47] border-[#d1ecd9]"
-                : tester.approvalStatus === "deactivated"
-                ? "bg-[#f9e9e7] text-[#b33a32] border-[#f5d6d4]"
-                : tester.approvalStatus === "declined"
-                ? "bg-gray-100 text-gray-700 border-gray-200"
-                : "bg-[#fff5d8] text-[#986b11] border-[#faecd1]"
-            }`}>
-              {tester.approvalStatus}
-            </span>
-          </div>
-        }
-      />
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Main Info */}
-        <div className="lg:col-span-8 space-y-6">
-          {/* Profile details */}
-          <div className="border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-4">
-            <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink border-b border-kavri-line pb-3 flex items-center gap-1.5">
-              <Award className="h-4 w-4 text-kavri-muted" />
-              <span>Profile Information</span>
-            </h3>
-            <div className="space-y-4 text-xs font-sans">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Full Name</span>
-                  <p className="font-semibold text-kavri-ink mt-0.5 text-[13px]">{tester.displayName}</p>
-                </div>
-                <div>
-                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Normalized Email</span>
-                  <p className="font-semibold text-kavri-ink mt-0.5 text-[13px]">{tester.emailNormalized}</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div>
-                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Approval Status</span>
-                  <p className="font-semibold text-kavri-ink mt-0.5 text-[13px] uppercase">{tester.approvalStatus}</p>
-                </div>
-                <div>
-                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Onboarded User Link</span>
-                  <p className="font-semibold text-kavri-ink mt-0.5 text-[13px]">
-                    {tester.userId ? `Linked (User ID: ${tester.userId.slice(0, 8)})` : "No Credentials Active"}
-                  </p>
-                </div>
-              </div>
-              {tester.approvalStatus === "declined" && tester.declinedReason && (
-                <div className="pt-2">
-                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Decline Reason</span>
-                  <p className="text-kavri-ink mt-0.5 italic">{tester.declinedReason}</p>
-                </div>
-              )}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t border-kavri-line">
-                <div>
-                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Skill</span>
-                  <p className="font-semibold text-kavri-ink mt-0.5 text-[12px]">{tester.skillLevel || "—"}</p>
-                </div>
-                <div>
-                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Frequency</span>
-                  <p className="font-semibold text-kavri-ink mt-0.5 text-[12px] capitalize">{tester.playingFrequency?.split("_").join(" ") || "—"}</p>
-                </div>
-                <div>
-                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Current Paddle</span>
-                  <p className="font-semibold text-kavri-ink mt-0.5 text-[12px]">{tester.currentPaddle || "—"}</p>
-                </div>
-                <div>
-                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Dominant Hand</span>
-                  <p className="font-semibold text-kavri-ink mt-0.5 text-[12px] capitalize">{tester.dominantHand?.split("_").join(" ") || "—"}</p>
-                </div>
-                <div>
-                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Play Style</span>
-                  <p className="font-semibold text-kavri-ink mt-0.5 text-[12px] capitalize">{tester.playStyle?.split(",").join(", ") || "—"}</p>
-                </div>
-                <div>
-                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Consent</span>
-                  <p className="font-semibold text-kavri-ink mt-0.5 text-[12px]">
-                    {tester.consentAt ? `${new Date(tester.consentAt).toLocaleDateString()} (${tester.consentTextVersion})` : "Not yet given"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Access Control & Invite Generator Action block */}
-          <TesterActions
-            testerId={id}
-            approvalStatus={tester.approvalStatus}
-            isRegistered={!!tester.userId}
-          />
-
-          {/* Assignments History */}
-          <div className="border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-4">
-            <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink border-b border-kavri-line pb-3 flex items-center gap-1.5">
-              <FileText className="h-4 w-4 text-kavri-muted" />
-              <span>Assignments History</span>
-            </h3>
-            
-            {assignments.length === 0 ? (
-              <p className="text-xs text-kavri-muted font-sans py-2">No assignments dispatched to this tester.</p>
-            ) : (
-              <div className="divide-y divide-kavri-line/60">
-                {assignments.map((asg) => (
-                  <div 
-                    key={asg.id} 
-                    className="flex justify-between items-center py-3 first:pt-0 last:pb-0 font-sans text-xs"
-                  >
-                    <div>
-                      <Link 
-                        href={`/owner/assignments/${asg.id}`} 
-                        className="font-bold text-kavri-ink hover:underline"
-                      >
-                        Sample <span className="font-mono">{asg.sample.sampleCode}</span> ({asg.product.internalName})
-                      </Link>
-                      <p className="text-[10px] text-kavri-muted mt-0.5">
-                        Due: {new Date(asg.dueAt).toLocaleDateString()} | Sessions: {asg.requiredSessionCount}
-                      </p>
-                    </div>
-                    <StatusBadge status={asg.status} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Sidebar Info Column */}
-        <div className="lg:col-span-4 border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-4">
+    <TesterDetailClient
+      testerId={id}
+      displayName={tester.displayName}
+      emailNormalized={tester.emailNormalized}
+      initialApprovalStatus={tester.approvalStatus}
+      initialDeclinedReason={tester.declinedReason}
+      isRegistered={!!tester.userId}
+      hasActiveInvitation={inviteState === "active"}
+      inviteState={inviteState}
+      skillLevel={tester.skillLevel}
+      playingFrequency={tester.playingFrequency}
+      currentPaddle={tester.currentPaddle}
+      dominantHand={tester.dominantHand}
+      playStyle={tester.playStyle}
+      consentAt={tester.consentAt}
+      consentTextVersion={tester.consentTextVersion}
+      sidebar={
+        <>
           <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink border-b border-kavri-line pb-3 flex items-center gap-1.5">
             <Clock className="h-4 w-4 text-kavri-muted" />
             <span>Triage & Audit History</span>
           </h3>
-          
+
           {activityLogs.length === 0 ? (
             <p className="text-xs text-kavri-muted font-sans">No audit logs recorded.</p>
           ) : (
@@ -209,7 +80,7 @@ export default async function TesterDetailPage({ params }: PageProps) {
                 <div key={log.id} className="relative space-y-1 font-sans text-xs">
                   {/* Node */}
                   <span className="absolute -left-[24px] top-1 w-1.5 h-1.5 rounded-full bg-kavri-line-strong border border-kavri-surface" />
-                  
+
                   <div className="flex justify-between items-baseline gap-2">
                     <span className="font-bold text-kavri-ink">
                       {log.action.split(".").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
@@ -218,7 +89,7 @@ export default async function TesterDetailPage({ params }: PageProps) {
                       {new Date(log.createdAt).toLocaleDateString()}
                     </time>
                   </div>
-                  
+
                   {log.metadataJson && (
                     <p className="text-kavri-muted text-[10px] mt-0.5 bg-[#fafaf8] border border-kavri-line p-1.5 rounded-md font-mono overflow-x-auto max-w-full">
                       {log.metadataJson}
@@ -228,8 +99,42 @@ export default async function TesterDetailPage({ params }: PageProps) {
               ))}
             </div>
           )}
-        </div>
+        </>
+      }
+    >
+      {/* Assignments History - static, not affected by approval-status mutations */}
+      <div className="border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-4">
+        <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink border-b border-kavri-line pb-3 flex items-center gap-1.5">
+          <FileText className="h-4 w-4 text-kavri-muted" />
+          <span>Assignments History</span>
+        </h3>
+
+        {assignments.length === 0 ? (
+          <p className="text-xs text-kavri-muted font-sans py-2">No assignments dispatched to this tester.</p>
+        ) : (
+          <div className="divide-y divide-kavri-line/60">
+            {assignments.map((asg) => (
+              <div
+                key={asg.id}
+                className="flex justify-between items-center py-3 first:pt-0 last:pb-0 font-sans text-xs"
+              >
+                <div>
+                  <Link
+                    href={`/owner/assignments/${asg.id}`}
+                    className="font-bold text-kavri-ink hover:underline"
+                  >
+                    Sample <span className="font-mono">{asg.sample.sampleCode}</span> ({asg.product.internalName})
+                  </Link>
+                  <p className="text-[10px] text-kavri-muted mt-0.5">
+                    Due: {new Date(asg.dueAt).toLocaleDateString()} | Sessions: {asg.requiredSessionCount}
+                  </p>
+                </div>
+                <StatusBadge status={asg.status} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-    </div>
+    </TesterDetailClient>
   );
 }

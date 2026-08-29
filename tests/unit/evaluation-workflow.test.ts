@@ -71,13 +71,16 @@ describe("Play Sessions & Evaluations Module Unit Tests (Sprint 1 revision, Step
       const assignmentSpy = vi.spyOn(db.query.testingAssignments, "findFirst").mockResolvedValue(
         assignment as unknown as Awaited<ReturnType<typeof db.query.testingAssignments.findFirst>>
       );
+      // Decision 1: a submitted evaluation is locked and can only be edited after the owner
+      // reopens it - status must be "reopened" here, not "submitted", to reach the correction
+      // path this test actually exercises (payload sanitization).
       const submittedEval = {
         id: "eval_1",
         assignmentId: "asg_1",
         sampleId: "sample_1",
         revisionId: "revision_1",
         roundId: "round_1",
-        status: "submitted",
+        status: "reopened",
       };
       const evalFindSpy = vi.spyOn(db.query.evaluations, "findFirst").mockResolvedValue(
         submittedEval as unknown as Awaited<ReturnType<typeof db.query.evaluations.findFirst>>
@@ -132,11 +135,14 @@ describe("Play Sessions & Evaluations Module Unit Tests (Sprint 1 revision, Step
       const assignmentSpy = vi.spyOn(db.query.testingAssignments, "findFirst").mockResolvedValue(
         assignment as unknown as Awaited<ReturnType<typeof db.query.testingAssignments.findFirst>>
       );
+      // Decision 1: only a "reopened" evaluation reaches the round-closed check at all - a merely
+      // "submitted" one is blocked earlier by the lock itself, which is a separate, correct case
+      // (see the "does not accept ... in the correction payload" test above for that path).
       const evalFindSpy = vi.spyOn(db.query.evaluations, "findFirst").mockResolvedValue({
         id: "eval_1",
         assignmentId: "asg_1",
         roundId: "round_1",
-        status: "submitted",
+        status: "reopened",
       } as unknown as Awaited<ReturnType<typeof db.query.evaluations.findFirst>>);
       const roundSpy = vi.spyOn(db.query.testRounds, "findFirst").mockResolvedValue({
         id: "round_1",
@@ -151,6 +157,29 @@ describe("Play Sessions & Evaluations Module Unit Tests (Sprint 1 revision, Step
       assignmentSpy.mockRestore();
       evalFindSpy.mockRestore();
       roundSpy.mockRestore();
+    });
+
+    it("Decision 1: rejects an edit to a submitted evaluation that has not been reopened by the owner", async () => {
+      const profileSpy = vi.spyOn(db.query.testerProfiles, "findFirst").mockResolvedValue(
+        testerProfile as unknown as Awaited<ReturnType<typeof db.query.testerProfiles.findFirst>>
+      );
+      const assignmentSpy = vi.spyOn(db.query.testingAssignments, "findFirst").mockResolvedValue(
+        assignment as unknown as Awaited<ReturnType<typeof db.query.testingAssignments.findFirst>>
+      );
+      const evalFindSpy = vi.spyOn(db.query.evaluations, "findFirst").mockResolvedValue({
+        id: "eval_1",
+        assignmentId: "asg_1",
+        roundId: "round_1",
+        status: "submitted",
+      } as unknown as Awaited<ReturnType<typeof db.query.evaluations.findFirst>>);
+
+      await expect(
+        editSubmittedEvaluation("eval_1", { evaluationType: "first_impression" }, "user_tester_1")
+      ).rejects.toThrow("locked");
+
+      profileSpy.mockRestore();
+      assignmentSpy.mockRestore();
+      evalFindSpy.mockRestore();
     });
   });
 

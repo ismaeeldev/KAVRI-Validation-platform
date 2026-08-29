@@ -1,11 +1,12 @@
 "use server";
 
-import { requireActiveTester } from "@/lib/permissions";
+import { requireActiveTester, requireOwner } from "@/lib/permissions";
 import {
   createPlaySession,
   createOrUpdateDraftEvaluation,
   submitEvaluation,
   editSubmittedEvaluation,
+  reopenEvaluation,
   getEvaluationProgress,
 } from "../services/evaluation-service";
 import { createPlaySessionSchema, evaluationDraftSchema } from "@/lib/validation/schemas";
@@ -40,6 +41,21 @@ export async function editSubmittedEvaluationAction(evaluationId: string, assign
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const result = await editSubmittedEvaluation(evaluationId, parsed as any, session.user.id);
   revalidatePath(`/tester/assignments/${assignmentId}`);
+  return result;
+}
+
+// Decision 1: OWNER-ONLY. requireOwner() throws before any state changes, so a tester (or any
+// unauthenticated caller) invoking this action directly is rejected - the reopen decision is the
+// owner's alone. The tester's own submitted evaluations stay locked until this runs.
+export async function reopenEvaluationAction(
+  evaluationId: string,
+  roundId: string,
+  reason?: string
+) {
+  const { session } = await requireOwner();
+  const result = await reopenEvaluation(evaluationId, session.user.id, reason);
+  revalidatePath(`/owner/rounds/${roundId}/evaluations/${evaluationId}`);
+  revalidatePath(`/owner/rounds/${roundId}/evaluations`);
   return result;
 }
 

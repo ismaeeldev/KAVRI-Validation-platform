@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import { updateIssueResolutionAction } from "@/server/actions/issue-actions";
 import { IMMEDIATE_ACTION, ISSUE_RESOLUTION_STATUS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -14,10 +13,23 @@ interface IssueResolutionFormProps {
   immediateAction: string | null;
   resolutionStatus: string;
   resolutionNotes: string | null;
+  /** Reports the server action's own return value back to the parent client wrapper so the
+   * header status badge updates immediately, with no server round-trip (router.refresh()) for
+   * the UI to reflect the new state - same pattern as tester-actions.tsx / sample-triage-controls.tsx. */
+  onUpdate?: (updated: { resolutionStatus: string }) => void;
 }
 
-export function IssueResolutionForm({ issueId, immediateAction, resolutionStatus, resolutionNotes }: IssueResolutionFormProps) {
-  const router = useRouter();
+// FUNC-08: mirrors the VALID_TRANSITIONS map enforced server-side in issue-service.ts. The
+// current status is always kept selectable (no-op save), plus whatever states are a valid
+// transition from it - so the dropdown can never offer a jump the server would reject.
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  open: ["monitoring", "resolved"],
+  monitoring: ["resolved", "open"],
+  resolved: ["closed", "monitoring"],
+  closed: ["open", "monitoring"],
+};
+
+export function IssueResolutionForm({ issueId, immediateAction, resolutionStatus, resolutionNotes, onUpdate }: IssueResolutionFormProps) {
   const [action, setAction] = useState(immediateAction || "");
   const [status, setStatus] = useState(resolutionStatus);
   const [notes, setNotes] = useState(resolutionNotes || "");
@@ -34,7 +46,12 @@ export function IssueResolutionForm({ issueId, immediateAction, resolutionStatus
       });
       toast.success("Resolution saved.");
       setConfirmClose(false);
-      router.refresh();
+      // Previously followed by router.refresh(), which left this page's server-rendered header
+      // status badge stale after a save (same class of Next.js dev-mode Router Cache issue
+      // documented on the tester/sample detail pages). Fixed the same way as those pages: the
+      // saved status is reported straight to the parent client wrapper so the badge updates
+      // instantly, with no server round-trip needed.
+      onUpdate?.({ resolutionStatus: status });
     } catch (error: unknown) {
       const err = error as Error;
       toast.error(err.message || "Failed to save resolution.");
@@ -85,11 +102,13 @@ export function IssueResolutionForm({ issueId, immediateAction, resolutionStatus
           className="w-full rounded-lg border border-kavri-line bg-background px-3 h-10 text-xs font-sans focus-visible:outline-2 focus-visible:outline-kavri-signal"
           disabled={isLoading}
         >
-          {Object.values(ISSUE_RESOLUTION_STATUS).map((s) => (
-            <option key={s} value={s}>
-              {s.charAt(0).toUpperCase() + s.slice(1)}
-            </option>
-          ))}
+          {Object.values(ISSUE_RESOLUTION_STATUS)
+            .filter((s) => s === resolutionStatus || (VALID_TRANSITIONS[resolutionStatus] || []).includes(s))
+            .map((s) => (
+              <option key={s} value={s}>
+                {s.charAt(0).toUpperCase() + s.slice(1)}
+              </option>
+            ))}
         </select>
       </div>
 

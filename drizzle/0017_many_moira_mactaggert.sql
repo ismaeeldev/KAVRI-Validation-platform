@@ -1,0 +1,1 @@
+ALTER TABLE "testing_assignments" ADD COLUMN "sample_confirmed_at" timestamp with time zone;

@@ -42,11 +42,27 @@ export async function updateSampleInspectionAction(sampleId: string, formData: u
 export async function transitionSampleStatusAction(
   sampleId: string,
   status: string,
-  readinessNote: string
+  readinessNote: string,
+  returnDetails?: unknown
 ) {
   const { session } = await requireOwner();
-  const parsed = transitionStatusSchema.parse({ status, readinessNote });
-  const result = await transitionSampleStatus(sampleId, parsed.status, parsed.readinessNote, session.user.id);
+  const parsed = transitionStatusSchema.parse({
+    status,
+    readinessNote,
+    ...(returnDetails && typeof returnDetails === "object" ? returnDetails : {}),
+  });
+  const result = await transitionSampleStatus(sampleId, parsed.status, parsed.readinessNote, session.user.id, {
+    returnedAt: parsed.returnedAt,
+    returnReceivedBy: parsed.returnReceivedBy,
+    returnInspectionPackagingOk: parsed.returnInspectionPackagingOk,
+    returnInspectionPackagingNotes: parsed.returnInspectionPackagingNotes,
+    returnInspectionCosmeticOk: parsed.returnInspectionCosmeticOk,
+    returnInspectionCosmeticNotes: parsed.returnInspectionCosmeticNotes,
+    returnInspectionConstructionOk: parsed.returnInspectionConstructionOk,
+    returnInspectionConstructionNotes: parsed.returnInspectionConstructionNotes,
+    returnInspectionSoundOk: parsed.returnInspectionSoundOk,
+    returnInspectionSoundNotes: parsed.returnInspectionSoundNotes,
+  });
   revalidatePath(`/owner/samples/${sampleId}`);
   revalidatePath("/owner/samples");
   return result;

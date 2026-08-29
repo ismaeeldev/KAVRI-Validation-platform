@@ -156,6 +156,11 @@ export const physicalSamples = pgTable("physical_samples", {
   actualLengthIn: numeric("actual_length_in"),
   actualWidthIn: numeric("actual_width_in"),
   actualHandleLengthIn: numeric("actual_handle_length_in"), // category derived in app code, not stored
+  // Step 4 (Workstream D) additions: grip circumference deliberately named distinctly from
+  // "handle measurement" per the brief; core thickness mirrors the revision's quick-select
+  // 13/14/16-plus-Other pattern (see revision-create-form.tsx) but recorded per physical unit.
+  actualGripCircumferenceIn: numeric("actual_grip_circumference_in"),
+  actualCoreThicknessMm: numeric("actual_core_thickness_mm"),
   // Intake inspection checklist.
   inspectionPackagingOk: boolean("inspection_packaging_ok"),
   inspectionPackagingNotes: text("inspection_packaging_notes"),
@@ -165,6 +170,17 @@ export const physicalSamples = pgTable("physical_samples", {
   inspectionConstructionNotes: text("inspection_construction_notes"),
   inspectionSoundOk: boolean("inspection_sound_ok"),
   inspectionSoundNotes: text("inspection_sound_notes"),
+  // Return intake: captured when a sample transitions 'assigned' -> 'returned' (FUNC-07).
+  returnedAt: timestamp("returned_at", { withTimezone: true }),
+  returnReceivedBy: text("return_received_by"),
+  returnInspectionPackagingOk: boolean("return_inspection_packaging_ok"),
+  returnInspectionPackagingNotes: text("return_inspection_packaging_notes"),
+  returnInspectionCosmeticOk: boolean("return_inspection_cosmetic_ok"),
+  returnInspectionCosmeticNotes: text("return_inspection_cosmetic_notes"),
+  returnInspectionConstructionOk: boolean("return_inspection_construction_ok"),
+  returnInspectionConstructionNotes: text("return_inspection_construction_notes"),
+  returnInspectionSoundOk: boolean("return_inspection_sound_ok"),
+  returnInspectionSoundNotes: text("return_inspection_sound_notes"),
   // Identification for blind-test handling and mobile QR scan resolution.
   qrValue: text("qr_value").unique(),
   shortCode: text("short_code").unique(),
@@ -319,6 +335,10 @@ export const testingAssignments = pgTable("testing_assignments", {
   activatedAt: timestamp("activated_at", { withTimezone: true }),
   activatedBy: text("activated_by").references(() => user.id),
   acknowledgedAt: timestamp("acknowledged_at", { withTimezone: true }),
+  // FUNC-06 fix: stamped when the tester confirms the physical sample in hand (via short-code
+  // entry, mirroring the QR/short-code scan route) - distinct from acknowledgedAt, which only
+  // acknowledges the assignment brief as a whole.
+  sampleConfirmedAt: timestamp("sample_confirmed_at", { withTimezone: true }),
   revokedAt: timestamp("revoked_at", { withTimezone: true }),
   revokedBy: text("revoked_by").references(() => user.id),
   revocationReason: text("revocation_reason"),
@@ -374,8 +394,14 @@ export const evaluations = pgTable("evaluations", {
   preference: text("preference"), // 'preferred'|'neutral'|'not_preferred'|'not_enough_evidence'
   confidence: text("confidence"), // 'low'|'medium'|'high'
   issueTriggered: boolean("issue_triggered").notNull().default(false),
-  status: text("status").notNull().default("draft"), // 'draft'|'submitted'|'updated'
+  status: text("status").notNull().default("draft"), // 'draft'|'submitted'|'updated'|'reopened'
+  // Decision 1: set once, on first submission, and NEVER overwritten - not by an owner reopen and
+  // not by a subsequent tester correction. `updatedAt` is the "last updated" counterpart.
   submittedAt: timestamp("submitted_at", { withTimezone: true }),
+  // Decision 1: stamped each time an owner reopens this locked evaluation for edits. Null means
+  // the evaluation has never been reopened. Two timestamps only - no revision-history table.
+  reopenedAt: timestamp("reopened_at", { withTimezone: true }),
+  reopenedBy: text("reopened_by").references(() => user.id),
   lastSavedAt: timestamp("last_saved_at", { withTimezone: true }).notNull().defaultNow(),
   createdBy: text("created_by").notNull().references(() => user.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -468,6 +494,18 @@ export const waitlistSubscribers = pgTable("waitlist_subscribers", {
   consentAt: timestamp("consent_at", { withTimezone: true }).notNull().defaultNow(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   status: text("status").notNull(), // 'active' | 'unsubscribed'
+  // Step 7 / Decision 2 (Klaviyo opt-in split): "Join the Build" signups are single opt-in by
+  // definition, so they are always marketing-consented and this stays true for that path. The
+  // Apply to Test form captures this from its separate, optional, unchecked-by-default "Also
+  // send me KAVRI development & launch updates" checkbox - distinct from consentGiven above,
+  // which only covers KAVRI's own application-record consent. Klaviyo sync fires ONLY when this
+  // is true; the KAVRI record always saves regardless of this value or of Klaviyo's own status.
+  marketingConsent: boolean("marketing_consent").notNull().default(false),
+  // Best-effort observability for the Klaviyo sync attempt tied to this record - never the
+  // source of truth (KAVRI's own consent/source/UTM fields above are), and never blocks or
+  // rolls back the record above if Klaviyo sync fails.
+  klaviyoSyncedAt: timestamp("klaviyo_synced_at", { withTimezone: true }),
+  klaviyoSyncError: text("klaviyo_sync_error"),
 }, (table) => [
   index("waitlist_email_idx").on(table.emailNormalized),
 ]);

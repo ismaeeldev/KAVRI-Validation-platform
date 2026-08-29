@@ -16,6 +16,8 @@ import {
   FEEL_QUADRANT,
   PUBLIC_STATE,
   deriveHandleLengthCategory,
+  MEASUREMENT_METHOD,
+  BALANCE_POINT_HELPER_TEXT,
 } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -273,7 +275,7 @@ export function RevisionCreateForm({ productId }: CreateFormProps) {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="targetSwingWeightMethod" className="text-xs font-semibold text-kavri-ink">Swing Weight Method</Label>
-              <Input id="targetSwingWeightMethod" {...register("targetSwingWeightMethod")} className="text-xs focus-visible:ring-kavri-signal h-10 px-3 rounded-lg border-kavri-line" placeholder="e.g. Babolat RDC" disabled={isLoading} />
+              <Input id="targetSwingWeightMethod" list="measurement-method-options" {...register("targetSwingWeightMethod")} className="text-xs focus-visible:ring-kavri-signal h-10 px-3 rounded-lg border-kavri-line" placeholder="e.g. RDC (Babolat)" disabled={isLoading} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="targetTwistWeight" className="text-xs font-semibold text-kavri-ink">Twist Weight</Label>
@@ -281,13 +283,19 @@ export function RevisionCreateForm({ productId }: CreateFormProps) {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="targetTwistWeightMethod" className="text-xs font-semibold text-kavri-ink">Twist Weight Method</Label>
-              <Input id="targetTwistWeightMethod" {...register("targetTwistWeightMethod")} className="text-xs focus-visible:ring-kavri-signal h-10 px-3 rounded-lg border-kavri-line" disabled={isLoading} />
+              <Input id="targetTwistWeightMethod" list="measurement-method-options" {...register("targetTwistWeightMethod")} className="text-xs focus-visible:ring-kavri-signal h-10 px-3 rounded-lg border-kavri-line" disabled={isLoading} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="targetBalancePointMm" className="text-xs font-semibold text-kavri-ink">Balance Point (mm from butt cap)</Label>
+              <Label htmlFor="targetBalancePointMm" className="text-xs font-semibold text-kavri-ink">Balance Point (cm)</Label>
               <Input id="targetBalancePointMm" type="number" step="0.1" {...register("targetBalancePointMm", { valueAsNumber: true })} className="text-xs focus-visible:ring-kavri-signal h-10 px-3 rounded-lg border-kavri-line" disabled={isLoading} />
+              <p className="text-[10px] text-kavri-muted italic">{BALANCE_POINT_HELPER_TEXT}</p>
             </div>
           </div>
+          <datalist id="measurement-method-options">
+            {Object.values(MEASUREMENT_METHOD).map((m) => (
+              <option key={m} value={m} />
+            ))}
+          </datalist>
         </div>
 
         <div className="border-t border-kavri-line pt-4 space-y-4">

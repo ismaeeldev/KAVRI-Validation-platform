@@ -81,6 +81,10 @@ export function SampleCreateForm({ products, revisions }: CreateFormProps) {
 
   return (
     <div className="border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs">
+      <p className="text-xs font-sans text-kavri-muted italic bg-kavri-signal-soft/40 border border-kavri-line rounded-lg p-3 mb-4">
+        A sample is one physical paddle tied to a specific product revision. Product and revision specifications
+        are inherited. Enter only information unique to this physical unit.
+      </p>
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-4 font-sans text-xs">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

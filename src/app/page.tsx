@@ -11,7 +11,6 @@ import {
   type PublicSampleSummaryDTO,
 } from "@/server/services/public-queries-service";
 
-// Landing section components
 import { LandingNav } from "@/components/brand/landing-nav";
 import {
   LandingHero,
@@ -32,15 +31,13 @@ import {
   LandingFooter,
 } from "@/components/brand/landing-sections";
 import { UtmProvider } from "@/components/brand/landing-utm-context";
+import { LandingBootGate } from "@/components/brand/landing-boot-gate";
+import { LandingBootInlineScript } from "@/components/brand/landing-boot-inline-script";
+import { LandingSmoothScroll } from "@/components/brand/landing-smooth-scroll";
 
-// UTM/referral capture moved to client-side (UtmProvider, via useSearchParams) rather than
-// reading the server page's searchParams prop - that prop would force this whole page into
-// fully dynamic per-request rendering, which measurably hurt LCP (Step 17 performance fix).
-// A 60s revalidate window is an acceptable freshness tradeoff for a public marketing page.
 export const revalidate = 60;
 
 export default async function PublicLandingPage() {
-  // ── Data fetching with offline fallback ──────────────────────────────────
   let updates: PublicUpdateDTO[] = [];
   let products: PublicProductDTO[] = [];
   let whatChanged: PublicWhatChangedDTO[] = [];
@@ -72,7 +69,6 @@ export default async function PublicLandingPage() {
 
   const featuredProduct = products[0] ?? null;
 
-  // M5: production domain not yet confirmed - falls back to NEXT_PUBLIC_APP_URL.
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://kavri.co";
   const jsonLd = {
     "@context": "https://schema.org",
@@ -92,63 +88,47 @@ export default async function PublicLandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f7f3] text-kavri-ink flex flex-col font-sans antialiased selection:bg-kavri-signal selection:text-kavri-signal-ink">
+    <div className="landing-premium min-h-screen flex flex-col antialiased">
+      <LandingBootInlineScript />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {/* Offline fallback banner */}
       {isOfflineFallback && (
         <div
           role="alert"
-          className="bg-kavri-ink text-kavri-paper text-center py-2 font-mono text-[10px] uppercase tracking-wider border-b border-kavri-line select-none"
+          className="bg-[var(--lp-sage)] text-[var(--lp-sage-ink)] text-center py-2 font-mono text-[10px] uppercase tracking-wider border-b border-white/10 select-none z-[60] relative"
         >
-          ⚠️ Local Preview Fallback Mode (Database Connection Unreachable)
+          Local Preview Fallback Mode (Database Connection Unreachable)
         </div>
       )}
 
       <Suspense fallback={null}>
         <UtmProvider>
-          {/* Header / Navigation */}
+          <LandingBootGate>
+          <LandingSmoothScroll>
           <LandingNav />
 
           <main className="flex-1">
-            {/* 1. Hero */}
             <LandingHero />
-
-            {/* 2. Current Build Status (repurposed Live Validation Progress rail) */}
             <LandingValidationProgress />
-
-            {/* 3. What We Are Building */}
-            <LandingWhatWeAreBuilding products={products} />
-
-            {/* 4. How KAVRI Validates */}
+            <LandingActiveSpecs
+              product={featuredProduct}
+              sampleSummaries={sampleSummaries}
+            />
             <LandingHowWeValidate />
-
-            {/* 5. Current Test Focus (repurposed Active Specs) */}
-            <LandingActiveSpecs product={featuredProduct} sampleSummaries={sampleSummaries} />
-
-            {/* 6. Validation Snapshot (repurposed Metrics, zero-value cards hidden) */}
+            <LandingWhatWeAreBuilding products={products} />
             <LandingMetrics metrics={metrics} />
-
-            {/* 7. What Changed and Why */}
             <LandingWhatChangedAndWhy decisions={whatChanged} />
-
-            {/* 8. Development Log (repurposed Testing Log / Timeline) */}
             <LandingTimeline updates={updates} />
-
-            {/* 9. Why KAVRI Tests (repurposed Values) */}
             <LandingValues />
-
-            {/* 10. Join the Build (repurposed Newsletter CTA) */}
             <LandingNewsletterCTA />
-
-            {/* 11. About KAVRI */}
             <LandingAboutKavri />
           </main>
 
-          {/* 12. Footer */}
           <LandingFooter />
+          </LandingSmoothScroll>
+          </LandingBootGate>
         </UtmProvider>
       </Suspense>
     </div>

@@ -1,42 +1,54 @@
-import React from "react";
+"use client";
+
+import React, { useRef } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { WaitlistForm } from "@/components/brand/waitlist-form";
 import { TesterApplicationDialog } from "@/components/brand/tester-application-dialog";
 import { KAVRIWordmark } from "@/components/brand/wordmark";
-import Link from "next/link";
+import { AnimeStaggerIn, LandingScrollReveal } from "@/components/brand/landing-motion";
+
+gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const VALUES = [
   {
     number: "01",
+    title: "Craftsmanship You Can Trace",
+    desc: "We document every decision and share the results so you can hold us to a higher standard.",
+    tag: "Accountability",
     icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
       </svg>
     ),
-    title: "Accountability",
-    desc: "We document every decision and share the results so you can hold us to a higher standard.",
-    tag: "Transparent Process",
   },
   {
     number: "02",
+    title: "Proof, Not Hype",
+    desc: "Real data and real feedback from active field testing lead to products that perform when it counts.",
+    tag: "Better Products",
     icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
       </svg>
     ),
-    title: "Better Products",
-    desc: "Real data and real feedback from active field testing lead to products that perform when it counts.",
-    tag: "Data-Driven",
   },
   {
     number: "03",
+    title: "Built With Players",
+    desc: "You're not just a customer—you're part of the process. The best products are built together.",
+    tag: "Community First",
     icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94-3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
       </svg>
     ),
-    title: "Community First",
-    desc: "You're not just a customer—you're part of the process. The best products are built together.",
-    tag: "Open Testing",
   },
 ];
 
@@ -44,132 +56,197 @@ export function LandingValues() {
   return (
     <section
       id="why-kavri-tests"
-      className="bg-kavri-surface border-b border-kavri-line px-6 md:px-10 py-16 md:py-24"
+      className="border-b border-[var(--lp-line)] lp-section-wash px-5 sm:px-6 md:px-10 py-16 sm:py-20 md:py-28"
     >
-      <div className="max-w-[1280px] mx-auto space-y-14">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div className="max-w-[1280px] mx-auto space-y-12 md:space-y-14">
+        <LandingScrollReveal className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-3 max-w-xl">
-            <div className="inline-block">
-              <span className="relative inline-block text-kavri-ink font-mono text-[10px] uppercase tracking-[0.18em] font-black whitespace-nowrap select-none">
-                <span
-                  className="absolute -inset-x-4 -inset-y-2 bg-no-repeat pointer-events-none"
-                  style={{ backgroundImage: "url('/paint-stroke.png')", backgroundSize: "100% 100%" }}
-                />
-                <span className="relative z-10">Why KAVRI Tests</span>
-              </span>
-            </div>
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--lp-sage)] font-semibold">
+              Why This Is Public
+            </p>
             <h2
-              className="font-heading font-black uppercase text-kavri-ink leading-[1.05]"
-              style={{ fontSize: "clamp(24px, 3vw, 40px)" }}
+              className="font-heading font-bold tracking-[-0.02em] text-[var(--lp-text)] leading-[1.05]"
+              style={{ fontSize: "clamp(1.75rem, 3.5vw, 2.75rem)" }}
             >
-              Rigorous Validation Is<br />Our Fingerprint
+              Rigorous Validation Is Our{" "}
+              <span className="text-[var(--lp-sage)]">Fingerprint</span>
             </h2>
           </div>
-          <p className="font-sans text-sm text-kavri-muted leading-relaxed max-w-xs md:text-right">
+          <p className="font-sans text-sm text-[var(--lp-muted)] leading-relaxed max-w-xs md:text-right">
             Every product decision is backed by evidence—visible to anyone who cares to look.
           </p>
-        </div>
+        </LandingScrollReveal>
 
-        {/* Value cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {VALUES.map(({ number, icon, title, desc, tag }) => (
-            <div
-              key={title}
-              className="group bg-kavri-surface border border-kavri-line rounded-xl p-8 space-y-6 hover:shadow-[0_6px_28px_rgba(0,0,0,0.08)] hover:border-kavri-line-strong hover:-translate-y-0.5 transition-all duration-200 relative overflow-hidden"
-            >
-              {/* Subtle top accent on hover */}
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-kavri-signal opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-t-xl" />
-
-              {/* Card top row: number + icon */}
-              <div className="flex items-start justify-between">
-                <div className="w-12 h-12 rounded-xl bg-[#f0f8ce] flex items-center justify-center text-kavri-ink shrink-0 group-hover:bg-kavri-signal group-hover:text-kavri-ink transition-colors duration-200">
-                  {icon}
+        <AnimeStaggerIn>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+            {VALUES.map(({ number, icon, title, desc, tag }) => (
+              <div
+                key={title}
+                data-stagger-item
+                className="lp-card lp-card-static relative overflow-hidden rounded-2xl p-6 sm:p-7 space-y-5 border-[var(--lp-line)]"
+              >
+                <div
+                  className="pointer-events-none absolute inset-x-0 top-0 h-20 opacity-60"
+                  style={{
+                    background:
+                      "radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--lp-sage) 20%, transparent), transparent 70%)",
+                  }}
+                  aria-hidden
+                />
+                <div className="relative flex items-start justify-between">
+                  <div className="w-11 h-11 rounded-full border border-[var(--lp-sage)]/40 flex items-center justify-center text-[var(--lp-sage)] shadow-[0_0_16px_-4px_var(--lp-sage-glow)]">
+                    {icon}
+                  </div>
+                  <span className="font-mono text-[11px] font-bold text-[var(--lp-sage)] tracking-wider">
+                    {number}
+                  </span>
                 </div>
-                <span className="font-mono text-[11px] font-black text-kavri-muted tracking-wider select-none">
-                  {number}
-                </span>
+                <div className="relative space-y-2">
+                  <p className="font-mono text-[10px] uppercase tracking-wider text-[var(--lp-sage)]">
+                    {tag}
+                  </p>
+                  <h3 className="font-heading font-bold text-[16px] text-[var(--lp-text)] tracking-tight">
+                    {title}
+                  </h3>
+                  <p className="text-[13px] sm:text-[14px] text-[var(--lp-muted)] leading-relaxed font-sans">
+                    {desc}
+                  </p>
+                </div>
               </div>
-
-              {/* Content */}
-              <div className="space-y-2">
-                <h3 className="font-heading font-black uppercase text-[15px] text-kavri-ink tracking-wide">
-                  {title}
-                </h3>
-                <p className="text-[13px] text-kavri-muted leading-relaxed font-sans">{desc}</p>
-              </div>
-
-              {/* Tag pill */}
-              <div>
-                <span className="inline-block font-mono text-[9px] font-black uppercase tracking-wider bg-[#f0f0ed] text-kavri-muted border border-kavri-line px-2.5 py-1 rounded-md">
-                  {tag}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </AnimeStaggerIn>
       </div>
     </section>
   );
 }
 
 export function LandingNewsletterCTA() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const bgRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      const bg = bgRef.current;
+      const panel = panelRef.current;
+      if (!bg || !sectionRef.current) return;
+
+      gsap.to(bg.querySelector("img"), {
+        yPercent: 14,
+        scale: 1.08,
+        ease: "none",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 0.8,
+        },
+      });
+
+      if (panel) {
+        gsap.fromTo(
+          panel,
+          { opacity: 0, y: 32 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.9,
+            ease: "power3.out",
+            scrollTrigger: { trigger: sectionRef.current, start: "top 75%", once: true },
+          }
+        );
+      }
+    },
+    { scope: sectionRef }
+  );
+
   return (
     <section
+      ref={sectionRef}
       id="join-the-build"
-      className="bg-[#0f1111] border-b border-[#1a1d1c] px-6 md:px-10 py-16 md:py-24 relative overflow-hidden"
+      className="relative border-b border-[var(--lp-line)] px-5 sm:px-6 md:px-10 py-20 sm:py-24 md:py-32 overflow-hidden"
     >
-      {/* Subtle grid pattern */}
+      <div ref={bgRef} className="absolute inset-0" aria-hidden>
+        <Image
+          src="/kavri-grip-closeup.jpg"
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover object-center scale-110"
+        />
+        <div className="absolute inset-0 bg-black/75" />
+        <div className="absolute inset-0 lp-grid-bg opacity-[0.12]" />
+        <div className="absolute inset-0 lp-noise opacity-[0.18]" />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse 70% 60% at 50% 100%, rgba(184,255,46,0.12), transparent 55%)",
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-black/60 to-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
+      </div>
+
       <div
-        className="absolute inset-0 pointer-events-none opacity-[0.04]"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }}
+        className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[480px] w-[480px] rounded-full bg-[var(--lp-sage)]/6 blur-[100px]"
         aria-hidden
       />
 
-      <div className="max-w-[1280px] mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-        {/* Left: headline */}
-        <div className="space-y-5">
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-kavri-signal font-black">
-            Join the Build
-          </p>
-          <h2
-            className="font-heading font-black uppercase text-white leading-[1.0]"
-            style={{ fontSize: "clamp(36px, 4.5vw, 64px)" }}
-          >
-            Get Notified
-            <br />
-            of the{" "}
-            <span className="text-kavri-signal">Launch.</span>
-          </h2>
-          <p className="font-sans text-sm text-[#7a8078] leading-relaxed max-w-sm">
-            Join the waitlist and be first to know when new validation cycles go live, test results drop, and launch windows open.
-          </p>
-        </div>
+      <div ref={panelRef} className="max-w-[960px] mx-auto relative z-10">
+        <div className="relative overflow-hidden rounded-2xl border border-white/12 bg-black/45 backdrop-blur-xl shadow-[0_32px_80px_-24px_rgba(0,0,0,0.9),0_0_60px_-20px_var(--lp-sage-glow)]">
+          {/* Corner accents */}
+          <span className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-[var(--lp-sage)]/60 rounded-tl-sm pointer-events-none" aria-hidden />
+          <span className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-[var(--lp-sage)]/60 rounded-tr-sm pointer-events-none" aria-hidden />
+          <span className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-[var(--lp-sage)]/60 rounded-bl-sm pointer-events-none" aria-hidden />
+          <span className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-[var(--lp-sage)]/60 rounded-br-sm pointer-events-none" aria-hidden />
 
-        {/* Right: form */}
-        <div className="space-y-5">
-          <WaitlistForm ctaSource="update" />
-          <div className="inline-block pt-1">
-            <span className="relative inline-block text-kavri-ink font-mono text-[10px] uppercase tracking-wider font-black whitespace-nowrap select-none">
-              <span
-                className="absolute -inset-x-4 -inset-y-1.5 bg-no-repeat pointer-events-none"
-                style={{
-                  backgroundImage: "url('/paint-stroke.png')",
-                  backgroundSize: "100% 100%"
-                }}
-              />
-              <span className="relative z-10">No spam. Unsubscribe anytime.</span>
-            </span>
-          </div>
-          <div className="pt-2 border-t border-[#1a1d1c] mt-1">
-            <p className="font-mono text-[10px] uppercase tracking-wider text-[#7a8078] mb-3 pt-4">
-              Want hands-on access instead?
-            </p>
-            <TesterApplicationDialog variant="dark" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 divide-y lg:divide-y-0 lg:divide-x divide-white/10">
+            <div className="p-8 sm:p-10 lg:p-12 flex flex-col justify-center space-y-6 text-left">
+              <div className="space-y-4">
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[var(--lp-sage)] font-bold">
+                  Join the Build
+                </p>
+                <h2
+                  className="font-heading font-bold tracking-[-0.03em] text-white leading-[1.05]"
+                  style={{ fontSize: "clamp(1.75rem, 3.5vw, 2.5rem)" }}
+                >
+                  Follow the build before the paddle is final.
+                </h2>
+                <p className="font-sans text-sm sm:text-[15px] text-white/60 leading-relaxed">
+                  Be first when new validation cycles go live, results drop, and launch windows open.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {["Early access", "Zero spam", "Public by default"].map((tag) => (
+                  <span
+                    key={tag}
+                    className="font-mono text-[9px] uppercase tracking-wider text-white/50 border border-white/10 rounded-lg px-2.5 py-1 bg-white/5"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-8 sm:p-10 lg:p-12 flex flex-col justify-center space-y-5 bg-black/25">
+              <div className="w-full">
+                <WaitlistForm ctaSource="update" variant="premium-banner" />
+              </div>
+              <p className="font-mono text-[10px] uppercase tracking-wider text-[var(--lp-sage)] text-center lg:text-left">
+                No spam. Unsubscribe anytime.
+              </p>
+              <div className="pt-4 border-t border-white/10">
+                <p className="font-mono text-[10px] uppercase tracking-wider text-white/40 mb-3 text-center lg:text-left">
+                  Want hands-on access instead?
+                </p>
+                <div className="flex justify-center lg:justify-start">
+                  <TesterApplicationDialog variant="premium" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -179,41 +256,95 @@ export function LandingNewsletterCTA() {
 
 export function LandingFooter() {
   const NAV_LINKS = [
-    { href: "#current-testing", label: "What We Test" },
+    { href: "#how-we-test", label: "How We Test" },
+    { href: "#current-testing", label: "Current Testing" },
     { href: "#testing-log", label: "Testing Log" },
     { href: "#about-kavri", label: "About" },
   ];
 
+  const SOCIAL = [
+    {
+      label: "X",
+      href: "https://x.com",
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+        </svg>
+      ),
+    },
+    {
+      label: "Instagram",
+      href: "https://instagram.com",
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+          <rect x="2" y="2" width="20" height="20" rx="5" />
+          <circle cx="12" cy="12" r="4" />
+          <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+        </svg>
+      ),
+    },
+    {
+      label: "YouTube",
+      href: "https://youtube.com",
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+          <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.8 15.5v-7l6.2 3.5-6.2 3.5z" />
+        </svg>
+      ),
+    },
+  ];
+
   return (
-    <footer className="bg-kavri-surface border-t border-kavri-line px-6 md:px-10 py-8">
-      <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-        {/* Logo */}
-        <Link href="/" aria-label="KAVRI home" className="shrink-0">
-          <KAVRIWordmark />
-        </Link>
-
-        {/* Nav */}
-        <nav aria-label="Footer navigation" className="flex flex-wrap justify-center gap-x-6 gap-y-2">
-          {NAV_LINKS.map(({ href, label }) => (
-            <a
-              key={label}
-              href={href}
-              className="font-mono text-[11px] text-kavri-muted hover:text-kavri-ink transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-kavri-signal rounded-sm"
-            >
-              {label}
-            </a>
-          ))}
-          <Link
-            href="/login"
-            className="font-mono text-[11px] text-kavri-muted hover:text-kavri-ink transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-kavri-signal rounded-sm"
-          >
-            Team Login
+    <footer className="relative shrink-0 bg-[#050505] border-t border-[var(--lp-line)] px-5 sm:px-6 md:px-10 py-12 md:py-14">
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--lp-sage)]/25 to-transparent"
+        aria-hidden
+      />
+      <div className="max-w-[1280px] mx-auto flex flex-col gap-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <Link href="/" aria-label="KAVRI home" className="shrink-0 lp-focus-ring rounded-md">
+            <KAVRIWordmark className="text-[var(--lp-text)] [&_span]:text-[var(--lp-sage)]" />
           </Link>
-        </nav>
 
-        {/* Copyright */}
-        <div>
-          <span className="font-mono text-[10px] text-kavri-muted whitespace-nowrap">
+          <nav aria-label="Footer navigation" className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+            {NAV_LINKS.map(({ href, label }) => (
+              <a
+                key={label}
+                href={href}
+                className="font-mono text-[11px] text-[var(--lp-muted)] hover:text-[var(--lp-text)] transition-colors duration-150 lp-link-underline lp-focus-ring px-2 py-1 rounded-md"
+              >
+                {label}
+              </a>
+            ))}
+            <Link
+              href="/login"
+              className="font-mono text-[11px] text-[var(--lp-muted)] hover:text-[var(--lp-sage)] transition-colors duration-150 lp-link-underline lp-focus-ring px-2 py-1 rounded-md"
+            >
+              Team Login
+            </Link>
+          </nav>
+
+          <div className="flex items-center justify-center gap-3">
+            {SOCIAL.map(({ label, href, icon }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={label}
+                className="w-9 h-9 rounded-full border border-[var(--lp-line)] text-[var(--lp-muted)] hover:border-[var(--lp-sage)] hover:text-[var(--lp-sage)] transition-colors flex items-center justify-center lp-focus-ring"
+              >
+                {icon}
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-[var(--lp-line)] pt-6">
+          <p className="font-sans text-[12px] text-[var(--lp-muted)] max-w-md leading-relaxed">
+            KAVRI builds performance paddles in public — testing first, shipping when the data says so.
+          </p>
+          <span className="font-mono text-[10px] text-[var(--lp-muted)] whitespace-nowrap">
             &copy; {new Date().getFullYear()} KAVRI. All rights reserved.
           </span>
         </div>

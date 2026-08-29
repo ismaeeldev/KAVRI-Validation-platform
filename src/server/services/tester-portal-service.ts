@@ -86,6 +86,7 @@ export async function getTesterAssignmentById(assignmentId: string, testerUserId
     dueAt: assignment.dueAt,
     requiredSessionCount: assignment.requiredSessionCount,
     instructions: assignment.instructions,
+    sampleConfirmedAt: assignment.sampleConfirmedAt,
     progress: summarizeAssignmentProgress(assignment),
     product: {
       publicAlias: assignment.product.publicAlias || "Generic Product",
@@ -139,6 +140,54 @@ export async function acknowledgeAssignment(assignmentId: string, testerUserId: 
       .returning();
 
     await logActivity(testerUserId, "assignment.acknowledged", "testing_assignment", assignmentId);
+
+    return updated;
+  });
+}
+
+// FUNC-06 fix: tester-facing sample confirmation. Distinct from acknowledgeAssignment (which
+// acknowledges the brief as a whole) - this verifies the tester actually has the correct
+// physical sample in hand by matching the short code printed on its QR label, mirroring the
+// normalization used by sample-service's getSampleByShortCode (case-insensitive, trimmed).
+export async function confirmAssignmentSample(assignmentId: string, testerUserId: string, enteredShortCode: string) {
+  const profile = await getActiveTesterProfile(testerUserId);
+
+  return await db.transaction(async (tx) => {
+    const assignment = await tx.query.testingAssignments.findFirst({
+      where: and(
+        eq(schema.testingAssignments.id, assignmentId),
+        eq(schema.testingAssignments.testerProfileId, profile.id)
+      ),
+      with: { sample: true },
+    });
+
+    if (!assignment) {
+      throw AppError.notFound("The requested assignment was not found.");
+    }
+
+    if (assignment.sampleConfirmedAt) {
+      return assignment; // Idempotent
+    }
+
+    const normalizedEntered = enteredShortCode.trim().toUpperCase();
+    const expectedShortCode = assignment.sample.shortCode?.trim().toUpperCase();
+
+    if (!expectedShortCode || normalizedEntered !== expectedShortCode) {
+      throw AppError.invalidState(
+        "This code doesn't match the sample on this assignment. Double-check the code printed on your physical sample and try again."
+      );
+    }
+
+    const [updated] = await tx
+      .update(schema.testingAssignments)
+      .set({
+        sampleConfirmedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.testingAssignments.id, assignmentId))
+      .returning();
+
+    await logActivity(testerUserId, "assignment.sample_confirmed", "testing_assignment", assignmentId);
 
     return updated;
   });

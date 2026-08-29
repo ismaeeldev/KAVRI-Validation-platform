@@ -1,7 +1,11 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "./motion-provider";
+
+gsap.registerPlugin(ScrollTrigger);
 
 export function HeroReveal({ children }: { children: React.ReactNode }) {
   return (
@@ -20,80 +24,83 @@ export function ProgressBarFill({ width }: { width: string }) {
   );
 }
 
+/** Smooth eased count-up when scrolled into view. */
 export function MetricCountUp({ value }: { value: number }) {
   const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
   const isReduced = useReducedMotion();
 
   useEffect(() => {
     if (isReduced) {
-      // Set count asynchronously in requestAnimationFrame to prevent render cycle conflicts
       const frameId = requestAnimationFrame(() => setCount(value));
       return () => cancelAnimationFrame(frameId);
     }
 
-    let start = 0;
-    const end = value;
-    if (end === 0) return;
+    const el = ref.current;
+    if (!el || value === 0) {
+      setCount(value);
+      return;
+    }
 
-    const duration = 1200;
-    const increment = end / (duration / 16);
+    const obj = { n: 0 };
+    const tween = gsap.to(obj, {
+      n: value,
+                      duration: 1.1,
+      ease: "power2.out",
+      scrollTrigger: {
+        trigger: el,
+        start: "top 90%",
+        once: true,
+      },
+      onUpdate: () => setCount(Math.round(obj.n)),
+    });
 
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= end) {
-        setCount(end);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(start));
-      }
-    }, 16);
-
-    return () => clearInterval(timer);
+    return () => {
+      tween.kill();
+    };
   }, [value, isReduced]);
 
-  return <>{count}</>;
+  return <span ref={ref}>{count}</span>;
 }
 
+/** Premium staggered feed with GSAP blur settle. */
 export function StaggeredFeed({ children }: { children: React.ReactNode }) {
-  const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const isReduced = useReducedMotion();
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          // Asynchronously update visibility trigger state
-          requestAnimationFrame(() => setVisible(true));
-          observer.disconnect();
-        }
+    const el = ref.current;
+    if (!el || isReduced) return;
+
+    const items = el.querySelectorAll("[data-feed-item]");
+    gsap.set(items, { opacity: 0, y: 20 });
+
+    const st = ScrollTrigger.create({
+      trigger: el,
+      start: "top 85%",
+      once: true,
+      onEnter: () => {
+        gsap.to(items, {
+          opacity: 1,
+          y: 0,
+          duration: 0.7,
+          stagger: 0.1,
+          ease: "expo.out",
+        });
       },
-      { threshold: 0.1 }
-    );
+    });
 
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
+    return () => st.kill();
+  }, [isReduced, children]);
 
   if (isReduced) {
-    return <div className="space-y-6">{children}</div>;
+    return <div className="space-y-0">{children}</div>;
   }
 
   return (
-    <div
-      ref={ref}
-      className={`space-y-6 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
-    >
+    <div ref={ref} className="space-y-0">
       {React.Children.map(children, (child, idx) => (
-        <div
-          style={{
-            transitionDelay: `${idx * 150}ms`,
-          }}
-          className={`transition-all duration-500 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}
-        >
+        <div key={idx} data-feed-item>
           {child}
         </div>
       ))}

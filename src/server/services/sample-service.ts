@@ -37,6 +37,12 @@ export async function getSampleById(id: string) {
   return sample;
 }
 
+export async function getSampleByShortCode(shortCode: string) {
+  return await db.query.physicalSamples.findFirst({
+    where: eq(schema.physicalSamples.shortCode, shortCode.trim().toUpperCase()),
+  });
+}
+
 export async function createSample(
   data: {
     sampleCode: string;
@@ -149,11 +155,27 @@ export const OWNER_TRIGGERABLE_TRANSITIONS: Record<string, string[]> = Object.fr
   Object.entries(VALID_TRANSITIONS).map(([from, tos]) => [from, tos.filter((to) => to !== "assigned")])
 );
 
+// FUNC-07: structured fields captured in the same call when a sample transitions to
+// 'returned', instead of relying on a separate follow-up step the owner might skip.
+export interface SampleReturnDetailsInput {
+  returnedAt?: string;
+  returnReceivedBy?: string;
+  returnInspectionPackagingOk?: boolean;
+  returnInspectionPackagingNotes?: string;
+  returnInspectionCosmeticOk?: boolean;
+  returnInspectionCosmeticNotes?: string;
+  returnInspectionConstructionOk?: boolean;
+  returnInspectionConstructionNotes?: string;
+  returnInspectionSoundOk?: boolean;
+  returnInspectionSoundNotes?: string;
+}
+
 export async function transitionSampleStatus(
   sampleId: string,
   targetStatus: string,
   readinessNote: string,
-  userId: string
+  userId: string,
+  returnDetails?: SampleReturnDetailsInput
 ) {
   const sample = await getSampleById(sampleId);
   const currentStatus = sample.status;
@@ -166,6 +188,8 @@ export async function transitionSampleStatus(
     );
   }
 
+  const isReturning = targetStatus === "returned";
+
   const [updatedSample] = await db
     .update(schema.physicalSamples)
     .set({
@@ -174,6 +198,20 @@ export async function transitionSampleStatus(
       statusChangedAt: new Date(),
       statusChangedBy: userId,
       updatedAt: new Date(),
+      ...(isReturning
+        ? {
+            returnedAt: returnDetails?.returnedAt ? new Date(returnDetails.returnedAt) : new Date(),
+            returnReceivedBy: returnDetails?.returnReceivedBy || null,
+            returnInspectionPackagingOk: returnDetails?.returnInspectionPackagingOk ?? null,
+            returnInspectionPackagingNotes: returnDetails?.returnInspectionPackagingNotes || null,
+            returnInspectionCosmeticOk: returnDetails?.returnInspectionCosmeticOk ?? null,
+            returnInspectionCosmeticNotes: returnDetails?.returnInspectionCosmeticNotes || null,
+            returnInspectionConstructionOk: returnDetails?.returnInspectionConstructionOk ?? null,
+            returnInspectionConstructionNotes: returnDetails?.returnInspectionConstructionNotes || null,
+            returnInspectionSoundOk: returnDetails?.returnInspectionSoundOk ?? null,
+            returnInspectionSoundNotes: returnDetails?.returnInspectionSoundNotes || null,
+          }
+        : {}),
     })
     .where(eq(schema.physicalSamples.id, sampleId))
     .returning();
@@ -182,6 +220,7 @@ export async function transitionSampleStatus(
     from: currentStatus,
     to: targetStatus,
     readinessNote,
+    ...(isReturning ? { returnReceivedBy: returnDetails?.returnReceivedBy } : {}),
   });
 
   return updatedSample;
@@ -231,6 +270,8 @@ interface SampleMeasurementsInput {
   actualLengthIn?: number;
   actualWidthIn?: number;
   actualHandleLengthIn?: number;
+  actualGripCircumferenceIn?: number;
+  actualCoreThicknessMm?: number;
 }
 
 const numToStr = (n: number | undefined | null): string | null => (n === undefined || n === null ? null : String(n));
@@ -254,6 +295,8 @@ export async function updateSampleMeasurements(sampleId: string, data: SampleMea
       actualLengthIn: numToStr(data.actualLengthIn),
       actualWidthIn: numToStr(data.actualWidthIn),
       actualHandleLengthIn: numToStr(data.actualHandleLengthIn),
+      actualGripCircumferenceIn: numToStr(data.actualGripCircumferenceIn),
+      actualCoreThicknessMm: numToStr(data.actualCoreThicknessMm),
       updatedAt: new Date(),
     })
     .where(eq(schema.physicalSamples.id, sampleId))

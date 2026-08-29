@@ -7,6 +7,7 @@ import { SUPPLIER_RELATIONSHIP_STATUS } from "@/lib/constants";
 import { Search } from "lucide-react";
 import { ExportCsvButton } from "@/components/brand/export-csv-button";
 import type { CsvColumn } from "@/lib/csv-export";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface SupplierRow {
   id: string;
@@ -135,9 +136,7 @@ export function SupplierDirectoryTable({ suppliers }: { suppliers: SupplierRow[]
       </div>
 
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-12 border border-dashed border-kavri-line rounded-xl bg-kavri-surface text-center space-y-3">
-          <p className="text-xs font-sans font-semibold text-kavri-muted">No suppliers match your filters.</p>
-        </div>
+        <EmptyState title="No suppliers match your filters." />
       ) : (
         <div className="overflow-hidden border border-kavri-line rounded-xl bg-kavri-surface shadow-xs">
           <div className="overflow-x-auto">

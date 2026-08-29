@@ -18,7 +18,11 @@
   --color-kavri-signal-ink: var(--kavri-signal-ink);
   --color-kavri-line: var(--kavri-line);
   --color-kavri-line-strong: var(--kavri-line-strong);
-  
+  --color-kavri-success: var(--kavri-success);
+  --color-kavri-warning: var(--kavri-warning);
+  --color-kavri-danger: var(--kavri-danger);
+  --color-kavri-info: var(--kavri-info);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -69,6 +73,18 @@
   --kavri-signal: #d8f24b;
   --kavri-signal-ink: #39420a;
 
+  /* Status semantics (themeGuideline.md section 5) - the 12-status system maps onto
+     these four tokens, never onto ad-hoc Tailwind palette colors. */
+  --kavri-success: #1f7a3d;
+  --kavri-warning: #9a5b00;
+  --kavri-danger: #a13d3d;
+  --kavri-info: #345b79;
+
+  /* Elevation scale (section 16: avoid excessive shadows). Two restrained steps only:
+     resting card lift and a slightly stronger hover/raised state. */
+  --kavri-shadow-sm: 0 1px 2px rgba(22, 24, 27, 0.05), 0 1px 1px rgba(22, 24, 27, 0.04);
+  --kavri-shadow-md: 0 4px 16px rgba(22, 24, 27, 0.08), 0 1px 2px rgba(22, 24, 27, 0.05);
+
   /* Standard Theme Mappings */
   --background: var(--kavri-paper);
   --foreground: var(--kavri-ink);
@@ -107,6 +123,12 @@
 }
 
 .dark {
+  --kavri-success: #4caf72;
+  --kavri-warning: #d69a3e;
+  --kavri-danger: #d15a5a;
+  --kavri-info: #6fa0c2;
+  --kavri-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28), 0 1px 1px rgba(0, 0, 0, 0.22);
+  --kavri-shadow-md: 0 6px 20px rgba(0, 0, 0, 0.38), 0 1px 2px rgba(0, 0, 0, 0.28);
   --background: #16181b;
   --foreground: #f5f6f4;
   --card: #202225;
@@ -169,6 +191,501 @@
   animation: progressWipe 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+/* ── Landing premium — high-contrast charcoal + luminous sage ── */
+.landing-premium {
+  --lp-bg: #070807;
+  --lp-surface: #121612;
+  --lp-elevated: #1c221c;
+  --lp-line: rgba(255, 255, 255, 0.16);
+  --lp-line-strong: rgba(255, 255, 255, 0.3);
+  --lp-text: #fafbf7;
+  --lp-muted: #c9d0c2;
+  --lp-sage: #b8ff2e;
+  --lp-sage-bright: #d4ff6a;
+  --lp-sage-ink: #0a1004;
+  --lp-sage-glow: rgba(184, 255, 46, 0.45);
+  --lp-sage-soft: rgba(184, 255, 46, 0.12);
+  --lp-radius: 1rem;
+  --lp-radius-btn: 0.75rem;
+  --lp-radius-sm: 0.5rem;
+  --motion-control: 180ms;
+  --motion-fast: 140ms;
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Remap brand signal to neon lime for landing-only UI */
+  --kavri-signal: #b8ff2e;
+  --kavri-signal-ink: #0a1004;
+  --font-heading: var(--font-lp-display), "Space Grotesk", system-ui, sans-serif;
+  --font-sans: var(--font-lp-sans), "Manrope", system-ui, sans-serif;
+  --font-mono: var(--font-lp-mono), "JetBrains Mono", ui-monospace, monospace;
+  color: var(--lp-text);
+  background: var(--lp-bg);
+  font-family: var(--font-sans);
+  overflow-x: clip;
+}
+
+.landing-premium .font-heading {
+  font-family: var(--font-heading);
+}
+
+.landing-premium .font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Readable floor handled via component classes (11px+ labels) */
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.landing-premium ::selection {
+  background: var(--lp-sage);
+  color: var(--lp-sage-ink);
+}
+
+.lp-grid-bg {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.lp-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+@keyframes lpSagePulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--lp-sage-glow); }
+  50% { box-shadow: 0 0 0 10px transparent; }
+}
+
+.lp-pulse-ring {
+  animation: lpSagePulse 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes lpFloat {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -8px, 0); }
+}
+
+.lp-float {
+  animation: lpFloat 6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+.lp-vignette {
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+.lp-glass-edge {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 24px 80px -24px rgba(0, 0, 0, 0.85),
+    0 0 72px -20px rgba(182, 212, 154, 0.45);
+}
+
+.lp-card {
+  background: var(--lp-elevated);
+  border: 1px solid var(--lp-line);
+  border-radius: var(--lp-radius);
+  transition:
+    border-color var(--motion-control) var(--ease-standard),
+    box-shadow var(--motion-control) var(--ease-standard),
+    transform var(--motion-control) var(--ease-standard);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lp-card:hover {
+    border-color: rgba(182, 212, 154, 0.35);
+    box-shadow: 0 12px 40px -16px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(182, 212, 154, 0.08);
+  }
+}
+
+.lp-card-lift {
+  transition:
+    border-color 0.4s var(--ease-standard),
+    box-shadow 0.4s var(--ease-standard),
+    transform 0.45s var(--ease-standard);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lp-card-lift:hover {
+    transform: translateY(-2px);
+    border-color: rgba(184, 255, 46, 0.35);
+    box-shadow: 0 16px 48px -16px rgba(0, 0, 0, 0.65), 0 0 40px -18px var(--lp-sage-glow);
+  }
+}
+
+/* Non-interactive cards — no hover lift */
+.lp-card-static:hover {
+  transform: none;
+  border-color: var(--lp-line);
+  box-shadow: none;
+}
+
+@keyframes lpLiveDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.92); }
+}
+
+.lp-live-dot {
+  animation: lpLiveDot 2s var(--ease-standard) 2;
+}
+
+.lp-focus-ring:focus-visible {
+  outline: 2px solid var(--lp-sage);
+  outline-offset: 2px;
+}
+
+@keyframes lpVariantRing {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.06); opacity: 0.85; }
+}
+
+.lp-variant-ring {
+  animation: lpVariantRing 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-variant-ring {
+    animation: none;
+  }
+  .lp-card-lift:hover {
+    transform: none;
+  }
+}
+
+.lp-section-wash {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(182, 212, 154, 0.06), transparent 60%),
+    var(--lp-surface);
+}
+
+/* Boot lock — hide page until boot overlay exits */
+html.lp-boot-active {
+  overflow: hidden;
+  background: #070807;
+}
+
+html.lp-boot-active .lp-boot-content {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.lp-boot-continued .lp-boot-screen,
+.lp-boot-continued .lp-boot-fade-in {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.lp-boot-continued .lp-boot-rail-fill {
+  transform: scaleX(0.58) !important;
+  animation: none !important;
+}
+
+.lp-boot-continued .lp-boot-progress {
+  transform: scaleX(0.82) !important;
+  animation: lpBootProgress 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.lp-boot-continued .lp-boot-paddle-stroke {
+  stroke-dashoffset: 0 !important;
+  opacity: 1 !important;
+  animation: none !important;
+}
+
+.lp-boot-continued .lp-boot-message {
+  display: none;
+}
+
+.lp-boot-continued .lp-boot-message:last-child {
+  display: block;
+  opacity: 1 !important;
+  animation: none !important;
+  position: relative;
+}
+
+/* ── Landing boot loader (GPU: transform + opacity only) ── */
+@keyframes lpBootFadeIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes lpBootRailFill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(0.58); }
+}
+
+@keyframes lpBootProgress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes lpBootMessageCycle {
+  0%, 28% { opacity: 0; transform: translate3d(0, 6px, 0); }
+  8%, 22% { opacity: 1; transform: translate3d(0, 0, 0); }
+  32%, 100% { opacity: 0; transform: translate3d(0, -4px, 0); }
+}
+
+@keyframes lpBootPaddleStroke {
+  from { stroke-dashoffset: 400; opacity: 0.15; }
+  to { stroke-dashoffset: 0; opacity: 1; }
+}
+
+@keyframes lpBootExit {
+  to { opacity: 0; }
+}
+
+@keyframes lpBootPercent {
+  0% { content: "0%"; }
+  20% { content: "24%"; }
+  45% { content: "52%"; }
+  70% { content: "78%"; }
+  100% { content: "96%"; }
+}
+
+.lp-boot-screen {
+  contain: strict;
+  backface-visibility: hidden;
+  animation: lpBootFadeIn 0.4s var(--ease-standard) both;
+}
+
+.lp-boot-fade-in {
+  opacity: 0;
+  animation: lpBootFadeIn 0.5s var(--ease-standard) forwards;
+}
+
+.lp-boot-rail-fill {
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+  animation: lpBootRailFill 1.5s var(--ease-standard) forwards;
+}
+
+.lp-boot-progress {
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+  animation: lpBootProgress 1.85s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+}
+
+.lp-boot-message {
+  opacity: 0;
+  animation: lpBootMessageCycle 1.65s var(--ease-standard) forwards;
+}
+
+.lp-boot-message:nth-child(1) { animation-delay: 0s; }
+.lp-boot-message:nth-child(2) { animation-delay: 0.55s; }
+.lp-boot-message:nth-child(3) { animation-delay: 1.1s; }
+
+.lp-boot-paddle-stroke {
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  animation: lpBootPaddleStroke 1.4s var(--ease-standard) forwards;
+}
+
+.lp-boot-percent::after {
+  content: "0%";
+  animation: lpBootPercent 1.85s steps(1, end) forwards;
+}
+
+.lp-boot-node-active {
+  box-shadow: 0 0 14px -2px var(--lp-sage-glow);
+}
+
+.lp-boot-exit {
+  animation: lpBootExit 0.42s cubic-bezier(0.4, 0, 1, 1) forwards;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+.lp-boot-content-in {
+  animation: lpBootContentIn 0.35s var(--ease-standard) forwards;
+}
+
+@keyframes lpBootContentIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-boot-screen,
+  .lp-boot-fade-in,
+  .lp-boot-rail-fill,
+  .lp-boot-progress,
+  .lp-boot-message,
+  .lp-boot-paddle-stroke,
+  .lp-boot-exit,
+  .lp-boot-content-in,
+  .lp-boot-percent::after {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .lp-boot-rail-fill {
+    transform: scaleX(0.58) !important;
+  }
+
+  .lp-boot-progress {
+    transform: scaleX(1) !important;
+  }
+
+  .lp-boot-paddle-stroke {
+    stroke-dashoffset: 0 !important;
+  }
+
+  .lp-boot-message:not(:first-child) {
+    display: none;
+  }
+}
+
+.lp-btn-primary {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--lp-radius-btn);
+  transition: background-color 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.lp-btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.28) 50%,
+    transparent 60%
+  );
+  transform: translateX(-120%);
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lp-btn-primary:hover {
+    background-color: var(--lp-sage-bright);
+    box-shadow: 0 0 32px -6px var(--lp-sage-glow);
+  }
+
+  .lp-btn-primary:hover::after {
+    transform: translateX(120%);
+  }
+}
+
+.lp-btn-primary:active {
+  transform: scale(0.985);
+}
+
+.lp-btn-ghost:active {
+  transform: scale(0.985);
+}
+
+.lp-btn-ghost {
+  border-radius: var(--lp-radius-btn);
+  transition: border-color 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Landing buttons & cards: consistent soft radius */
+.landing-premium .lp-btn-primary,
+.landing-premium .lp-btn-ghost,
+.landing-premium a.lp-btn-primary,
+.landing-premium a.lp-btn-ghost {
+  border-radius: var(--lp-radius-btn);
+}
+
+.landing-premium button:not(.rounded-full):not([class*="rounded-full"]),
+.landing-premium a[class*="bg-[var(--lp-sage)]"],
+.landing-premium a[class*="border border-white"],
+.landing-premium a[class*="border border-[var(--lp-line"] {
+  border-radius: var(--lp-radius-btn);
+}
+
+.landing-premium .lp-card,
+.landing-premium [class*="lp-card"] {
+  border-radius: var(--lp-radius);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lp-btn-ghost:hover {
+    border-color: var(--lp-sage);
+    color: var(--lp-sage);
+    background-color: rgba(143, 160, 135, 0.06);
+  }
+}
+
+.lp-link-underline {
+  position: relative;
+}
+
+.lp-link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  bottom: 0.65rem;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.lp-link-underline:focus-visible::after {
+  transform: scaleX(1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lp-link-underline:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+.lp-nav-link {
+  position: relative;
+}
+
+.lp-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 1px;
+  background: var(--lp-sage);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--motion-control) var(--ease-standard);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lp-nav-link:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+.lp-nav-link:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.landing-premium a,
+.landing-premium button {
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-hero-reveal {
     animation: none !important;
@@ -177,5 +694,14 @@
   }
   .animate-progress-wipe {
     animation: none !important;
+  }
+  .lp-pulse-ring,
+  .lp-float,
+  .lp-live-dot {
+    animation: none !important;
+  }
+  .lp-btn-primary::after,
+  .lp-link-underline::after {
+    display: none;
   }
 }

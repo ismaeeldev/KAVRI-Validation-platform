@@ -5,6 +5,7 @@ import * as schema from "@/db/schema";
 import { AppError } from "@/lib/errors";
 import { logActivity } from "./activity-service";
 import { transitionSampleStatus } from "./sample-service";
+import { sendAssignmentNotificationEmail, sendReminderEmail } from "@/lib/email";
 
 export async function getAssignments() {
   return await db.query.testingAssignments.findMany({
@@ -251,8 +252,15 @@ export async function createAssignment(
   });
 }
 
+// Step 3 (Notification Event Matrix row "Assignment"): this is the owner's deliberate
+// "Create and Send" moment - createAssignment above only ever produces a 'draft' row (the Save
+// as Draft equivalent), and activation is the separate, explicit action that both flips the
+// assignment to 'invited' AND sends the tester their assignment email. The DB transaction below
+// always completes or throws on its own; the email send is caught separately afterward so a
+// Resend failure surfaces as a real emailSent/emailError state to the owner instead of a
+// false-positive "sent" toast, while the activation itself still stands.
 export async function activateAssignment(id: string, userId: string) {
-  return await db.transaction(async (tx) => {
+  const updated = await db.transaction(async (tx) => {
     const assignment = await getAssignmentById(id);
 
     if (assignment.status !== "draft") {
@@ -277,6 +285,10 @@ export async function activateAssignment(id: string, userId: string) {
       throw AppError.invalidState("Physical sample must remain ready_for_testing.");
     }
 
+    if (!assignment.round) {
+      throw AppError.notFound("Test round not found for this assignment.");
+    }
+
     const [updated] = await tx
       .update(schema.testingAssignments)
       .set({
@@ -291,14 +303,35 @@ export async function activateAssignment(id: string, userId: string) {
 
     await logActivity(userId, "assignment.invited", "testing_assignment", id);
 
-    return updated;
-  }).then(async (updated) => {
-    // Sample transitions to 'assigned' now that it's actually out for testing - the trigger
-    // point Step 4 deferred to this step. Runs outside the assignment transaction since
-    // transitionSampleStatus manages its own write and activity log.
-    await transitionSampleStatus(updated.sampleId, "assigned", "Assignment invited; sample dispatched to tester.", userId);
-    return updated;
+    return { updated, tester, round: assignment.round, sample };
   });
+
+  // Sample transitions to 'assigned' now that it's actually out for testing - the trigger point
+  // Step 4 deferred to this step. Runs outside the assignment transaction since
+  // transitionSampleStatus manages its own write and activity log.
+  await transitionSampleStatus(updated.updated.sampleId, "assigned", "Assignment invited; sample dispatched to tester.", userId);
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const acknowledgeUrl = `${appUrl}/tester/assignments/${id}`;
+
+  let emailSent = false;
+  let emailError: string | null = null;
+  try {
+    await sendAssignmentNotificationEmail(updated.tester.emailNormalized, updated.tester.displayName, {
+      roundCode: updated.round.roundCode,
+      sampleCode: updated.sample.sampleCode,
+      dueAt: updated.updated.dueAt,
+      requiredSessionCount: updated.updated.requiredSessionCount,
+      acknowledgeUrl,
+    });
+    emailSent = true;
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error(`[assignment-service] Failed to send assignment notification for assignment ${id}:`, err);
+    emailError = err.message || "Failed to send assignment notification email.";
+  }
+
+  return { ...updated.updated, emailSent, emailError };
 }
 
 export async function revokeAssignment(id: string, reason: string, userId: string) {
@@ -353,11 +386,13 @@ export async function expireAssignment(id: string, userId: string) {
   return updated;
 }
 
-// Logs that a reminder was sent - does NOT send an actual email (deferred, requires the email
-// service from M4; see Section 6 / P3-03 of the audit). The UI label makes this explicit
-// ("Log Reminder") to avoid implying an email went out.
+// Step 3 (Notification Event Matrix row "Reminder"): now actually sends the reminder email (was
+// previously log-only, see prior comment history / Section 6 / P3-03 of the audit, before the
+// email service landed in Step 3). The lastReminderAt/log write always completes or throws on
+// its own; the email send is caught separately so a Resend failure surfaces as a real
+// emailSent/emailError state to the owner instead of a false "reminder sent" toast.
 export async function logAssignmentReminder(id: string, userId: string) {
-  await getAssignmentById(id); // validates existence, throws AppError.notFound otherwise
+  const assignment = await getAssignmentById(id); // validates existence, throws AppError.notFound otherwise
 
   const [updated] = await db
     .update(schema.testingAssignments)
@@ -370,5 +405,23 @@ export async function logAssignmentReminder(id: string, userId: string) {
 
   await logActivity(userId, "assignment.reminder_sent", "testing_assignment", id);
 
-  return updated;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const assignmentUrl = `${appUrl}/tester/assignments/${id}`;
+
+  let emailSent = false;
+  let emailError: string | null = null;
+  try {
+    await sendReminderEmail(
+      assignment.testerProfile.emailNormalized,
+      assignment.testerProfile.displayName,
+      assignmentUrl
+    );
+    emailSent = true;
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error(`[assignment-service] Failed to send reminder email for assignment ${id}:`, err);
+    emailError = err.message || "Failed to send reminder email.";
+  }
+
+  return { ...updated, emailSent, emailError };
 }

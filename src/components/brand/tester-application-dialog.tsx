@@ -20,6 +20,9 @@ const TRIGGER_STYLES = {
   // Build" button beside it) - a subtle lime-tinted transparent hover washed the lime text into
   // the lime background and was nearly unreadable while hovering.
   dark: "border-kavri-signal/40 text-kavri-signal bg-transparent hover:bg-kavri-signal hover:text-kavri-signal-ink hover:border-kavri-signal",
+  /** Landing premium dark charcoal + sage */
+  premium:
+    "border-[var(--lp-sage)]/50 text-[var(--lp-sage)] bg-transparent hover:bg-[var(--lp-sage)] hover:text-[var(--lp-sage-ink)] hover:border-[var(--lp-sage)]",
 } as const;
 
 interface TesterApplicationDialogProps {
@@ -35,7 +38,7 @@ export function TesterApplicationDialog({ variant = "light" }: TesterApplication
         render={
           <Button
             variant="outline"
-            className={`${TRIGGER_STYLES[variant]} font-mono text-xs uppercase tracking-wider h-11 px-6 min-h-[44px] font-black cursor-pointer rounded-sm`}
+            className={`${TRIGGER_STYLES[variant]} font-mono text-xs uppercase tracking-wider h-11 px-6 min-h-[44px] font-black cursor-pointer rounded-xl`}
           />
         }
       >

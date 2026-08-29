@@ -43,13 +43,18 @@ export function TesterApplicationForm({ onSuccess }: TesterApplicationFormProps)
     formState: { errors },
   } = useForm<ApplicationFormData>({
     resolver: zodResolver(testerApplicationSchema) as unknown as Resolver<ApplicationFormData>,
-    defaultValues: { consentGiven: false, consentTextVersion: WAITLIST_CONSENT_TEXT_VERSION },
+    defaultValues: {
+      consentGiven: false,
+      consentTextVersion: WAITLIST_CONSENT_TEXT_VERSION,
+      // Decision 2: unchecked by default - marketing consent is never implied by applying to test.
+      marketingConsent: false,
+    },
   });
 
   const onSubmit = async (data: ApplicationFormData) => {
     setIsLoading(true);
     try {
-      await testerApplicationAction({
+      const result = await testerApplicationAction({
         ...data,
         utmSource,
         utmMedium,
@@ -58,7 +63,15 @@ export function TesterApplicationForm({ onSuccess }: TesterApplicationFormProps)
         consentTextVersion: WAITLIST_CONSENT_TEXT_VERSION,
       });
       setIsSuccess(true);
-      toast.success("Application received.");
+      // The application record itself always succeeds here (or the action would have thrown) -
+      // that's what "Application received" reflects. The confirmation email is reported
+      // separately so we never claim delivery that didn't happen.
+      if (result.emailSent) {
+        toast.success("Application received. A confirmation email is on its way.");
+      } else {
+        toast.success("Application received.");
+        toast.error(result.emailError || "We couldn't send a confirmation email, but your application was recorded.");
+      }
       reset();
       onSuccess?.();
     } catch (error: unknown) {
@@ -135,6 +148,27 @@ export function TesterApplicationForm({ onSuccess }: TesterApplicationFormProps)
         </Label>
       </div>
       {errors.consentGiven && <p className="text-destructive font-mono text-[10px]">{errors.consentGiven.message}</p>}
+
+      {/* Visually separated from the required application fields above - this checkbox is
+          optional marketing consent, distinct from (and never required by) the application
+          consent above it. Unchecked by default per Decision 2. */}
+      <div className="flex items-start gap-2 pt-3 border-t border-dashed border-input">
+        <Controller
+          control={control}
+          name="marketingConsent"
+          render={({ field }) => (
+            <Checkbox
+              id="applicant-marketing-consent"
+              checked={field.value}
+              onCheckedChange={(checked) => field.onChange(checked === true)}
+              disabled={isLoading}
+            />
+          )}
+        />
+        <Label htmlFor="applicant-marketing-consent" className="text-[11px] font-normal leading-snug text-muted-foreground">
+          Also send me KAVRI development &amp; launch updates. <span className="italic">(Optional — your application will be reviewed either way.)</span>
+        </Label>
+      </div>
 
       <Button type="submit" disabled={isLoading} className="w-full font-mono text-xs uppercase tracking-wider">
         {isLoading ? "Submitting..." : "Submit Application"}

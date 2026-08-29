@@ -1,166 +1,285 @@
-import React from "react";
-import Image from "next/image";
-import { HeroReveal, ProgressBarFill } from "@/components/brand/animated-landing-elements";
+"use client";
 
-// Stages for the validation progress rail
+import React, { useRef } from "react";
+import Image from "next/image";
+import {
+  MagneticButton,
+  useLandingHeroMotion,
+  useValidationRailMotion,
+} from "@/components/brand/landing-motion";
+import { ProgressBarFill } from "@/components/brand/animated-landing-elements";
+
 const STAGES = ["Concept", "Design", "Prototype", "Field Test", "Production", "Launch"] as const;
-const ACTIVE_STAGE_IDX = 3; // "Field Test"
+const ACTIVE_STAGE_IDX = 3;
 
 export function LandingHero() {
+  const scopeRef = useRef<HTMLElement>(null);
+  useLandingHeroMotion(scopeRef);
+
   return (
-    <section className="bg-kavri-surface border-b border-kavri-line py-14 md:py-20 lg:py-24 px-6 md:px-10">
-      <div className="max-w-[1280px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-        {/* ── LEFT COLUMN ── */}
-        <div className="space-y-8">
-          <HeroReveal>
-            {/* Eyebrow */}
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-kavri-muted font-semibold">
-              Premium Hardware. Built in the Open.
-            </p>
+    <section
+      ref={scopeRef}
+      className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden pt-20"
+    >
+      {/* Background */}
+      <div className="absolute inset-0 overflow-hidden" aria-hidden>
+        <div data-hero-bg className="absolute inset-0">
+          <Image
+            src="/kavri-hero-paddles.jpg"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-[#070807]" />
+        <div
+          data-hero-glow
+          className="absolute inset-0 opacity-0"
+          style={{
+            background:
+              "radial-gradient(ellipse 70% 50% at 50% 45%, rgba(184,255,46,0.12), transparent 65%)",
+          }}
+        />
+      </div>
 
-            {/* Headline */}
-            <h1
-              className="font-heading font-black uppercase leading-[1.0] text-kavri-ink"
-              style={{ fontSize: "clamp(36px, 4.5vw, 60px)" }}
+      {/* Centered copy */}
+      <div className="relative z-10 w-full max-w-[1280px] mx-auto px-5 sm:px-6 md:px-10 py-16 sm:py-20">
+        <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
+          <p
+            data-hero-eyebrow
+            className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--lp-sage)] font-semibold mb-6 sm:mb-7"
+          >
+            Premium Hardware. Built in the Open.
+          </p>
+
+          <h1
+            className="font-heading font-bold leading-[1.02] tracking-[-0.035em] text-[var(--lp-text)]"
+            style={{ fontSize: "clamp(2.35rem, 7vw, 4.75rem)" }}
+          >
+            <span data-hero-line className="block overflow-hidden">
+              <span className="inline-block">We Don&apos;t </span>
+              <span className="inline-block text-[var(--lp-sage)]">Show</span>
+            </span>
+            <span
+              data-hero-line
+              className="block text-white/50 overflow-hidden mt-1"
             >
-              We Don&apos;t Show
-              <br />
-              Coming Soon.
-              <br />
-              <span className="relative inline-block text-kavri-signal-ink mt-5 select-none font-black whitespace-nowrap">
+              <span className="inline-block">Coming Soon.</span>
+            </span>
+            <span data-hero-line className="block mt-2 sm:mt-3 overflow-hidden">
+              <span className="inline-block">We </span>
+              <span className="inline-block text-[var(--lp-sage)]">Show </span>
+              <span className="relative inline-block">
+                Testing
                 <span
-                  className="absolute -inset-x-10 -inset-y-12 bg-no-repeat pointer-events-none"
-                  style={{
-                    backgroundImage: "url('/paint-stroke.png')",
-                    backgroundSize: "100% 100%",
-                  }}
+                  data-hero-underline
+                  className="absolute left-0 right-0 -bottom-1 sm:-bottom-1.5 h-[3px] bg-[var(--lp-sage)] origin-left shadow-[0_0_16px_var(--lp-sage-glow)]"
+                  aria-hidden
                 />
-                <span className="relative z-10">We Show Testing.</span>
               </span>
-            </h1>
+              <span className="inline-block">.</span>
+            </span>
+          </h1>
 
-            {/* Supporting copy */}
-            <p className="text-base text-kavri-muted leading-relaxed max-w-[500px] font-sans">
-              Every KAVRI product earns its way to launch through measured inspection, real-world testing,
-              and recorded decisions. This page is your window into our validation platform—what we
-              test, how we test, and where we are right now.
-            </p>
+          <p
+            data-hero-body
+            className="mt-6 sm:mt-7 text-[15px] sm:text-[17px] text-[var(--lp-muted)] leading-relaxed max-w-[34rem] font-sans"
+          >
+            Every KAVRI product earns its way to launch through measured inspection, real-world
+            testing, and recorded decisions. This page is your window into our validation
+            platform—what we test, how we test, and where we are right now.
+          </p>
 
-            {/* CTAs */}
-            <div className="flex flex-wrap items-center gap-3">
-              <a
-                href="#join-the-build"
-                className="inline-flex items-center gap-2 bg-kavri-signal text-kavri-ink border border-kavri-ink hover:bg-kavri-ink hover:text-white transition-all duration-200 px-6 h-11 font-sans text-sm font-bold rounded-lg focus-visible:outline-2 focus-visible:outline-kavri-signal focus-visible:outline-offset-2 shadow-xs"
-              >
-                Join the Build <span aria-hidden>›</span>
-              </a>
-              <a
-                href="#current-testing"
-                className="inline-flex items-center gap-2 bg-kavri-ink text-kavri-surface hover:bg-[#2b2f35] active:bg-[#1a1d20] transition-colors duration-150 px-6 h-11 font-sans text-sm font-bold rounded-lg border border-kavri-ink focus-visible:outline-2 focus-visible:outline-kavri-signal focus-visible:outline-offset-2"
-              >
-                View Active Tests <span aria-hidden>›</span>
-              </a>
-              <a
-                href="#how-we-test"
-                className="inline-flex items-center gap-2 border border-kavri-line bg-transparent text-kavri-ink hover:bg-kavri-surface-subtle transition-colors duration-150 px-6 h-11 font-sans text-sm font-bold rounded-lg focus-visible:outline-2 focus-visible:outline-kavri-signal focus-visible:outline-offset-2"
-              >
-                See How We Test
-              </a>
-            </div>
-
-            {/* Trust indicators */}
-            <div className="flex flex-wrap gap-6 pt-1 border-t border-kavri-line" role="list">
-              {[
-                {
-                  icon: (
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                    </svg>
-                  ),
-                  label: "Built in the Open",
-                },
-                {
-                  icon: (
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                      <circle cx="9" cy="7" r="4" />
-                      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                    </svg>
-                  ),
-                  label: "Real Tester Feedback",
-                },
-                {
-                  icon: (
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                    </svg>
-                  ),
-                  label: "Data-Driven Decisions",
-                },
-              ].map(({ icon, label }) => (
-                <div
-                  key={label}
-                  role="listitem"
-                  className="flex items-center gap-2 font-mono text-[11px] text-kavri-muted pt-4"
+          <div
+            data-hero-cta-group
+            className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-center gap-3 sm:gap-4 mt-8 sm:mt-9 w-full sm:w-auto"
+          >
+            <MagneticButton
+              href="#join-the-build"
+              className="lp-btn-primary inline-flex items-center justify-center gap-2 bg-[var(--lp-sage)] text-[var(--lp-sage-ink)] px-8 min-h-[3.25rem] h-[3.25rem] font-sans text-sm font-bold rounded-xl focus-visible:outline-2 focus-visible:outline-[var(--lp-sage)] focus-visible:outline-offset-2 w-full sm:w-auto shadow-[0_0_32px_-4px_var(--lp-sage-glow)]"
+            >
+              <span data-hero-cta className="inline-flex items-center gap-2">
+                Join the Build <span aria-hidden>→</span>
+              </span>
+            </MagneticButton>
+            <MagneticButton
+              href="#how-we-test"
+              strength={0.16}
+              className="lp-btn-ghost inline-flex items-center justify-center gap-2.5 border border-white/25 text-[var(--lp-text)] px-7 min-h-[3.25rem] h-[3.25rem] font-sans text-sm font-semibold rounded-xl focus-visible:outline-2 focus-visible:outline-[var(--lp-sage)] focus-visible:outline-offset-2 w-full sm:w-auto backdrop-blur-sm bg-white/[0.03]"
+            >
+              <span data-hero-cta className="inline-flex items-center gap-2.5">
+                <span
+                  className="inline-flex w-7 h-7 rounded-full border border-[var(--lp-sage)]/60 items-center justify-center shadow-[0_0_12px_-2px_var(--lp-sage-glow)]"
+                  aria-hidden
                 >
-                  <span className="text-kavri-ink">{icon}</span>
-                  {label}
-                </div>
-              ))}
-            </div>
-          </HeroReveal>
+                  <svg width="9" height="9" viewBox="0 0 8 8" fill="var(--lp-sage)">
+                    <path d="M1.5 0.5v7l6-3.5z" />
+                  </svg>
+                </span>
+                Watch How It Works
+              </span>
+            </MagneticButton>
+          </div>
+
+          <div
+            data-hero-trust
+            className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 mt-10 sm:mt-12 pt-8 border-t border-white/10 w-full max-w-lg"
+            role="list"
+          >
+            {[
+              "Built on Real Data",
+              "Multi-Stage Validation",
+              "Player-First Iteration",
+            ].map((label) => (
+              <div
+                key={label}
+                role="listitem"
+                data-hero-trust-item
+                className="flex items-center gap-2 font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.14em] text-white/75"
+              >
+                <span
+                  className="w-1.5 h-1.5 rounded-full bg-[var(--lp-sage)] shadow-[0_0_10px_var(--lp-sage)]"
+                  aria-hidden
+                />
+                {label}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Scroll hint */}
+      <div
+        data-hero-scroll
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 opacity-0"
+        aria-hidden
+      >
+        <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/40">
+          Scroll
+        </span>
+        <span className="w-px h-8 bg-gradient-to-b from-[var(--lp-sage)]/60 to-transparent" />
+      </div>
+    </section>
+  );
+}
+
+export function LandingValidationProgress() {
+  const railRef = useRef<HTMLElement>(null);
+  useValidationRailMotion(railRef);
+
+  return (
+    <section
+      ref={railRef}
+      className="relative z-10 border-y border-[var(--lp-line)] bg-[#0a0a0a]/95 backdrop-blur-md px-4 sm:px-6 md:px-10 py-7 md:py-10 overflow-hidden"
+    >
+      {/* Ambient glow behind active stage */}
+      <div
+        data-rail-ambient
+        className="pointer-events-none absolute top-1/2 -translate-y-1/2 h-32 w-32 rounded-full opacity-0 blur-3xl bg-[var(--lp-sage)]"
+        style={{ left: `${(ACTIVE_STAGE_IDX / (STAGES.length - 1)) * 100}%`, transform: "translateX(-50%) translateY(-50%)" }}
+        aria-hidden
+      />
+
+      <div className="max-w-[1280px] mx-auto space-y-6 md:space-y-7">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p
+            data-rail-header
+            className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--lp-muted)] font-semibold"
+          >
+            <span className="hidden sm:inline">Active Validation / Multiple Variants / </span>
+            In Testing
+          </p>
+          <p
+            data-rail-live
+            className="font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--lp-sage)] font-bold flex items-center gap-2"
+          >
+            <span className="relative flex h-2.5 w-2.5" aria-hidden>
+              <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--lp-sage)] opacity-50 lp-live-dot" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[var(--lp-sage)]" />
+            </span>
+            Live: Field Testing
+          </p>
         </div>
 
-        {/* ── RIGHT COLUMN: Hero Image Card ── */}
-        <div className="w-full">
-          <div className="relative rounded-2xl border border-kavri-line overflow-hidden bg-[#0d0e0f] shadow-[0_8px_40px_rgba(0,0,0,0.15)]">
-            {/* Main image */}
-            <div className="relative w-full aspect-[4/3] overflow-hidden">
-              <Image
-                src="/abstract-constellation.png"
-                alt="KAVRI Hardware Product Specimen — Abstract Data Constellation"
-                fill
-                priority
-                sizes="(max-width: 1023px) 100vw, 50vw"
-                className="object-cover object-center"
+        <div className="relative -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto sm:overflow-visible scrollbar-none">
+          <div className="relative min-w-[520px] sm:min-w-0">
+            <div className="absolute top-[15px] left-0 right-0 h-px bg-white/12 z-0" aria-hidden />
+            <div
+              data-rail-track
+              className="absolute top-[15px] left-0 right-0 h-[2px] z-[5] origin-left overflow-hidden"
+              aria-hidden
+            >
+              <div
+                data-rail-fill
+                className="absolute inset-0 bg-[var(--lp-sage)] origin-left shadow-[0_0_14px_var(--lp-sage-glow)]"
+                style={{ transform: "scaleX(0)" }}
+              />
+              <div
+                data-rail-shimmer
+                className="absolute inset-y-0 w-24 bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0"
+                aria-hidden
               />
             </div>
 
-            {/* Specification panel attached to bottom of image */}
-            <div className="bg-[#0f1112] text-white px-6 py-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#7a8078] mb-1">
-                    Current Test Focus
-                  </p>
-                  <p className="font-heading font-black uppercase text-[20px] tracking-tight text-white leading-tight">
-                    Apex Matrix Core
-                  </p>
-                </div>
-                <span className="bg-kavri-signal text-kavri-signal-ink font-mono text-[9px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg border border-[#c6e83a]">
-                  Field Test
-                </span>
-              </div>
-
-              <div className="grid grid-cols-4 gap-4 pt-3 border-t border-[#1f2223]">
-                {[
-                  { label: "Core", value: "Honeycomb Matrix" },
-                  { label: "Frame", value: "Raw T700 Carbon" },
-                  { label: "Weight (Target)", value: "220g" },
-                  { label: "Testers", value: "12 Active" },
-                ].map(({ label, value }) => (
-                  <div key={label} className="space-y-1">
-                    <p className="font-mono text-[8px] uppercase tracking-wider text-[#5a605e]">
-                      {label}
-                    </p>
-                    <p className="font-mono text-[11px] font-semibold text-white leading-snug">
-                      {value}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ol
+              className="relative z-20 grid gap-0"
+              style={{ gridTemplateColumns: `repeat(${STAGES.length}, minmax(72px, 1fr))` }}
+            >
+              {STAGES.map((stage, idx) => {
+                const isCompleted = idx < ACTIVE_STAGE_IDX;
+                const isActive = idx === ACTIVE_STAGE_IDX;
+                return (
+                  <li key={stage} className="flex flex-col items-center gap-2.5 min-w-0 px-1">
+                    <div
+                      data-rail-node
+                      data-rail-active={isActive ? "true" : undefined}
+                      aria-current={isActive ? "step" : undefined}
+                      className={`
+                        relative w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0
+                        ${
+                          isCompleted
+                            ? "bg-[var(--lp-sage)] border-[var(--lp-sage)] shadow-[0_0_14px_var(--lp-sage-glow)]"
+                            : isActive
+                              ? "bg-[#050505] border-[var(--lp-sage)] shadow-[0_0_24px_var(--lp-sage-glow)]"
+                              : "bg-[#0e0e0e] border-white/20"
+                        }
+                      `}
+                    >
+                      {isActive && (
+                        <span
+                          data-rail-pulse
+                          className="absolute inset-0 rounded-full border-2 border-[var(--lp-sage)] opacity-0"
+                          aria-hidden
+                        />
+                      )}
+                      {isCompleted ? (
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-label="Completed" role="img">
+                          <path
+                            d="M2.5 6L5 8.5L9.5 4"
+                            stroke="#0a1004"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      ) : isActive ? (
+                        <span className="w-2.5 h-2.5 rounded-full bg-[var(--lp-sage)] shadow-[0_0_8px_var(--lp-sage)]" aria-hidden />
+                      ) : null}
+                    </div>
+                    <span
+                      data-rail-label
+                      className={`font-mono text-[10px] sm:text-[11px] uppercase tracking-wider text-center leading-tight
+                        ${isCompleted || isActive ? "text-[var(--lp-text)] font-bold" : "text-[var(--lp-muted)]"}
+                      `}
+                    >
+                      {stage}
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
           </div>
         </div>
       </div>
@@ -168,80 +287,4 @@ export function LandingHero() {
   );
 }
 
-export function LandingValidationProgress() {
-  return (
-    <section className="bg-[#f7f7f3] border-b border-kavri-line px-6 md:px-10 py-10">
-      <div className="max-w-[1280px] mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-kavri-muted font-semibold">
-            Live Validation Progress
-          </p>
-          <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-kavri-ink font-black flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-kavri-signal inline-block animate-pulse" aria-hidden />
-            Field Testing
-          </p>
-        </div>
-
-        {/* Progress bar connecting line (visual only) */}
-        <div className="relative">
-          {/* Track line */}
-          <div className="absolute top-[14px] left-0 right-0 h-[2px] bg-kavri-line z-0" aria-hidden />
-          {/* Filled portion up to active stage */}
-          <div
-            className="absolute top-[14px] left-0 h-[2px] bg-kavri-signal z-10 animate-progress-wipe"
-            style={{ width: `${((ACTIVE_STAGE_IDX) / (STAGES.length - 1)) * 100}%` }}
-            aria-hidden
-          />
-
-          {/* Stage nodes */}
-          <ol
-            className="relative z-20 grid gap-0"
-            style={{ gridTemplateColumns: `repeat(${STAGES.length}, 1fr)` }}
-          >
-            {STAGES.map((stage, idx) => {
-              const isCompleted = idx < ACTIVE_STAGE_IDX;
-              const isActive = idx === ACTIVE_STAGE_IDX;
-              return (
-                <li key={stage} className="flex flex-col items-center gap-2.5 min-w-[56px]">
-                  {/* Node */}
-                  <div
-                    aria-current={isActive ? "step" : undefined}
-                    className={`
-                      w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors duration-300
-                      ${isCompleted
-                        ? "bg-kavri-signal border-kavri-signal"
-                        : isActive
-                        ? "bg-kavri-ink border-kavri-signal shadow-[0_0_0_4px_rgba(198,232,58,0.2)]"
-                        : "bg-kavri-surface border-kavri-line"
-                      }
-                    `}
-                  >
-                    {isCompleted ? (
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-label="Completed" role="img">
-                        <path d="M2.5 6L5 8.5L9.5 4" stroke="#39420a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    ) : isActive ? (
-                      <span className="w-2 h-2 rounded-full bg-kavri-signal" aria-hidden />
-                    ) : null}
-                  </div>
-
-                  {/* Label */}
-                  <span
-                    className={`font-mono text-[9px] md:text-[10px] uppercase tracking-wider text-center leading-tight whitespace-nowrap
-                      ${isCompleted || isActive ? "text-kavri-ink font-black" : "text-kavri-muted"}
-                    `}
-                  >
-                    {stage}
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// Re-export ProgressBarFill for use elsewhere
 export { ProgressBarFill };

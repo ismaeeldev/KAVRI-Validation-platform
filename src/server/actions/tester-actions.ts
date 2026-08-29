@@ -1,8 +1,9 @@
 "use server";
 
 import { requireOwner } from "@/lib/permissions";
-import { createPendingTester, updateTesterApproval, updateTesterProfile, declineTester } from "../services/tester-service";
+import { createPendingTester, updateTesterApproval, updateTesterProfile, declineTester, getTesterById } from "../services/tester-service";
 import { createInvitation, consumeInvitation } from "../services/invitation-service";
+import { sendInvitationEmail } from "@/lib/email";
 import {
   createTesterSchema,
   updateTesterProfileSchema,
@@ -44,13 +45,38 @@ export async function declineTesterAction(id: string, formData: unknown) {
   return result;
 }
 
-export async function generateInvitationAction(testerProfileId: string) {
+// Step 2A (FUNC-02 closure): a deliberate, owner-triggered action that both (re)issues the
+// invitation token AND sends the tester activation email. This is intentionally a separate,
+// explicit click from tester record creation (createTesterAction) - invitations are never sent
+// automatically. Token creation always succeeds or throws (existing behavior preserved for the
+// link display fallback); the email send is caught separately so a Resend delivery failure
+// surfaces as a real error to the owner instead of a false-positive "sent" state, while the
+// freshly generated link remains available to copy manually.
+export async function sendTesterInvitationAction(testerProfileId: string) {
   const { session } = await requireOwner();
+  const tester = await getTesterById(testerProfileId);
   const result = await createInvitation(testerProfileId, session.user.id);
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const inviteUrl = `${appUrl}/invite/${result.rawToken}`;
+
+  let emailSent = false;
+  let emailError: string | null = null;
+  try {
+    await sendInvitationEmail(tester.emailNormalized, tester.displayName, inviteUrl);
+    emailSent = true;
+  } catch (error: unknown) {
+    const err = error as Error;
+    emailError = err.message || "Failed to send invitation email.";
+  }
+
   revalidatePath(`/owner/testers/${testerProfileId}`);
+
   return {
     rawToken: result.rawToken,
     expiresAt: result.invitation.expiresAt,
+    emailSent,
+    emailError,
   };
 }
 

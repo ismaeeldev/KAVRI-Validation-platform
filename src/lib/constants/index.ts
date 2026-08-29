@@ -310,6 +310,9 @@ export const EVALUATION_STATUS = {
   DRAFT: "draft",
   SUBMITTED: "submitted",
   UPDATED: "updated",
+  // Decision 1: an owner has manually unlocked a submitted evaluation for correction. The
+  // original submittedAt is preserved; reopenedAt records the unlock.
+  REOPENED: "reopened",
 } as const;
 
 export type EvaluationStatus = typeof EVALUATION_STATUS[keyof typeof EVALUATION_STATUS];
@@ -472,4 +475,51 @@ export function deriveHandleLengthCategory(handleLengthIn: number | null | undef
   if (handleLengthIn < 5.2) return "Short";
   if (handleLengthIn <= 5.4) return "Medium";
   return "Long";
+}
+
+// Step 4 (Workstream D) — Product, Revision, Sample and Measurement Standards.
+
+// Swing/twist weight "method" fields were previously free text; the brief requires a
+// controlled selector. Columns stay text (matches this codebase's established
+// text-column + app-level-enum pattern, see publishedState/relationshipStatus etc.) —
+// only the allowed values are now constrained here plus in the zod schema.
+export const MEASUREMENT_METHOD = {
+  RDC_BABOLAT: "rdc_babolat",
+  ONCOURT_SWINGWEIGHT: "oncourt_swingweight",
+  MANUAL_PENDULUM: "manual_pendulum",
+  TWISTWEIGHT_LAB: "twistweight_lab",
+  OTHER: "other",
+} as const;
+
+export type MeasurementMethod = typeof MEASUREMENT_METHOD[keyof typeof MEASUREMENT_METHOD];
+
+// Quick-select core thickness options (brief: "Quick options 13/14/16 plus Other numeric").
+export const CORE_THICKNESS_QUICK_OPTIONS_MM = [13, 14, 16] as const;
+
+// Brief's exact balance point definition wording — quoted verbatim, do not paraphrase.
+export const BALANCE_POINT_DEFINITION =
+  "centimeters from bottom of butt cap";
+
+export const BALANCE_POINT_HELPER_TEXT =
+  "Balance point is measured in centimeters from the bottom of the butt cap.";
+
+// Plausible-range warning thresholds (brief's own concrete examples: "Static weight entered
+// as 4 oz" should warn, "Length entered as 555 in" should block/require explicit override).
+// oz is the primary display/input per the measurement standards table; g is derived.
+export const PLAUSIBLE_RANGES = {
+  staticWeightOz: { min: 5, max: 14, hardMax: 20 },
+  overallLengthIn: { min: 14, max: 18, hardMax: 30 },
+  overallWidthIn: { min: 6, max: 9, hardMax: 20 },
+  handleLengthIn: { min: 3, max: 7, hardMax: 15 },
+  gripCircumferenceIn: { min: 3.5, max: 5, hardMax: 10 },
+} as const;
+
+export const OZ_TO_G = 28.349523125;
+
+export function ozToGrams(oz: number): number {
+  return Math.round(oz * OZ_TO_G * 100) / 100;
+}
+
+export function gramsToOz(g: number): number {
+  return Math.round((g / OZ_TO_G) * 100) / 100;
 }

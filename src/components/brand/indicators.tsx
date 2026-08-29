@@ -15,7 +15,7 @@ export function MetricCell({ label, value, className = "" }: MetricCellProps) {
       <span className="text-[10px] font-mono uppercase tracking-widest text-kavri-muted select-none">
         {label}
       </span>
-      <span className="font-mono text-2xl font-bold text-kavri-ink dark:text-foreground mt-2 tracking-tight">
+      <span className="font-mono text-2xl font-bold text-kavri-ink dark:text-foreground mt-2 tracking-tight tabular-nums">
         {value}
       </span>
     </div>

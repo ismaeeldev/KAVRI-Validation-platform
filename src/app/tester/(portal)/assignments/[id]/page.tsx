@@ -114,7 +114,11 @@ export default async function TesterAssignmentDetailPage({ params }: PageProps) 
       </Card>
 
       {/* Primary Acknowledge action button */}
-      <TesterPortalActions assignmentId={id} status={assignment.status} />
+      <TesterPortalActions
+        assignmentId={id}
+        status={assignment.status}
+        sampleConfirmedAt={assignment.sampleConfirmedAt}
+      />
 
       {/* Play Sessions & Evaluations */}
       {progress && (

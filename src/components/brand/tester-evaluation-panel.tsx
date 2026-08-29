@@ -8,6 +8,11 @@ import { EvaluationForm } from "./evaluation-form";
 interface EvaluationRecord {
   id: string;
   status: string;
+  // Decision 1: submittedAt is the immutable original submission stamp; reopenedAt is set only
+  // when an owner has unlocked the evaluation for a correction.
+  submittedAt: string | Date | null;
+  reopenedAt: string | Date | null;
+  updatedAt: string | Date;
   playTimeMinutes: number | null;
   conditions: string | null;
   comparisonReference: string | null;

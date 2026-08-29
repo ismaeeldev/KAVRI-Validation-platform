@@ -30,8 +30,13 @@ export function AssignmentActions({ assignmentId, currentStatus, lastReminderAt 
   const handleActivate = async () => {
     setIsPending(true);
     try {
-      await activateAssignmentAction(assignmentId);
-      toast.success("Validation assignment invited successfully.");
+      const result = await activateAssignmentAction(assignmentId);
+      if (result.emailSent) {
+        toast.success("Validation assignment invited; email sent to the tester.");
+      } else {
+        toast.success("Validation assignment invited.");
+        toast.error(result.emailError || "The assignment email failed to send. The tester will not be notified until this is resolved.");
+      }
       router.refresh();
     } catch (error: unknown) {
       const err = error as Error;
@@ -79,8 +84,13 @@ export function AssignmentActions({ assignmentId, currentStatus, lastReminderAt 
   const handleLogReminder = async () => {
     setIsPending(true);
     try {
-      await logAssignmentReminderAction(assignmentId);
-      toast.success("Reminder logged.");
+      const result = await logAssignmentReminderAction(assignmentId);
+      if (result.emailSent) {
+        toast.success("Reminder sent to the tester.");
+      } else {
+        toast.success("Reminder logged.");
+        toast.error(result.emailError || "The reminder email failed to send.");
+      }
       router.refresh();
     } catch (error: unknown) {
       const err = error as Error;
@@ -133,7 +143,7 @@ export function AssignmentActions({ assignmentId, currentStatus, lastReminderAt 
       onClick={handleLogReminder}
       disabled={isPending}
       variant="outline"
-      title="Logs an in-app reminder record - does not send an email (email reminders are a future phase)."
+      title="Logs an in-app reminder record and sends a reminder email to the tester."
       className="font-sans font-semibold text-xs h-10 px-4 rounded-lg flex items-center gap-1.5"
     >
       <BellRing className="h-3.5 w-3.5" />

@@ -2,32 +2,58 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { updateTesterApprovalAction, generateInvitationAction, declineTesterAction } from "@/server/actions/tester-actions";
+import { updateTesterApprovalAction, sendTesterInvitationAction, declineTesterAction } from "@/server/actions/tester-actions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { KeyRound, ShieldAlert, Copy, Check } from "lucide-react";
+import { KeyRound, ShieldAlert, Copy, Check, Mail, AlertTriangle, Info } from "lucide-react";
+
+// Plain-language "what does this status mean + what can I do next" copy, keyed by
+// approvalStatus. Shown above the action buttons so the owner never has to guess why a control
+// is (or isn't) available - Part C of Step 05.
+const STATUS_EXPLANATIONS: Record<string, string> = {
+  pending: "Awaiting review. Approve to grant portal access, or decline the application.",
+  approved: "Active and can be invited/dispatched. Deactivate to suspend access without deleting the record.",
+  deactivated: "Access is suspended. Reactivate to restore this tester to approved status, or leave deactivated.",
+  declined: "Application was declined and has no further actions here.",
+};
 
 interface TesterActionsProps {
   testerId: string;
   approvalStatus: string;
   isRegistered: boolean;
+  /** Whether an active (unused, unrevoked, unexpired) invitation already exists - drives the
+   * "Send Invitation" vs "Resend Invitation" label so the owner-facing action reflects reality. */
+  hasActiveInvitation?: boolean;
+  /** Reports the server action's own return value back to the parent client wrapper so the
+   * header status pill and Profile Information fields update immediately, with no server
+   * round-trip (router.refresh() / reload) required for the UI to reflect the new state. */
+  onUpdate?: (updated: { approvalStatus?: string; declinedReason?: string | null }) => void;
 }
 
-export function TesterActions({ testerId, approvalStatus, isRegistered }: TesterActionsProps) {
+type EmailSendState = "idle" | "sending" | "sent" | "error";
+
+export function TesterActions({ testerId, approvalStatus, isRegistered, hasActiveInvitation = false, onUpdate }: TesterActionsProps) {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [invitationUrl, setInvitationUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [declineOpen, setDeclineOpen] = useState(false);
   const [declineReason, setDeclineReason] = useState("");
+  const [emailSendState, setEmailSendState] = useState<EmailSendState>("idle");
+  const [emailError, setEmailError] = useState<string | null>(null);
 
   const handleApprovalChange = async (status: "approved" | "deactivated") => {
     setIsPending(true);
     try {
-      await updateTesterApprovalAction(testerId, status);
+      const result = await updateTesterApprovalAction(testerId, status);
       toast.success(`Tester profile status updated to '${status}'.`);
-      router.refresh();
+      // Previously this called window.location.reload() because router.refresh() alone left
+      // the header status pill and "Approval Status" field stale for several seconds (a known
+      // Next.js dev-mode Router Cache timing issue). Fixed properly in Step 05: the server
+      // action's own return value drives the parent client wrapper's state directly, so the UI
+      // updates instantly with no server round-trip needed.
+      onUpdate?.({ approvalStatus: result.approvalStatus, declinedReason: result.declinedReason ?? null });
     } catch (error: unknown) {
       const err = error as Error;
       toast.error(err.message || "Failed to update approval status.");
@@ -43,11 +69,12 @@ export function TesterActions({ testerId, approvalStatus, isRegistered }: Tester
     }
     setIsPending(true);
     try {
-      await declineTesterAction(testerId, { reason: declineReason });
+      const result = await declineTesterAction(testerId, { reason: declineReason });
       toast.success("Tester application declined.");
+      // See handleApprovalChange above - fixed the same way, via onUpdate instead of a reload.
+      onUpdate?.({ approvalStatus: result.approvalStatus, declinedReason: result.declinedReason ?? null });
       setDeclineOpen(false);
       setDeclineReason("");
-      router.refresh();
     } catch (error: unknown) {
       const err = error as Error;
       toast.error(err.message || "Failed to decline tester application.");
@@ -56,16 +83,29 @@ export function TesterActions({ testerId, approvalStatus, isRegistered }: Tester
     }
   };
 
-  const handleGenerateInvitation = async () => {
+  const handleSendInvitation = async () => {
     setIsPending(true);
+    setEmailSendState("sending");
+    setEmailError(null);
     try {
-      const result = await generateInvitationAction(testerId);
+      const result = await sendTesterInvitationAction(testerId);
       const url = `${window.location.origin}/invite/${result.rawToken}`;
       setInvitationUrl(url);
-      toast.success("One-time secure invitation generated successfully.");
+
+      if (result.emailSent) {
+        setEmailSendState("sent");
+        toast.success(`Invitation email sent to the tester.`);
+      } else {
+        setEmailSendState("error");
+        setEmailError(result.emailError || "Failed to send invitation email.");
+        toast.error(result.emailError || "Failed to send invitation email. The secure link below was still generated - you can copy and send it manually.");
+      }
       router.refresh();
     } catch (error: unknown) {
+      // Token generation itself failed - no link was produced at all.
       const err = error as Error;
+      setEmailSendState("error");
+      setEmailError(err.message || "Failed to generate invitation.");
       toast.error(err.message || "Failed to generate invitation link.");
     } finally {
       setIsPending(false);
@@ -89,6 +129,12 @@ export function TesterActions({ testerId, approvalStatus, isRegistered }: Tester
           <KeyRound className="h-4 w-4 text-kavri-muted" />
           <span>Access Controls</span>
         </h3>
+        {STATUS_EXPLANATIONS[approvalStatus] && (
+          <div className="flex items-start gap-1.5 text-[11px] text-kavri-muted font-sans leading-relaxed bg-kavri-surface-subtle border border-kavri-line rounded-lg px-3 py-2">
+            <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 text-kavri-muted" />
+            <span>{STATUS_EXPLANATIONS[approvalStatus]}</span>
+          </div>
+        )}
         <div className="flex flex-wrap gap-3 pt-1">
           {approvalStatus === "pending" && (
             <Button
@@ -124,16 +170,66 @@ export function TesterActions({ testerId, approvalStatus, isRegistered }: Tester
             </Button>
           )}
 
+          {/* Reactivate: restores a previously-deactivated tester back to 'approved', matching
+              the same button style, confirmation-free single-click pattern, toast, and
+              activity-logging approach as Approve/Deactivate above. Closes the dead end where a
+              deactivated tester previously had no path back to active status. */}
+          {approvalStatus === "deactivated" && (
+            <Button
+              onClick={() => handleApprovalChange("approved")}
+              disabled={isPending}
+              className="bg-kavri-signal text-kavri-ink font-sans font-bold hover:bg-[#c4dd40] text-xs h-10 px-4 rounded-lg focus-visible:outline-2 focus-visible:outline-kavri-signal transition-all"
+            >
+              Reactivate Tester
+            </Button>
+          )}
+
           {approvalStatus === "approved" && !isRegistered && (
             <Button
-              onClick={handleGenerateInvitation}
+              onClick={handleSendInvitation}
               disabled={isPending}
-              className="bg-kavri-ink text-white hover:bg-neutral-800 font-sans font-bold text-xs h-10 px-4 rounded-lg focus-visible:outline-2 focus-visible:outline-kavri-signal transition-all"
+              className="bg-kavri-ink text-white hover:bg-neutral-800 font-sans font-bold text-xs h-10 px-4 rounded-lg focus-visible:outline-2 focus-visible:outline-kavri-signal transition-all flex items-center gap-1.5"
             >
-              Generate Invitation
+              <Mail className="h-3.5 w-3.5" />
+              <span>
+                {isPending && emailSendState === "sending"
+                  ? "Sending…"
+                  : hasActiveInvitation
+                  ? "Resend Invitation"
+                  : "Send Invitation"}
+              </span>
             </Button>
           )}
         </div>
+
+        {/* Explain why "Send Invitation" isn't offered yet, rather than the control silently
+            disappearing with no reason given - extends the same "explain the disabled/missing
+            control" pattern used elsewhere in the owner workspace (Part C). */}
+        {approvalStatus === "approved" && isRegistered && (
+          <p className="text-[11px] text-kavri-muted font-sans italic">
+            This tester already has active portal credentials, so no invitation is needed.
+          </p>
+        )}
+        {approvalStatus !== "approved" && (
+          <p className="text-[11px] text-kavri-muted font-sans italic">
+            Invitations can only be sent once this tester is approved.
+          </p>
+        )}
+
+        {/* Real send-state feedback - no false-positive "sent" is ever shown; the thrown
+            error from sendInvitationEmail is caught upstream and surfaced here verbatim. */}
+        {emailSendState === "sent" && (
+          <div className="flex items-center gap-1.5 text-[11px] font-sans font-semibold text-[#257a47]">
+            <Check className="h-3.5 w-3.5" />
+            <span>Invitation email sent.</span>
+          </div>
+        )}
+        {emailSendState === "error" && (
+          <div className="flex items-center gap-1.5 text-[11px] font-sans font-semibold text-[#b33a32]">
+            <AlertTriangle className="h-3.5 w-3.5" />
+            <span>{emailError || "Failed to send invitation email."}</span>
+          </div>
+        )}
 
         {declineOpen && (
           <div className="border border-red-200 bg-red-50/50 rounded-lg p-4 space-y-3">

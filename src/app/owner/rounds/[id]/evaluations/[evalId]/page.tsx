@@ -3,6 +3,7 @@ import { getEvaluationDetailForOwner } from "@/server/services/evaluation-servic
 import { DashboardPageHeader } from "@/components/brand/dashboard-layout-components";
 import { StatusBadge } from "@/components/brand/status";
 import { EVALUATION_SCORE_FIELDS } from "@/lib/constants";
+import { EvaluationReopenAction } from "@/components/brand/evaluation-reopen-action";
 
 export const revalidate = 0;
 
@@ -93,17 +94,44 @@ export default async function EvaluationDetailPage({ params }: PageProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-kavri-line pt-4">
+        {/* Decision 1: submittedAt is the immutable original; reopenedAt/updatedAt track edits. */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 border-t border-kavri-line pt-4">
           <div>
             <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Last Saved</span>
             <p className="font-semibold text-kavri-ink mt-0.5 text-[13px]">{new Date(evaluation.lastSavedAt).toLocaleString()}</p>
           </div>
           <div>
-            <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Submitted At</span>
+            <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">
+              Originally Submitted
+            </span>
             <p className="font-semibold text-kavri-ink mt-0.5 text-[13px]">
               {evaluation.submittedAt ? new Date(evaluation.submittedAt).toLocaleString() : "Not yet submitted"}
             </p>
           </div>
+          <div>
+            <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Reopened At</span>
+            <p className="font-semibold text-kavri-ink mt-0.5 text-[13px]">
+              {evaluation.reopenedAt ? new Date(evaluation.reopenedAt).toLocaleString() : "Never reopened"}
+            </p>
+          </div>
+          <div>
+            <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Last Updated</span>
+            <p className="font-semibold text-kavri-ink mt-0.5 text-[13px]">
+              {new Date(evaluation.updatedAt).toLocaleString()}
+            </p>
+          </div>
+        </div>
+
+        <div className="border-t border-kavri-line pt-4 space-y-2">
+          <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">
+            Owner Controls
+          </span>
+          <EvaluationReopenAction
+            evaluationId={evaluation.id}
+            roundId={id}
+            status={evaluation.status}
+            roundClosed={evaluation.round?.status === "closed"}
+          />
         </div>
       </div>
     </div>

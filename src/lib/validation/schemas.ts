@@ -124,6 +124,11 @@ const revisionSpecFields = {
   targetStaticWeightMinG: optionalNumber(),
   targetStaticWeightMaxG: optionalNumber(),
   targetSwingWeight: optionalNumber(),
+  // Controlled selector (see MEASUREMENT_METHOD): the UI presents a select with the enum's
+  // values plus an "Other" option backed by free text, so any pre-existing free-text value
+  // is preserved rather than silently discarded on resave. Column/validation stay a plain
+  // trimmed string (matches this codebase's text-column + app-level-enum convention) rather
+  // than a hard zod enum, to avoid a data-loss risk for legacy values that predate this list.
   targetSwingWeightMethod: zod.string().trim().optional().or(zod.literal("")),
   targetTwistWeight: optionalNumber(),
   targetTwistWeightMethod: zod.string().trim().optional().or(zod.literal("")),
@@ -202,6 +207,12 @@ const sampleMeasurementFields = {
   actualLengthIn: optionalNumber(),
   actualWidthIn: optionalNumber(),
   actualHandleLengthIn: optionalNumber(),
+  actualGripCircumferenceIn: optionalNumber(),
+  actualCoreThicknessMm: optionalNumber(),
+  // Plausible-range override: required when a value falls outside PLAUSIBLE_RANGES and the
+  // owner deliberately confirms it anyway (brief: "require deliberate confirmation... do not
+  // silently accept absurd values").
+  measurementOverrideConfirmed: zod.boolean().optional().default(false),
 };
 
 export const updateSampleMeasurementsSchema = zod.object(sampleMeasurementFields);
@@ -231,9 +242,26 @@ export const createSampleSchema = zod.object({
   ...sampleInspectionFields,
 });
 
+// FUNC-07: optional structured return-intake fields, only meaningful (and only sent by the
+// UI) when transitioning a sample to 'returned' - kept optional here so other transitions
+// remain unaffected.
+const sampleReturnFields = {
+  returnedAt: zod.string().trim().optional().or(zod.literal("")),
+  returnReceivedBy: zod.string().trim().optional().or(zod.literal("")),
+  returnInspectionPackagingOk: zod.boolean().optional(),
+  returnInspectionPackagingNotes: zod.string().trim().optional().or(zod.literal("")),
+  returnInspectionCosmeticOk: zod.boolean().optional(),
+  returnInspectionCosmeticNotes: zod.string().trim().optional().or(zod.literal("")),
+  returnInspectionConstructionOk: zod.boolean().optional(),
+  returnInspectionConstructionNotes: zod.string().trim().optional().or(zod.literal("")),
+  returnInspectionSoundOk: zod.boolean().optional(),
+  returnInspectionSoundNotes: zod.string().trim().optional().or(zod.literal("")),
+};
+
 export const transitionStatusSchema = zod.object({
   status: zod.string().min(1, "Status is required"),
   readinessNote: zod.string().trim().min(1, "Readiness / transition note is required"),
+  ...sampleReturnFields,
 });
 
 const testerProfileFields = {
@@ -380,6 +408,9 @@ export const testerApplicationSchema = zod.object({
   utmMedium: zod.string().trim().optional().or(zod.literal("")),
   utmCampaign: zod.string().trim().optional().or(zod.literal("")),
   ref: zod.string().trim().optional().or(zod.literal("")),
+  // Decision 2 (Klaviyo split): optional, unchecked by default - entirely separate from
+  // consentGiven above. Only triggers a Klaviyo sync; never gates the application itself.
+  marketingConsent: zod.boolean().optional().default(false),
 });
 
 export const createRoundSchema = zod.object({
@@ -421,6 +452,10 @@ const optionalScore = () =>
 const evaluationScoreFields = Object.fromEntries(
   EVALUATION_SCORE_FIELDS.map(({ key }) => [key, optionalScore()])
 ) as Record<(typeof EVALUATION_SCORE_FIELDS)[number]["key"], ReturnType<typeof optionalScore>>;
+
+export const confirmAssignmentSampleSchema = zod.object({
+  shortCode: zod.string().trim().min(1, "Enter the short code printed on your sample."),
+});
 
 export const createPlaySessionSchema = zod.object({
   sessionDate: zod.string().min(1, "Session date is required"),

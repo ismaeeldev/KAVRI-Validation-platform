@@ -9,6 +9,7 @@ import * as schema from "@/db/schema";
 import { ShoppingBag, Plus } from "lucide-react";
 import { DownloadCsvButton } from "@/components/brand/download-csv-button";
 import { rowsToCsv, type CsvColumn } from "@/lib/csv-export";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export const revalidate = 0;
 
@@ -76,16 +77,18 @@ export default async function ProductsListPage() {
       />
 
       {productsWithRevisions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-12 border border-dashed border-kavri-line rounded-xl bg-kavri-surface text-center space-y-3">
-          <ShoppingBag className="h-8 w-8 text-kavri-muted" />
-          <p className="text-xs font-sans font-semibold text-kavri-muted">No products defined in catalog.</p>
-          <Link
-            href="/owner/products/new"
-            className="text-xs font-mono uppercase text-kavri-signal hover:underline"
-          >
-            Add first product &rarr;
-          </Link>
-        </div>
+        <EmptyState
+          icon={ShoppingBag}
+          title="No products defined in catalog."
+          action={
+            <Link
+              href="/owner/products/new"
+              className="text-xs font-mono uppercase text-kavri-signal hover:underline"
+            >
+              Add first product &rarr;
+            </Link>
+          }
+        />
       ) : (
         <div className="overflow-hidden border border-kavri-line rounded-xl bg-kavri-surface shadow-xs">
           <div className="overflow-x-auto">

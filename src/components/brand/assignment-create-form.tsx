@@ -173,7 +173,7 @@ export function AssignmentCreateForm({ testers, samples, rounds }: CreateFormPro
           </select>
           <input type="hidden" {...register("roundId")} />
           {errors.roundId && <p className="text-destructive text-[11px] font-medium mt-0.5">{errors.roundId.message}</p>}
-          {selectedRoundId && rounds.length === 0 && (
+          {rounds.length === 0 && (
             <p className="text-[11px] text-kavri-muted">No rounds in recruiting/active status. Create or advance a round first.</p>
           )}
         </div>

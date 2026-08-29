@@ -138,6 +138,7 @@ describe("Assignment Workflow Integration Unit Tests (Sprint 1 revision, Step 10
         status: "draft",
         sampleId: "sample_1",
         testerProfileId: "tester_1",
+        round: { id: "round_1", roundCode: "R-1" },
       } as unknown as Awaited<ReturnType<typeof db.query.testingAssignments.findFirst>>);
       const testerSpy = vi.spyOn(db.query.testerProfiles, "findFirst").mockResolvedValue({
         id: "tester_1",

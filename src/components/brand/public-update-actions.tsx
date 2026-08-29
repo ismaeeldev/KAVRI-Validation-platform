@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import { transitionPublicUpdateAction, generatePreviewLinkAction } from "@/server/actions/public-update-actions";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -60,7 +59,6 @@ const TRANSITION_META: Record<string, { label: string; icon: React.ElementType; 
 };
 
 export function PublicUpdateActions({ updateId, currentState, previewToken }: PublicUpdateActionsProps) {
-  const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<string | null>(null);
   const [schedulingFor, setSchedulingFor] = useState<string | null>(null);
@@ -73,10 +71,15 @@ export function PublicUpdateActions({ updateId, currentState, previewToken }: Pu
     try {
       await transitionPublicUpdateAction(updateId, target, scheduledFor);
       toast.success(`Update moved to '${target.replace("_", " ")}'.`);
-      setConfirmTarget(null);
-      setSchedulingFor(null);
-      setScheduledForValue("");
-      router.refresh();
+      // router.refresh() alone was found to leave this page's server-rendered header status
+      // badge and Publication History log stale after the action succeeds - the same class of
+      // Next.js dev-mode Router Cache issue documented and fixed elsewhere (tester/sample detail
+      // pages, evaluation reopen). This page has no client wrapper and mixes several
+      // server-rendered sections (audit log, landing preview) fed by the same server component,
+      // so a full reload is used here as the deliberate interim fix, same as
+      // evaluation-reopen-action.tsx.
+      window.location.reload();
+      return;
     } catch (error: unknown) {
       const err = error as Error;
       toast.error(err.message || "Failed to transition update.");
@@ -103,7 +106,9 @@ export function PublicUpdateActions({ updateId, currentState, previewToken }: Pu
     try {
       await generatePreviewLinkAction(updateId);
       toast.success("Preview link generated.");
-      router.refresh();
+      // Same stale-display class as the transition actions above - reload for the same reason.
+      window.location.reload();
+      return;
     } catch (error: unknown) {
       const err = error as Error;
       toast.error(err.message || "Failed to generate preview link.");

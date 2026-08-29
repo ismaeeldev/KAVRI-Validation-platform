@@ -27,6 +27,11 @@ type EvalFormData = zod.infer<typeof evaluationDraftSchema>;
 interface EvaluationRecord {
   id: string;
   status: string;
+  // Decision 1: submittedAt is the immutable original submission stamp; reopenedAt is set only
+  // when an owner has unlocked the evaluation for a correction.
+  submittedAt: string | Date | null;
+  reopenedAt: string | Date | null;
+  updatedAt: string | Date;
   playTimeMinutes: number | null;
   conditions: string | null;
   comparisonReference: string | null;
@@ -65,6 +70,13 @@ export function EvaluationForm({ assignmentId, evaluationType, initialEvaluation
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Bug #4 fix: tracks the currently-running autosave request (if any), so Submit can await it
+  // instead of racing it - covers both "a debounced autosave hasn't fired yet" and "an autosave
+  // request is already in flight" (e.g. triggered by the visibilitychange/pagehide flush).
+  // Resolves to the saved evaluation id (or null on failure) so the caller can use it directly
+  // rather than reading the `evaluationId` state variable, which would still be stale in the
+  // same synchronous closure right after the setEvaluationId() call inside autosave().
+  const autosaveInFlight = useRef<Promise<string | null> | null>(null);
 
   const defaultValues: Partial<EvalFormData> = {
     evaluationType,
@@ -91,12 +103,48 @@ export function EvaluationForm({ assignmentId, evaluationType, initialEvaluation
     defaultValues,
   });
 
-  const locked = status !== "draft" && !editMode;
+  // Decision 1: an evaluation locks the instant it is submitted. The tester can no longer unlock
+  // it themselves - only an owner reopening it (status becomes 'reopened') makes it editable again.
+  // A reopened evaluation drops straight into correction mode; there is no separate opt-in step.
+  const reopenedForEdits = status === "reopened";
+  const inEditMode = editMode || reopenedForEdits;
+  const locked = status !== "draft" && !inEditMode;
+
+  const formatStamp = (value: string | Date | null | undefined) =>
+    value
+      ? new Date(value).toLocaleString(undefined, {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : null;
+
+  const submittedLabel = formatStamp(initialEvaluation?.submittedAt);
+  const reopenedLabel = formatStamp(initialEvaluation?.reopenedAt);
+  const lastUpdatedLabel = formatStamp(initialEvaluation?.updatedAt);
+
+  // Shown on both the locked and the reopened views so the tester always sees that the original
+  // submission date is intact and separate from the most recent edit.
+  const timestampSummary = submittedLabel ? (
+    <p className="text-kavri-muted leading-relaxed break-words">
+      Originally submitted {submittedLabel}
+      {reopenedLabel ? ` — reopened for edits ${reopenedLabel}` : ""}
+      {reopenedLabel && lastUpdatedLabel ? ` — last updated ${lastUpdatedLabel}` : ""}.
+    </p>
+  ) : null;
+
   const watched = watch();
   const watchedKey = JSON.stringify(watched);
 
+  // Server-side autosave (Workstream E draft persistence): every change is debounced 1.5s and
+  // written through createOrUpdateDraftEvaluation, so a draft survives closing the browser, losing
+  // the connection, or switching devices - it is never held in React state alone.
+  // Only true drafts autosave: a reopened evaluation is saved explicitly via "Save Correction",
+  // because the draft upsert path would otherwise insert a second, duplicate draft row.
   useEffect(() => {
-    if (locked || !isDirty) return;
+    if (status !== "draft" || !isDirty) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
       void autosave();
@@ -105,34 +153,82 @@ export function EvaluationForm({ assignmentId, evaluationType, initialEvaluation
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchedKey, locked, isDirty]);
+  }, [watchedKey, status, isDirty]);
 
-  const autosave = async () => {
+  // Belt-and-braces for the "closed the tab mid-answer" case: flush any pending debounce when the
+  // page is hidden or unloaded, so at most the last keystroke - not the whole draft - can be lost.
+  useEffect(() => {
+    if (status !== "draft") return;
+    const flush = () => {
+      if (saveTimer.current) {
+        clearTimeout(saveTimer.current);
+        saveTimer.current = null;
+        void autosave();
+      }
+    };
+    document.addEventListener("visibilitychange", flush);
+    window.addEventListener("pagehide", flush);
+    return () => {
+      document.removeEventListener("visibilitychange", flush);
+      window.removeEventListener("pagehide", flush);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
+  const autosave = async (): Promise<string | null> => {
     setSaveState("saving");
-    try {
-      const values = watch();
-      const result = await saveDraftEvaluationAction(assignmentId, { ...values, evaluationType });
-      setEvaluationId(result.id);
-      setSaveState("saved");
-    } catch {
-      setSaveState("idle");
+    const run = (async (): Promise<string | null> => {
+      try {
+        const values = watch();
+        const result = await saveDraftEvaluationAction(assignmentId, { ...values, evaluationType });
+        setEvaluationId(result.id);
+        setSaveState("saved");
+        return result.id;
+      } catch {
+        setSaveState("idle");
+        return null;
+      }
+    })();
+    autosaveInFlight.current = run;
+    const id = await run;
+    autosaveInFlight.current = null;
+    return id;
+  };
+
+  // Bug #4 fix: Submit previously checked `evaluationId` at click time without waiting for any
+  // in-flight/pending debounced autosave, so clicking Submit within the ~1.5s debounce window
+  // could race the very first autosave and produce a false "draft hasn't saved yet" error even
+  // though the fields were filled in. Now: flush a still-pending debounce synchronously (skip
+  // the wait, save now), or await one already in flight, before ever checking for an id - and
+  // return that id directly rather than relying on the (still-stale-in-this-closure)
+  // `evaluationId` state variable.
+  const flushPendingAutosave = async (): Promise<string | null> => {
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+      return await autosave();
     }
+    if (autosaveInFlight.current) {
+      return await autosaveInFlight.current;
+    }
+    return evaluationId;
   };
 
   const handleSubmitEvaluation = async () => {
-    if (!evaluationId) {
-      toast.error("Add at least one field before submitting - the draft hasn't saved yet.");
-      return;
-    }
     setIsSubmitting(true);
     try {
-      await submitEvaluationAction(evaluationId, assignmentId);
+      const id = await flushPendingAutosave();
+      if (!id) {
+        toast.error("Add at least one field before submitting - the draft hasn't saved yet.");
+        return;
+      }
+      await submitEvaluationAction(id, assignmentId);
       toast.success(`${evaluationType === "first_impression" ? "First Impression" : "Follow-Up"} evaluation submitted.`);
       setStatus("submitted");
       const triggeredIssue = watch("issueTriggered");
       router.refresh();
       if (triggeredIssue) {
-        router.push(`/tester/assignments/${assignmentId}/issues/new?evaluationId=${evaluationId}`);
+        router.push(`/tester/assignments/${assignmentId}/issues/new?evaluationId=${id}`);
       }
     } catch (error: unknown) {
       const err = error as Error;
@@ -167,25 +263,39 @@ export function EvaluationForm({ assignmentId, evaluationType, initialEvaluation
   if (locked) {
     return (
       <div className="space-y-3 font-mono text-xs">
-        <div className="p-3 border border-kavri-line rounded-sm bg-kavri-surface-subtle flex items-center justify-between">
+        <div className="p-3 border border-kavri-line rounded-sm bg-kavri-surface-subtle flex flex-wrap items-center gap-2">
           <span className="text-kavri-muted uppercase tracking-wider text-[10px]">
             Status: <span className="text-kavri-ink font-bold">{status}</span>
           </span>
-          {!roundClosed && (
-            <button
-              type="button"
-              onClick={() => setEditMode(true)}
-              className="text-kavri-signal hover:underline text-[10px] uppercase tracking-wider"
-            >
-              Request Correction
-            </button>
-          )}
         </div>
+        {timestampSummary}
+
+        {/* Completion + return instructions, shown once the Follow-Up is in. */}
+        {evaluationType === "follow_up" && (
+          <div className="p-3 border border-kavri-signal/40 bg-kavri-signal/5 rounded-sm space-y-2 leading-relaxed">
+            <p className="uppercase tracking-wider text-[10px] font-bold text-kavri-ink dark:text-foreground">
+              You&apos;re done — thank you
+            </p>
+            <p className="text-kavri-muted">
+              Your Follow-Up is in, which completes this assignment. Nothing further is needed from
+              you in the app.
+            </p>
+            <p className="text-kavri-muted">
+              Please keep the sample safe and return it using the instructions in your assignment
+              email. If anything happens to it before then, use &ldquo;Report an Issue&rdquo; on the
+              assignment page.
+            </p>
+          </div>
+        )}
+
+        {/* Decision 1: submission is final. There is no tester-side self-unlock; recovery is
+            explained in plain language without exposing any internals. */}
         <p className="text-kavri-muted leading-relaxed">
-          This evaluation has been submitted and is locked.{" "}
+          This evaluation has been submitted and is now locked, so your answers stay exactly as you
+          sent them.{" "}
           {roundClosed
-            ? "The round has closed, so it can no longer be corrected."
-            : "Use Request Correction above to make a controlled edit."}
+            ? "This round has closed, so it can no longer be changed."
+            : "If something needs correcting, reply to your KAVRI assignment email and ask us to reopen it — you'll be able to edit it here once we do."}
         </p>
       </div>
     );

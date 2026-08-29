@@ -4,16 +4,16 @@ import QRCode from "qrcode";
 import { getSampleById, getCurrentHolder } from "@/server/services/sample-service";
 import { getAttachments } from "@/server/services/attachment-service";
 import { getIssuesBySample } from "@/server/services/issue-service";
-import { DashboardPageHeader } from "@/components/brand/dashboard-layout-components";
-import { StatusBadge, IssueSeverityBadge } from "@/components/brand/status";
-import { SampleTriageControls } from "@/components/brand/sample-triage-controls";
+import { IssueSeverityBadge } from "@/components/brand/status";
+import { SampleDetailClient } from "@/components/brand/sample-detail-client";
 import { SampleMeasurementsForm } from "@/components/brand/sample-measurements-form";
+import { SampleTargetActualVariance } from "@/components/brand/sample-target-actual-variance";
 import { SampleInspectionForm } from "@/components/brand/sample-inspection-form";
 import { SampleQrLabel } from "@/components/brand/sample-qr-label";
 import { db } from "@/db";
 import { eq, and, desc } from "drizzle-orm";
 import * as schema from "@/db/schema";
-import { ShieldAlert, CheckCircle, FileText, Clock, Box, User } from "lucide-react";
+import { FileText, Clock, Box } from "lucide-react";
 
 export const revalidate = 0;
 
@@ -39,98 +39,21 @@ export default async function SampleDetailPage({ params }: PageProps) {
   });
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 select-none">
-      <DashboardPageHeader
-        title={`Sample ${sample.sampleCode}`}
-        eyebrow="Sample Review"
-        description="Verify incoming batches, record material observations, and review readiness."
-        backHref="/owner/samples"
-        backLabel="Back to samples"
-        actions={
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase border border-kavri-line bg-[#ecefea] text-kavri-muted">
-              <User className="h-3 w-3" /> Holder: {currentHolder}
-            </span>
-            <StatusBadge status={sample.status} />
-          </div>
-        }
-      />
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Main Content Area */}
-        <div className="lg:col-span-8 space-y-6">
-          {/* Readiness State Alert Banner */}
-          {sample.status !== "ready_for_testing" ? (
-            <div className="border border-red-200 bg-red-50/50 rounded-xl p-4 flex gap-3 text-xs font-sans">
-              <ShieldAlert className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <span className="font-bold text-red-900 uppercase tracking-wide block">Validation Blocked</span>
-                <p className="text-red-700 leading-relaxed">
-                  This batch is currently marked as <strong className="uppercase">[{sample.status.replace("_", " ")}]</strong> and cannot be assigned to active validation sessions.
-                </p>
-                {sample.readinessNote ? (
-                  <p className="mt-2 p-2.5 bg-white border border-red-100 rounded-lg text-red-800 italic">
-                    Reason: {sample.readinessNote}
-                  </p>
-                ) : (
-                  <p className="mt-1 italic text-red-600">No transition notes recorded.</p>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="border border-kavri-line bg-kavri-signal-soft/40 rounded-xl p-4 flex gap-3 text-xs font-sans">
-              <CheckCircle className="h-5 w-5 text-kavri-ink shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <span className="font-bold text-kavri-ink uppercase tracking-wide block">Validation Ready</span>
-                <p className="text-kavri-muted font-medium">
-                  This prototype batch is confirmed and cleared for tester validation dispatches.
-                </p>
-                {sample.readinessNote && (
-                  <p className="mt-2 p-2.5 bg-white border border-kavri-line rounded-lg text-kavri-ink italic">
-                    Note: {sample.readinessNote}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Observations and notes */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-3">
-              <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink flex items-center gap-1.5 border-b border-kavri-line pb-2.5">
-                <FileText className="h-4 w-4 text-kavri-muted" />
-                <span>Confidential Observations</span>
-              </h3>
-              <p className="font-sans text-xs text-kavri-muted leading-relaxed whitespace-pre-wrap">
-                {sample.receivingObservations}
-              </p>
-            </div>
-
-            <div className="border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-3">
-              <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink flex items-center gap-1.5 border-b border-kavri-line pb-2.5">
-                <FileText className="h-4 w-4 text-kavri-muted" />
-                <span>Identifying Notes</span>
-              </h3>
-              <p className="font-sans text-xs text-kavri-muted leading-relaxed whitespace-pre-wrap">
-                {sample.identifyingNotes || "No identifying markers recorded."}
-              </p>
-            </div>
-          </div>
-
-          {/* Sample Review Controls Card (component name unchanged: sample-triage-controls.tsx) */}
-          <div className="border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-4">
-            <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink border-b border-kavri-line pb-3">
-              Sample Review Workflow
-            </h3>
-            <SampleTriageControls sampleId={id} currentStatus={sample.status} />
-          </div>
-
+    <SampleDetailClient
+      sampleId={id}
+      sampleCode={sample.sampleCode}
+      currentHolder={currentHolder}
+      initialStatus={sample.status}
+      initialReadinessNote={sample.readinessNote}
+      afterTriage={
+        <>
+          <SampleTargetActualVariance target={sample.revision} actual={sample} />
           <SampleMeasurementsForm sampleId={id} measurements={sample} />
           <SampleInspectionForm sampleId={id} inspection={sample} attachments={attachments} />
-        </div>
-
-        {/* Sidebar Context */}
-        <div className="lg:col-span-4 space-y-6">
+        </>
+      }
+      sidebar={
+        <>
           <div className="border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-5">
             <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink flex items-center gap-1.5 border-b border-kavri-line pb-2.5">
               <Box className="h-4 w-4 text-kavri-muted" />
@@ -176,6 +99,20 @@ export default async function SampleDetailPage({ params }: PageProps) {
                 <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Received Date</span>
                 <p className="text-kavri-muted font-medium">{new Date(sample.receivedAt).toLocaleDateString()}</p>
               </div>
+
+              {sample.returnedAt && (
+                <div className="space-y-1">
+                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Returned Date</span>
+                  <p className="text-kavri-muted font-medium">{new Date(sample.returnedAt).toLocaleDateString()}</p>
+                </div>
+              )}
+
+              {sample.returnReceivedBy && (
+                <div className="space-y-1">
+                  <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Return Received By</span>
+                  <p className="text-kavri-ink font-semibold text-[13px]">{sample.returnReceivedBy}</p>
+                </div>
+              )}
 
               <div className="space-y-1 pt-3 border-t border-kavri-line">
                 <span className="font-mono text-[9px] text-kavri-muted uppercase tracking-widest block">Assignment</span>
@@ -264,8 +201,31 @@ export default async function SampleDetailPage({ params }: PageProps) {
               </div>
             )}
           </div>
+        </>
+      }
+    >
+      {/* Observations and notes - static, rendered between banner and triage controls */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-3">
+          <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink flex items-center gap-1.5 border-b border-kavri-line pb-2.5">
+            <FileText className="h-4 w-4 text-kavri-muted" />
+            <span>Confidential Observations</span>
+          </h3>
+          <p className="font-sans text-xs text-kavri-muted leading-relaxed whitespace-pre-wrap">
+            {sample.receivingObservations}
+          </p>
+        </div>
+
+        <div className="border border-kavri-line rounded-xl bg-kavri-surface p-6 shadow-xs space-y-3">
+          <h3 className="font-heading text-xs font-black uppercase tracking-wider text-kavri-ink flex items-center gap-1.5 border-b border-kavri-line pb-2.5">
+            <FileText className="h-4 w-4 text-kavri-muted" />
+            <span>Identifying Notes</span>
+          </h3>
+          <p className="font-sans text-xs text-kavri-muted leading-relaxed whitespace-pre-wrap">
+            {sample.identifyingNotes || "No identifying markers recorded."}
+          </p>
         </div>
       </div>
-    </div>
+    </SampleDetailClient>
   );
 }

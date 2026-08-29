@@ -4,6 +4,7 @@ import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { AppError } from "@/lib/errors";
 import { logActivity } from "./activity-service";
+import { sendStopUseAlertEmail } from "@/lib/email";
 
 export async function getAllIssues() {
   return await db.query.issueReports.findMany({
@@ -126,7 +127,51 @@ export async function createIssueReport(
     severity: data.severity,
   });
 
-  return issue;
+  let emailSent: boolean | null = null;
+  let emailError: string | null = null;
+
+  // Step 3 (Notification Event Matrix row "Stop Use issue"): immediate email + dashboard alert
+  // to the owner, gated strictly on severity === 'stop_use' (the dashboard's own
+  // CRITICAL_ISSUE_SEVERITIES set on /owner/samples already surfaces both 'high' and 'stop_use'
+  // without email, per notification restraint - only Stop Use additionally gets an immediate
+  // email). The issue record above always completes or throws on its own; the email send is
+  // caught separately so a Resend failure never blocks the issue report itself, and so it never
+  // silently drops - it is logged and returned as a real emailSent/emailError state.
+  if (data.severity === "stop_use") {
+    const owners = await db.query.userProfiles.findMany({
+      where: and(eq(schema.userProfiles.role, "owner"), eq(schema.userProfiles.accountStatus, "active")),
+    });
+
+    if (owners.length === 0) {
+      emailSent = false;
+      emailError = "No active owner account found to notify.";
+      console.error(`[issue-service] Stop Use issue ${issue.id} reported but no active owner account exists to notify.`);
+    } else {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const issueUrl = `${appUrl}/owner/issues/${issue.id}`;
+
+      try {
+        await Promise.all(
+          owners.map((owner) =>
+            sendStopUseAlertEmail(owner.emailNormalized, {
+              sampleCode: sample.sampleCode,
+              category: data.category,
+              description: data.description,
+              issueUrl,
+            })
+          )
+        );
+        emailSent = true;
+      } catch (error: unknown) {
+        const err = error as Error;
+        console.error(`[issue-service] Failed to send Stop Use alert for issue ${issue.id}:`, err);
+        emailSent = false;
+        emailError = err.message || "Failed to send Stop Use alert email.";
+      }
+    }
+  }
+
+  return { ...issue, emailSent, emailError };
 }
 
 interface UpdateResolutionInput {
@@ -134,6 +179,18 @@ interface UpdateResolutionInput {
   resolutionStatus: string;
   resolutionNotes?: string;
 }
+
+// FUNC-08: explicit state-machine guard on resolutionStatus transitions, mirroring the
+// VALID_TRANSITIONS pattern in sample-service.ts / public-update-service.ts. Intended flow is
+// open -> monitoring -> resolved -> closed; reopening from a later state back to an earlier one
+// is allowed (the issue recurred or wasn't actually fixed), but skipping straight to a
+// terminal/near-terminal state (e.g. open or monitoring -> closed) is prohibited.
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  open: ["monitoring", "resolved"],
+  monitoring: ["resolved", "open"],
+  resolved: ["closed", "monitoring"],
+  closed: ["open", "monitoring"],
+};
 
 export async function updateIssueResolution(
   issueId: string,
@@ -146,6 +203,16 @@ export async function updateIssueResolution(
   }
 
   const issue = await getIssueById(issueId);
+
+  const currentStatus = issue.resolutionStatus;
+  if (currentStatus !== data.resolutionStatus) {
+    const allowed = VALID_TRANSITIONS[currentStatus] || [];
+    if (!allowed.includes(data.resolutionStatus)) {
+      throw AppError.invalidState(
+        `Transition from '${currentStatus}' to '${data.resolutionStatus}' is prohibited.`
+      );
+    }
+  }
 
   const isClosing = data.resolutionStatus === "closed" || data.resolutionStatus === "resolved";
 
