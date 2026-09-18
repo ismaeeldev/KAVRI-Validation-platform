@@ -1,5 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope, Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import {
+  Manrope,
+  Space_Grotesk,
+  JetBrains_Mono,
+  Big_Shoulders,
+  Inter,
+  IBM_Plex_Mono,
+} from "next/font/google";
 import "./globals.css";
 import { MotionProvider } from "@/components/brand/motion-provider";
 import { NetworkStatusBanner } from "@/components/brand/network-status-banner";
@@ -29,6 +36,32 @@ const spaceGrotesk = Space_Grotesk({
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-lp-mono",
+  display: "swap",
+});
+
+// "Held Charge" redesign typefaces (client-provided landing page redesign).
+// Google Fonts ships "Big Shoulders Display" as a width axis on the base
+// "Big Shoulders" family; next/font/google in this Next.js version exposes
+// the family itself (no separate per-width export), which renders the same
+// display-weight glyphs the client's design specifies.
+const bigShouldersDisplay = Big_Shoulders({
+  subsets: ["latin"],
+  weight: ["600", "700", "800", "900"],
+  variable: "--font-kv-display",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-kv-body",
+  display: "swap",
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-kv-mono",
   display: "swap",
 });
 
@@ -92,7 +125,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`h-full antialiased font-sans ${manrope.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
+      className={`h-full antialiased font-sans ${manrope.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} ${bigShouldersDisplay.variable} ${inter.variable} ${ibmPlexMono.variable}`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <PwaRootProvider>

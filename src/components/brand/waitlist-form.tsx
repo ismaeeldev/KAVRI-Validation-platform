@@ -17,8 +17,9 @@ type SignupFormData = zod.infer<typeof waitlistSignupSchema>;
 interface WaitlistFormProps {
   /** Which CTA instance rendered this form (hero/navigation/footer/update). */
   ctaSource?: string;
-  /** Premium landing styling: glass input + lime submit. */
-  variant?: "default" | "premium" | "premium-banner";
+  /** Premium landing styling: glass input + lime submit. "held-charge" matches
+   *  the client-provided landing redesign's pill-input signup section. */
+  variant?: "default" | "premium" | "premium-banner" | "held-charge";
 }
 
 export function WaitlistForm({ ctaSource, variant = "default" }: WaitlistFormProps) {
@@ -64,11 +65,54 @@ export function WaitlistForm({ ctaSource, variant = "default" }: WaitlistFormPro
         className={
           variant === "premium"
             ? "p-4 border border-[var(--lp-sage)]/30 bg-[var(--lp-sage-soft)] text-[var(--lp-sage)] rounded-md font-mono text-xs text-center"
-            : "p-4 border border-kavri-signal/20 bg-kavri-signal/5 text-kavri-signal rounded-md font-mono text-xs text-center"
+            : variant === "held-charge"
+              ? "font-sans text-[14.5px] text-[var(--kv-night-text)]"
+              : "p-4 border border-kavri-signal/20 bg-kavri-signal/5 text-kavri-signal rounded-md font-mono text-xs text-center"
         }
       >
-        Thank you. You have been added to the build follow feed.
+        {variant === "held-charge" ? "You're on the list." : "Thank you. You have been added to the build follow feed."}
       </div>
+    );
+  }
+
+  if (variant === "held-charge") {
+    return (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      <form onSubmit={handleSubmit(onSubmit as any)}>
+        <div className="hidden" aria-hidden="true">
+          <input
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            placeholder="Do not fill this field"
+            {...register("honeypot")}
+          />
+        </div>
+        <div className="flex gap-[10px] max-w-[440px] mb-[14px] flex-wrap">
+          <input
+            type="email"
+            required
+            placeholder="Email address"
+            aria-label="Email address"
+            disabled={isLoading}
+            {...register("email")}
+            className="flex-1 min-w-[150px] bg-transparent border border-[rgba(243,241,233,0.35)] rounded-full py-[13px] px-[18px] text-white text-[14.5px] font-sans placeholder:text-[rgba(243,241,233,0.5)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2 disabled:opacity-60"
+          />
+        </div>
+        {errors.email && (
+          <p className="text-red-300 font-mono text-[11px] mb-2">{errors.email.message}</p>
+        )}
+        <p className="text-[12.5px] text-[var(--kv-night-text-soft)] mb-[22px] font-sans">
+          By subscribing, you agree to receive KAVRI development emails. Unsubscribe anytime.
+        </p>
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="inline-flex items-center justify-center gap-2 font-sans font-semibold rounded-full border border-transparent cursor-pointer whitespace-nowrap no-underline transition-[background-color,border-color,transform,color] duration-150 ease-in-out active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--kv-accent)] focus-visible:outline-offset-2 bg-[var(--kv-cta)] text-[var(--kv-cta-text)] hover:bg-[var(--kv-cta-deep)] py-[13px] px-6 text-[14.5px] mb-[18px] disabled:opacity-60"
+        >
+          {isLoading ? "Submitting…" : "Follow the Build"}
+        </button>
+      </form>
     );
   }
 

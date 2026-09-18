@@ -1,63 +1,35 @@
-import React, { Suspense } from "react";
+import React from "react";
 import {
   getPublicUpdatesFeed,
   getPublicProducts,
-  getPublicMetrics,
-  getPublicWhatChangedAndWhy,
-  getPublicSampleSummaries,
   type PublicUpdateDTO,
   type PublicProductDTO,
-  type PublicWhatChangedDTO,
-  type PublicSampleSummaryDTO,
 } from "@/server/services/public-queries-service";
 
-import { LandingNav } from "@/components/brand/landing-nav";
-import {
-  LandingHero,
-  LandingValidationProgress,
-} from "@/components/brand/landing-hero";
-import {
-  LandingWhatWeAreBuilding,
-  LandingHowWeValidate,
-  LandingWhatChangedAndWhy,
-  LandingAboutKavri,
-} from "@/components/brand/landing-info-sections";
-import { LandingMetrics } from "@/components/brand/landing-metrics";
-import { LandingActiveSpecs } from "@/components/brand/landing-active-specs";
-import { LandingTimeline } from "@/components/brand/landing-timeline";
-import {
-  LandingValues,
-  LandingNewsletterCTA,
-  LandingFooter,
-} from "@/components/brand/landing-sections";
 import { UtmProvider } from "@/components/brand/landing-utm-context";
-import { LandingBootGate } from "@/components/brand/landing-boot-gate";
-import { LandingBootInlineScript } from "@/components/brand/landing-boot-inline-script";
-import { LandingSmoothScroll } from "@/components/brand/landing-smooth-scroll";
+import { HeldChargeIconSprite } from "@/components/brand/held-charge-icon-sprite";
+import { HeldChargeHeader } from "@/components/brand/held-charge-header";
+import { HeldChargeHero } from "@/components/brand/held-charge-hero";
+import { HeldChargeCurrentDevelopment } from "@/components/brand/held-charge-current-development";
+import { HeldChargePaddleArchitecture } from "@/components/brand/held-charge-paddle-architecture";
+import { HeldChargeDevelopmentLoop } from "@/components/brand/held-charge-development-loop";
+import { HeldChargeRealPlayerInput } from "@/components/brand/held-charge-real-player-input";
+import { HeldChargeDevelopmentLog } from "@/components/brand/held-charge-development-log";
+import { HeldChargeWhyKavri } from "@/components/brand/held-charge-why-kavri";
+import { HeldChargeSignup } from "@/components/brand/held-charge-signup";
+import { HeldChargeFooter } from "@/components/brand/held-charge-footer";
 
 export const revalidate = 60;
 
 export default async function PublicLandingPage() {
   let updates: PublicUpdateDTO[] = [];
   let products: PublicProductDTO[] = [];
-  let whatChanged: PublicWhatChangedDTO[] = [];
-  let sampleSummaries: PublicSampleSummaryDTO[] = [];
-  let metrics = {
-    revisionsCount: 0,
-    samplesReceived: 0,
-    approvedTesters: 0,
-    activeAssignments: 0,
-    publishedUpdates: 0,
-  };
   let isOfflineFallback = false;
 
   try {
-    [updates, products, metrics, whatChanged, sampleSummaries] = await Promise.all([
+    [updates, products] = await Promise.all([
       getPublicUpdatesFeed(),
       getPublicProducts(),
-      getPublicMetrics(),
-      getPublicWhatChangedAndWhy(),
-      getPublicSampleSummaries(),
     ]);
   } catch (error) {
     console.warn(
@@ -66,8 +38,6 @@ export default async function PublicLandingPage() {
     );
     isOfflineFallback = true;
   }
-
-  const featuredProduct = products[0] ?? null;
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://kavri.co";
   const jsonLd = {
@@ -88,8 +58,7 @@ export default async function PublicLandingPage() {
   };
 
   return (
-    <div className="landing-premium min-h-screen flex flex-col antialiased">
-      <LandingBootInlineScript />
+    <div className="landing-held-charge min-h-screen flex flex-col antialiased">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -97,40 +66,29 @@ export default async function PublicLandingPage() {
       {isOfflineFallback && (
         <div
           role="alert"
-          className="bg-[var(--lp-sage)] text-[var(--lp-sage-ink)] text-center py-2 font-mono text-[10px] uppercase tracking-wider border-b border-white/10 select-none z-[60] relative"
+          className="bg-[var(--kv-ignition)] text-[var(--kv-pressure-ink)] text-center py-2 font-mono text-[10px] uppercase tracking-wider border-b border-white/10 select-none z-[60] relative"
         >
           Local Preview Fallback Mode (Database Connection Unreachable)
         </div>
       )}
 
-      <Suspense fallback={null}>
-        <UtmProvider>
-          <LandingBootGate>
-          <LandingSmoothScroll>
-          <LandingNav />
+      <UtmProvider>
+        <HeldChargeIconSprite />
+        <HeldChargeHeader />
 
-          <main className="flex-1">
-            <LandingHero />
-            <LandingValidationProgress />
-            <LandingActiveSpecs
-              product={featuredProduct}
-              sampleSummaries={sampleSummaries}
-            />
-            <LandingHowWeValidate />
-            <LandingWhatWeAreBuilding products={products} />
-            <LandingMetrics metrics={metrics} />
-            <LandingWhatChangedAndWhy decisions={whatChanged} />
-            <LandingTimeline updates={updates} />
-            <LandingValues />
-            <LandingNewsletterCTA />
-            <LandingAboutKavri />
-          </main>
+        <main className="flex-1">
+          <HeldChargeHero />
+          <HeldChargeCurrentDevelopment products={products} />
+          <HeldChargePaddleArchitecture />
+          <HeldChargeDevelopmentLoop />
+          <HeldChargeRealPlayerInput />
+          <HeldChargeDevelopmentLog updates={updates} />
+          <HeldChargeWhyKavri />
+          <HeldChargeSignup />
+        </main>
 
-          <LandingFooter />
-          </LandingSmoothScroll>
-          </LandingBootGate>
-        </UtmProvider>
-      </Suspense>
+        <HeldChargeFooter />
+      </UtmProvider>
     </div>
   );
 }

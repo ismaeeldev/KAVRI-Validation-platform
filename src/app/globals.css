@@ -231,6 +231,60 @@
   font-family: var(--font-mono);
 }
 
+/* ── Landing "Held Charge" — client-provided redesign palette ── */
+.landing-held-charge {
+  --kv-pressure-ink: #191c2b;
+  --kv-drive-cobalt: #5268c9;
+  --kv-chalk: #f0eee7;
+  --kv-graphite: #555962;
+  --kv-ignition: #a8c94b;
+
+  --kv-paper: var(--kv-chalk);
+  --kv-stone: #e4e0d3;
+  --kv-stone-deep: #d7d2c0;
+  --kv-ink: var(--kv-pressure-ink);
+  --kv-ink-soft: var(--kv-graphite);
+  --kv-ink-faint: #8a8e97;
+  --kv-line: rgba(25, 28, 43, 0.14);
+  --kv-line-soft: rgba(25, 28, 43, 0.08);
+  --kv-accent: var(--kv-drive-cobalt);
+  --kv-accent-deep: #3f52a8;
+  --kv-accent-soft: #e4e8f7;
+  --kv-accent-glow: rgba(82, 104, 201, 0.35);
+  --kv-cta: var(--kv-ignition);
+  --kv-cta-text: var(--kv-pressure-ink);
+  --kv-cta-deep: #96b93f;
+  --kv-night: var(--kv-pressure-ink);
+  --kv-night-surface: #23273a;
+  --kv-night-line: rgba(240, 238, 231, 0.13);
+  --kv-night-text: var(--kv-chalk);
+  --kv-night-text-soft: rgba(240, 238, 231, 0.64);
+  --kv-amber-bg: #fbf1de;
+  --kv-amber-text: #8a5c10;
+  --kv-green-bg: #e6f3ea;
+  --kv-green-text: #1d7a46;
+
+  --font-heading: var(--font-kv-display), "Big Shoulders Display", sans-serif;
+  --font-sans: var(--font-kv-body), "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-kv-mono), "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
+
+  color: var(--kv-ink);
+  background: var(--kv-paper);
+  font-family: var(--font-sans);
+  overflow-x: clip;
+}
+
+.landing-held-charge .font-heading {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: 0.003em;
+  line-height: 0.98;
+}
+
+.landing-held-charge .font-mono {
+  font-family: var(--font-mono);
+}
+
 /* Readable floor handled via component classes (11px+ labels) */
 
 .scrollbar-none {
