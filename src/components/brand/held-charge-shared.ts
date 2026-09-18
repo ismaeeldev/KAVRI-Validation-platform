@@ -15,10 +15,10 @@ export function cx(...classes: Array<string | false | null | undefined>): string
 }
 
 /** The shared content container. */
-export const wrap = "max-w-[1180px] mx-auto px-8 max-600:px-[22px]";
+export const wrap = "max-w-[1180px] mx-auto px-8 max-[600px]:px-[22px]";
 
 /** Standard section vertical padding. */
-export const sectionPadding = "pt-[100px] pb-[100px] max-700:pt-[68px] max-700:pb-[68px]";
+export const sectionPadding = "pt-[100px] pb-[100px] max-[700px]:pt-[68px] max-[700px]:pb-[68px]";
 
 /**
  * Base button styles, before a variant (primary/outline) and before
@@ -80,6 +80,6 @@ export const pillCobalt = "bg-[var(--kv-accent-soft)] text-[var(--kv-accent-deep
  * The small faint brand-mark watermark next to an eyebrow. Two full
  * variants for the same reason noted on `btnBase`.
  */
-const deviceCornerShape = "w-[15px] h-auto opacity-55 pointer-events-none flex-none max-300:hidden";
+const deviceCornerShape = "w-[15px] h-auto opacity-55 pointer-events-none flex-none max-[300px]:hidden";
 export const deviceCorner = cx(deviceCornerShape, "fill-[var(--kv-ink-faint)]");
 export const deviceCornerOnDark = cx(deviceCornerShape, "fill-[var(--kv-night-text-soft)]");
