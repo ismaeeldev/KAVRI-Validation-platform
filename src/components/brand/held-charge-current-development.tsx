@@ -1,5 +1,6 @@
 import type { PublicProductDTO } from "@/server/services/public-queries-service";
 import { wrap, sectionPadding, eyebrowOnDark, sectionHead, sectionHeadPOnDark, deviceCornerOnDark, pillBase, pillNeutral, pillCobalt, cx } from "./held-charge-shared";
+import { HeldChargeReveal } from "./held-charge-reveal";
 
 interface HeldChargeCurrentDevelopmentProps {
   products: PublicProductDTO[];
@@ -129,7 +130,8 @@ export function HeldChargeCurrentDevelopment({ products }: HeldChargeCurrentDeve
           </p>
         </div>
 
-        <div
+        <HeldChargeReveal
+          stagger
           className={cx(
             "grid gap-[18px] max-[980px]:grid-cols-2 max-[560px]:grid-cols-1",
             GRID_COLS_CLASS[Math.min(revisionCards.length, 4) as 0 | 1 | 2 | 3 | 4]
@@ -142,7 +144,7 @@ export function HeldChargeCurrentDevelopment({ products }: HeldChargeCurrentDeve
           ) : (
             <EmptyStateCard />
           )}
-        </div>
+        </HeldChargeReveal>
       </div>
     </section>
   );

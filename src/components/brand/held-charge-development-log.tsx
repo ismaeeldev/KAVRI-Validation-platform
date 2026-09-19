@@ -1,5 +1,6 @@
 import type { PublicUpdateDTO } from "@/server/services/public-queries-service";
 import { wrap, sectionPadding, eyebrow, sectionHead, sectionHeadP, deviceCorner, pillBase, pillNeutral, cx } from "./held-charge-shared";
+import { HeldChargeReveal } from "./held-charge-reveal";
 
 interface HeldChargeDevelopmentLogProps {
   updates: PublicUpdateDTO[];
@@ -85,7 +86,7 @@ export function HeldChargeDevelopmentLog({ updates }: HeldChargeDevelopmentLogPr
           </p>
         </div>
 
-        <div className="flex gap-5 flex-wrap max-[900px]:flex-col">
+        <HeldChargeReveal stagger className="flex gap-5 flex-wrap max-[900px]:flex-col">
           {updates.length > 0 ? (
             updates.map((update) => (
               <LogEntry
@@ -104,7 +105,7 @@ export function HeldChargeDevelopmentLog({ updates }: HeldChargeDevelopmentLogPr
               publishedAt={null}
             />
           )}
-        </div>
+        </HeldChargeReveal>
       </div>
     </section>
   );

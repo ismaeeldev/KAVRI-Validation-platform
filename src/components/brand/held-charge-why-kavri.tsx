@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { wrap, eyebrowOnDark, cx } from "./held-charge-shared";
+import { HeldChargeReveal } from "./held-charge-reveal";
 
 interface SubCardProps {
   icon: string;
@@ -32,8 +33,7 @@ export function HeldChargeWhyKavri() {
     >
       <div className={wrap}>
         <div className="grid grid-cols-[0.85fr_1.15fr] gap-[60px] items-start max-[900px]:grid-cols-1">
-          <div
-            aria-hidden="true"
+          <HeldChargeReveal
             className="relative h-[330px] min-w-0 before:content-[''] before:absolute before:inset-[-14%] before:pointer-events-none before:bg-[radial-gradient(ellipse_at_46%_40%,rgba(82,104,201,0.26)_0%,rgba(38,42,69,0.16)_46%,transparent_72%)]"
           >
             <Image
@@ -43,9 +43,9 @@ export function HeldChargeWhyKavri() {
               sizes="(max-width: 900px) 90vw, 45vw"
               className="relative object-contain [filter:drop-shadow(0_18px_24px_rgba(0,0,0,0.5))]"
             />
-          </div>
+          </HeldChargeReveal>
 
-          <div>
+          <HeldChargeReveal stagger>
             <span className={cx(eyebrowOnDark, "mb-[18px]")}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="w-3 h-3 flex-none">
                 <use href="#i-users" />
@@ -77,7 +77,7 @@ export function HeldChargeWhyKavri() {
                 description="Instrumented checks and structured playtesting answer different questions. KAVRI uses both."
               />
             </div>
-          </div>
+          </HeldChargeReveal>
         </div>
       </div>
     </section>

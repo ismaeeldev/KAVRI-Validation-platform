@@ -8,6 +8,8 @@ import {
 
 import { UtmProvider } from "@/components/brand/landing-utm-context";
 import { HeldChargeIconSprite } from "@/components/brand/held-charge-icon-sprite";
+import { HeldChargeSmoothScroll } from "@/components/brand/held-charge-smooth-scroll";
+import { HeldChargeReveal } from "@/components/brand/held-charge-reveal";
 import { HeldChargeHeader } from "@/components/brand/held-charge-header";
 import { HeldChargeHero } from "@/components/brand/held-charge-hero";
 import { HeldChargeCurrentDevelopment } from "@/components/brand/held-charge-current-development";
@@ -74,20 +76,26 @@ export default async function PublicLandingPage() {
 
       <UtmProvider>
         <HeldChargeIconSprite />
-        <HeldChargeHeader />
+        <HeldChargeSmoothScroll>
+          <HeldChargeHeader />
 
-        <main className="flex-1">
-          <HeldChargeHero />
-          <HeldChargeCurrentDevelopment products={products} />
-          <HeldChargePaddleArchitecture />
-          <HeldChargeDevelopmentLoop />
-          <HeldChargeRealPlayerInput />
-          <HeldChargeDevelopmentLog updates={updates} />
-          <HeldChargeWhyKavri />
-          <HeldChargeSignup />
-        </main>
+          <main className="flex-1">
+            <HeldChargeHero />
+            <HeldChargeCurrentDevelopment products={products} />
+            <HeldChargePaddleArchitecture />
+            <HeldChargeDevelopmentLoop />
+            <HeldChargeReveal>
+              <HeldChargeRealPlayerInput />
+            </HeldChargeReveal>
+            <HeldChargeDevelopmentLog updates={updates} />
+            <HeldChargeWhyKavri />
+            <HeldChargeReveal>
+              <HeldChargeSignup />
+            </HeldChargeReveal>
+          </main>
 
-        <HeldChargeFooter />
+          <HeldChargeFooter />
+        </HeldChargeSmoothScroll>
       </UtmProvider>
     </div>
   );

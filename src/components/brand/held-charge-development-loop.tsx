@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { PROCESS_STAGES, pad } from "./held-charge-process-stages";
 import { wrap, sectionPadding, eyebrow, sectionHead, sectionHeadP, deviceCorner, cx } from "./held-charge-shared";
+import { HeldChargeReveal } from "./held-charge-reveal";
 
 const LOOP_TRANSITION = "stroke-dashoffset 0.9s cubic-bezier(.22,.61,.36,1)";
 
@@ -59,7 +60,7 @@ export function HeldChargeDevelopmentLoop() {
   return (
     <section id="journey" className={sectionPadding}>
       <div className={wrap}>
-        <div className={sectionHead}>
+        <HeldChargeReveal className={sectionHead} stagger>
           <div className="inline-flex items-center gap-[11px]">
             <span className={eyebrow}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="w-3 h-3 flex-none">
@@ -77,7 +78,7 @@ export function HeldChargeDevelopmentLoop() {
             evaluates new materials, constructions, manufacturing methods, and equipment concepts
             against what already performs. Improvements earn their way into the product.
           </p>
-        </div>
+        </HeldChargeReveal>
 
         {/* Desktop / tablet: horizontal track, hidden below 560px in favor of the mobile rail. */}
         <div ref={trackWrapRef} className="relative max-w-[960px] mx-auto pt-[28px] max-[559px]:hidden">

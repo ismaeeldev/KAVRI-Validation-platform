@@ -1,4 +1,5 @@
 import { wrap, sectionPadding, eyebrow, btnBase, btnOutline, btnSizeDefault, cx } from "./held-charge-shared";
+import { HeldChargeReveal } from "./held-charge-reveal";
 
 interface AttrCardProps {
   icon: string;
@@ -35,7 +36,7 @@ export function HeldChargePaddleArchitecture() {
 
       <div className={wrap}>
         <div className="relative z-[1] grid grid-cols-[0.95fr_1.05fr] gap-14 items-center max-[900px]:grid-cols-1">
-          <div className="flex justify-center">
+          <HeldChargeReveal className="flex justify-center" y={0}>
             <svg viewBox="-30 -20 380 340" className="w-full max-w-[380px] h-auto">
               <g stroke="rgba(25,28,43,0.22)" fill="none" strokeDasharray="2 4">
                 <circle cx="160" cy="150" r="42" />
@@ -78,9 +79,9 @@ export function HeldChargePaddleArchitecture() {
               />
               <circle cx="160" cy="150" r="40" fill="url(#sweetSpotGlow)" />
             </svg>
-          </div>
+          </HeldChargeReveal>
 
-          <div>
+          <HeldChargeReveal stagger>
             <span className={cx(eyebrow, "mb-[18px]")}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="w-3 h-3 flex-none">
                 <use href="#i-axis" />
@@ -124,7 +125,7 @@ export function HeldChargePaddleArchitecture() {
                 <use href="#i-arrow-r" />
               </svg>
             </a>
-          </div>
+          </HeldChargeReveal>
         </div>
       </div>
     </section>
