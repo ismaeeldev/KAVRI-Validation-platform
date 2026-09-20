@@ -88,6 +88,16 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
+      {
+        url: "/KAVRI_02C_favicon_light-mode.png",
+        media: "(prefers-color-scheme: light)",
+        type: "image/png",
+      },
+      {
+        url: "/KAVRI_02C_favicon_dark-mode.png",
+        media: "(prefers-color-scheme: dark)",
+        type: "image/png",
+      },
       { url: pwaIconUrl(192), sizes: "192x192", type: "image/png" },
       { url: pwaIconUrl(512), sizes: "512x512", type: "image/png" },
     ],

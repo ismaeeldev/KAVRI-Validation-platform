@@ -49,7 +49,7 @@ export function WaitlistForm({ ctaSource, variant = "default" }: WaitlistFormPro
         consentTextVersion: WAITLIST_CONSENT_TEXT_VERSION,
       });
       setIsSuccess(true);
-      toast.success("Subscription processed successfully.");
+      toast.success("You're following the build.");
       reset();
     } catch (error: unknown) {
       const err = error as Error;
@@ -70,7 +70,7 @@ export function WaitlistForm({ ctaSource, variant = "default" }: WaitlistFormPro
               : "p-4 border border-kavri-signal/20 bg-kavri-signal/5 text-kavri-signal rounded-md font-mono text-xs text-center"
         }
       >
-        {variant === "held-charge" ? "You're on the list." : "Thank you. You have been added to the build follow feed."}
+        {variant === "held-charge" ? "You're following the build." : "Thank you. You have been added to the build follow feed."}
       </div>
     );
   }

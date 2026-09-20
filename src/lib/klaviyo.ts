@@ -12,12 +12,16 @@ import "server-only";
 // callers must treat a thrown error here as best-effort and non-fatal to the underlying signup or
 // application record (see waitlist-service.ts syncToKlaviyo wrapper).
 //
-// Uses Klaviyo's public REST API directly (no SDK dependency) - the Profiles "create or update"
-// endpoint (via a subscription bulk-create job) which both upserts the profile and opts it in to
-// email marketing consent in a single call, matching the single opt-in model from Decision 2.
+// Two separate Klaviyo API calls, not one: the "profile-subscription-bulk-create-jobs" endpoint
+// (used below to record marketing consent) only accepts email/phone_number/subscriptions/
+// age_gated_date_of_birth on each profile - first_name and properties are rejected there with a
+// 400 ("'properties' is not a valid field for the resource 'profile'"), confirmed against a real
+// Klaviyo account. Properties and first_name must go through the separate profile-import
+// (create-or-update) endpoint instead. We call profile-import first so the properties exist on
+// the profile before consent is recorded, then call the subscription job for consent itself.
 
 const KLAVIYO_API_BASE = "https://a.klaviyo.com/api";
-const KLAVIYO_REVISION = "2024-10-15";
+const KLAVIYO_REVISION = "2026-07-15";
 
 interface KlaviyoSyncInput {
   email: string;
@@ -49,14 +53,31 @@ function klaviyoHeaders(apiKey: string): HeadersInit {
   };
 }
 
-// Subscribes a profile to email marketing consent via Klaviyo's server-side subscription create
-// job - the correct API for a single opt-in signup performed on the subscriber's own behalf
-// (no confirmation email step), rather than a bare profile upsert which would not record consent.
-// Throws on any non-2xx response or network failure - never resolves successfully without Klaviyo
-// actually acknowledging the request.
-export async function syncSubscriberToKlaviyo(input: KlaviyoSyncInput): Promise<void> {
-  const apiKey = getApiKey();
+async function klaviyoPost(apiKey: string, path: string, body: unknown, email: string, step: string): Promise<void> {
+  let response: Response;
+  try {
+    response = await fetch(`${KLAVIYO_API_BASE}${path}`, {
+      method: "POST",
+      headers: klaviyoHeaders(apiKey),
+      body: JSON.stringify(body),
+    });
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error(`[klaviyo] Network error during ${step} for ${email}:`, err);
+    throw new Error(`Failed to reach Klaviyo during ${step}.`);
+  }
 
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => "");
+    console.error(`[klaviyo] Klaviyo API rejected ${step} for ${email} (status ${response.status}):`, errorText);
+    throw new Error(`Klaviyo ${step} failed (status ${response.status}).`);
+  }
+}
+
+// Upserts profile properties (signup source, CTA source, UTM attribution, consent text version)
+// via Klaviyo's profile-import (create-or-update) endpoint. Must run before the subscription
+// job below, since that endpoint cannot carry properties itself.
+async function upsertProfileProperties(apiKey: string, input: KlaviyoSyncInput): Promise<void> {
   const properties: Record<string, string> = {
     signup_source: input.source,
   };
@@ -66,6 +87,26 @@ export async function syncSubscriberToKlaviyo(input: KlaviyoSyncInput): Promise<
   if (input.utmCampaign) properties.utm_campaign = input.utmCampaign;
   if (input.consentTextVersion) properties.consent_text_version = input.consentTextVersion;
 
+  const body = {
+    data: {
+      type: "profile",
+      attributes: {
+        email: input.email,
+        ...(input.name ? { first_name: input.name } : {}),
+        properties,
+      },
+    },
+  };
+
+  await klaviyoPost(apiKey, "/profile-import", body, input.email, "profile property upsert");
+}
+
+// Subscribes a profile to email marketing consent via Klaviyo's server-side subscription create
+// job - the correct API for a single opt-in signup performed on the subscriber's own behalf
+// (no confirmation email step), rather than a bare profile upsert which would not record consent.
+// Throws on any non-2xx response or network failure - never resolves successfully without Klaviyo
+// actually acknowledging the request.
+async function subscribeToMarketing(apiKey: string, input: KlaviyoSyncInput): Promise<void> {
   const body = {
     data: {
       type: "profile-subscription-bulk-create-job",
@@ -79,8 +120,6 @@ export async function syncSubscriberToKlaviyo(input: KlaviyoSyncInput): Promise<
               type: "profile",
               attributes: {
                 email: input.email,
-                ...(input.name ? { first_name: input.name } : {}),
-                properties,
                 subscriptions: {
                   email: {
                     marketing: {
@@ -96,25 +135,11 @@ export async function syncSubscriberToKlaviyo(input: KlaviyoSyncInput): Promise<
     },
   };
 
-  let response: Response;
-  try {
-    response = await fetch(`${KLAVIYO_API_BASE}/profile-subscription-bulk-create-jobs/`, {
-      method: "POST",
-      headers: klaviyoHeaders(apiKey),
-      body: JSON.stringify(body),
-    });
-  } catch (error: unknown) {
-    const err = error as Error;
-    console.error(`[klaviyo] Network error syncing ${input.email} to Klaviyo:`, err);
-    throw new Error("Failed to reach Klaviyo to sync subscriber.");
-  }
+  await klaviyoPost(apiKey, "/profile-subscription-bulk-create-jobs/", body, input.email, "marketing consent subscription");
+}
 
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => "");
-    console.error(
-      `[klaviyo] Klaviyo API rejected sync for ${input.email} (status ${response.status}):`,
-      errorText
-    );
-    throw new Error(`Klaviyo sync failed (status ${response.status}).`);
-  }
+export async function syncSubscriberToKlaviyo(input: KlaviyoSyncInput): Promise<void> {
+  const apiKey = getApiKey();
+  await upsertProfileProperties(apiKey, input);
+  await subscribeToMarketing(apiKey, input);
 }

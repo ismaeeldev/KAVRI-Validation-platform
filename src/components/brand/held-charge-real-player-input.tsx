@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { wrap, eyebrowOnDark, btnBase, btnOutlineOnDark, btnSizeDefault, cx } from "./held-charge-shared";
+import { wrap, eyebrowOnDark, btnBase, btnPrimary, btnSizeDefault, cx } from "./held-charge-shared";
 
 export function HeldChargeRealPlayerInput() {
   return (
@@ -26,7 +26,7 @@ export function HeldChargeRealPlayerInput() {
             helps KAVRI compare versions, identify issues, and decide what needs more work.
           </p>
           <div className="flex gap-3 flex-wrap">
-            <a href="#form" className={cx(btnBase, btnOutlineOnDark, btnSizeDefault)}>
+            <a href="#form" className={cx(btnBase, btnPrimary, btnSizeDefault)}>
               Follow the Build
             </a>
           </div>

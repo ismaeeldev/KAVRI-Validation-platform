@@ -54,7 +54,7 @@ export function HeldChargeFooter() {
             <ul className="list-none m-0 p-0 flex flex-col gap-[11px]">
               <li>
                 <a
-                  href="https://instagram.com"
+                  href="https://www.instagram.com/playkavri/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm no-underline text-[var(--kv-ink-soft)] inline-flex items-center gap-2 hover:text-[var(--kv-ink)]"
@@ -88,13 +88,18 @@ export function HeldChargeFooter() {
             </svg>
           </div>
           <div>
-            <a href="#" className="text-[var(--kv-ink-faint)] no-underline ml-[18px] hover:text-[var(--kv-ink-soft)]">
+            <a href="/privacy" className="text-[var(--kv-ink-faint)] no-underline ml-[18px] hover:text-[var(--kv-ink-soft)]">
               Privacy Policy
             </a>
-            <a href="#" className="text-[var(--kv-ink-faint)] no-underline ml-[18px] hover:text-[var(--kv-ink-soft)]">
+            <a href="/terms" className="text-[var(--kv-ink-faint)] no-underline ml-[18px] hover:text-[var(--kv-ink-soft)]">
               Terms of Use
             </a>
-            <a href="/login" className={cx("text-[var(--kv-ink-faint)] no-underline ml-[18px] hover:text-[var(--kv-ink-soft)]")}>
+            <a
+              href="/login"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cx("text-[var(--kv-ink-faint)] no-underline ml-[18px] hover:text-[var(--kv-ink-soft)]")}
+            >
               Team Login
             </a>
           </div>

@@ -53,6 +53,8 @@ export function HeldChargeHeader() {
 
           <a
             href="/login"
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex items-center gap-[6px] text-[13px] font-semibold text-[var(--kv-night-text-soft)] no-underline tracking-[0.01em] whitespace-nowrap opacity-85 hover:opacity-100 hover:text-[var(--kv-night-text)] max-[920px]:hidden"
           >
             <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.6} className="w-[14px] h-[14px] stroke-current flex-none">
@@ -106,6 +108,8 @@ export function HeldChargeHeader() {
         ))}
         <a
           href="/login"
+          target="_blank"
+          rel="noopener noreferrer"
           onClick={() => setMenuOpen(false)}
           className="py-[13px] text-[15px] font-semibold text-[var(--kv-night-text-soft)] no-underline border-b border-[var(--kv-night-line)] last:border-b-0 hover:text-[var(--kv-night-text)]"
         >
