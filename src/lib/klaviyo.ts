@@ -23,6 +23,13 @@ import "server-only";
 const KLAVIYO_API_BASE = "https://a.klaviyo.com/api";
 const KLAVIYO_REVISION = "2026-07-15";
 
+// KAVRI — Follow the Build (single opt-in). Without this relationship, a subscribe job still
+// records "SUBSCRIBED" consent on the profile but never actually adds it to any list — which is
+// exactly what happened in production: the API call was silently "succeeding" (200/202, no error
+// thrown, klaviyoSyncedAt populated) while the list itself stayed at zero members, because no
+// list_id was ever set. Confirmed against the client-provided List ID before this fix.
+const KLAVIYO_LIST_ID = "X6vRnV";
+
 interface KlaviyoSyncInput {
   email: string;
   name?: string;
@@ -111,8 +118,6 @@ async function subscribeToMarketing(apiKey: string, input: KlaviyoSyncInput): Pr
     data: {
       type: "profile-subscription-bulk-create-job",
       attributes: {
-        // No list_id set: profiles are synced with marketing consent + properties for
-        // segmentation, per the brief's "use profile properties rather than excessive lists".
         custom_source: input.source,
         profiles: {
           data: [
@@ -130,6 +135,16 @@ async function subscribeToMarketing(apiKey: string, input: KlaviyoSyncInput): Pr
               },
             },
           ],
+        },
+      },
+      // Without this relationship, Klaviyo records consent on the profile but never adds it to
+      // any list — the job still returns success with no error, so this must not be omitted.
+      relationships: {
+        list: {
+          data: {
+            type: "list",
+            id: KLAVIYO_LIST_ID,
+          },
         },
       },
     },

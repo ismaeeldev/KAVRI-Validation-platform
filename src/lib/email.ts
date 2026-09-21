@@ -291,3 +291,44 @@ export async function sendStopUseAlertEmail(
     throw new Error("Failed to send stop use alert email.");
   }
 }
+
+// Simple infra/ops failure notifier - deliberately the opposite failure contract of every other
+// function in this file: this must NEVER throw. It is called from inside other error-handling
+// paths (e.g. a Klaviyo sync failure), so if sending the alert itself fails, that can only be
+// logged - propagating it would mask the original error it was trying to report, or (worse)
+// turn an already-handled background failure into a fresh unhandled one. Requires OPS_ALERT_EMAIL
+// to be set; silently no-ops (logs only) if it isn't, rather than crashing an unrelated request
+// just because alerting hasn't been configured yet.
+export async function sendOpsAlertEmail(subject: string, details: string): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const alertEmail = process.env.OPS_ALERT_EMAIL;
+
+  if (!apiKey || !alertEmail) {
+    console.error(
+      `[email] Ops alert NOT sent (${!apiKey ? "RESEND_API_KEY" : "OPS_ALERT_EMAIL"} missing): ${subject} — ${details}`
+    );
+    return;
+  }
+
+  try {
+    const resend = new Resend(apiKey);
+    const fromAddress = process.env.RESEND_FROM_EMAIL || "KAVRI <noreply@kavri.co>";
+
+    const { error } = await resend.emails.send({
+      from: fromAddress,
+      to: alertEmail,
+      subject: `[KAVRI Alert] ${subject}`,
+      html: `
+        <p style="color:#b33a32;font-weight:bold;">An automated system check on kavri.com failed.</p>
+        <p>${details}</p>
+        <p style="color:#666;font-size:12px;">Sent ${new Date().toISOString()}</p>
+      `,
+    });
+
+    if (error) {
+      console.error(`[email] Resend failed to send ops alert "${subject}":`, error);
+    }
+  } catch (error: unknown) {
+    console.error(`[email] Unexpected error sending ops alert "${subject}":`, error);
+  }
+}

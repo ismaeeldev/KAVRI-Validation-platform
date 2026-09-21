@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { logActivity } from "./activity-service";
-import { sendTesterApplicationConfirmationEmail } from "@/lib/email";
+import { sendTesterApplicationConfirmationEmail, sendOpsAlertEmail } from "@/lib/email";
 import { syncSubscriberToKlaviyo } from "@/lib/klaviyo";
 
 export async function getWaitlistSubscribers() {
@@ -72,10 +72,14 @@ export async function addToWaitlist(data: WaitlistSignupInput) {
     })
     .returning();
 
-  // Decision 2: sync to Klaviyo immediately on submit (single opt-in, no confirmation step).
-  // Best-effort and non-blocking - the KAVRI-side record above already succeeded and is the
-  // source of truth regardless of whether this succeeds.
-  await syncToKlaviyoBestEffort(newSub.id, {
+  // Sync to Klaviyo immediately on submit (single opt-in, no confirmation step). The
+  // waitlistSubscribers row above has already been saved and stays saved regardless of what
+  // happens next - that part of "KAVRI's database is the source of truth" is unchanged. But per
+  // client request, the public form itself must not tell the visitor they're "following the
+  // build" unless Klaviyo actually confirmed it, so this call is synchronous and its failure is
+  // rethrown to the caller (the server action), which surfaces as a visible error in the form
+  // instead of a false-positive success toast.
+  await syncToKlaviyoOrThrow(newSub.id, {
     email: data.email,
     source: "join_the_build",
     ctaSource: data.ctaSource,
@@ -256,5 +260,54 @@ async function syncToKlaviyoBestEffort(
       .set({ klaviyoSyncError: err.message || "Klaviyo sync failed." })
       .where(eq(schema.waitlistSubscribers.id, subscriberId));
   }
+}
+
+// Used only by the public "Join the Build" waitlist form, per client request: the visitor must
+// not see a success message unless Klaviyo actually confirmed the subscription. Records the
+// same klaviyoSyncedAt/klaviyoSyncError columns as the best-effort version above (so the owner
+// dashboard's view of sync state is identical either way), but re-throws on failure so the
+// caller's error propagates up through the server action to the form instead of being swallowed.
+// The waitlistSubscribers row has already been inserted before this runs, so KAVRI's own record
+// of the signup is never lost even when this throws - only the user-facing success message is
+// gated on Klaviyo.
+async function syncToKlaviyoOrThrow(
+  subscriberId: string,
+  input: {
+    email: string;
+    name?: string;
+    source: string;
+    ctaSource?: string;
+    utmSource?: string;
+    utmMedium?: string;
+    utmCampaign?: string;
+    consentTextVersion?: string;
+  }
+): Promise<void> {
+  try {
+    await syncSubscriberToKlaviyo(input);
+    await db
+      .update(schema.waitlistSubscribers)
+      .set({ klaviyoSyncedAt: new Date(), klaviyoSyncError: null })
+      .where(eq(schema.waitlistSubscribers.id, subscriberId));
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error(`[waitlist-service] Klaviyo sync failed for ${input.email}:`, err);
+    await db
+      .update(schema.waitlistSubscribers)
+      .set({ klaviyoSyncError: err.message || "Klaviyo sync failed." })
+      .where(eq(schema.waitlistSubscribers.id, subscriberId));
+    await notifyKlaviyoFailure(input.email, err.message || "Klaviyo sync failed.");
+    throw new Error("We couldn't confirm your subscription. Please try again in a moment.");
+  }
+}
+
+// Per client request: a Klaviyo failure should never fail silently. sendOpsAlertEmail never
+// throws on its own, so this never turns an alert-delivery problem into a second, unrelated
+// failure on top of the Klaviyo one already being handled by the caller.
+async function notifyKlaviyoFailure(email: string, reason: string): Promise<void> {
+  await sendOpsAlertEmail(
+    "Klaviyo signup sync failed",
+    `The waitlist signup for <strong>${email}</strong> was saved to KAVRI's database, but syncing it to Klaviyo failed: ${reason}`
+  );
 }
 

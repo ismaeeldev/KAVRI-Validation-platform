@@ -39,7 +39,7 @@ export function WaitlistForm({ ctaSource, variant = "default" }: WaitlistFormPro
   const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true);
     try {
-      await waitlistSignupAction({
+      const result = await waitlistSignupAction({
         ...data,
         ctaSource,
         utmSource,
@@ -48,6 +48,13 @@ export function WaitlistForm({ ctaSource, variant = "default" }: WaitlistFormPro
         ref: refCode,
         consentTextVersion: WAITLIST_CONSENT_TEXT_VERSION,
       });
+      // waitlistSignupAction returns { success: false, message } on failure rather than
+      // throwing, so a real error message (e.g. a Klaviyo confirmation failure) survives past
+      // Next's production stripping of thrown Server Action errors. A thrown error can still
+      // reach the catch below (e.g. a network failure before the action even runs).
+      if (result && "success" in result && result.success === false) {
+        throw new Error(result.message || "Failed to submit subscription.");
+      }
       setIsSuccess(true);
       toast.success("You're following the build.");
       reset();
